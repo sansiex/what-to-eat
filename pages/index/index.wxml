@@ -1,0 +1,95 @@
+<!-- pages/index/index.wxml -->
+<view class="container">
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <text class="search-icon">🔍</text>
+    <input 
+      class="search-input" 
+      placeholder="搜索菜品" 
+      bindinput="onSearch"
+      value="{{searchKeyword}}"
+    />
+  </view>
+  
+  <!-- 菜品列表 -->
+  <view class="section">
+    <view class="section-header">
+      <text style="font-size: 32rpx; font-weight: 600;">菜品清单</text>
+      <button 
+        style="font-size: 28rpx; padding: 8rpx 16rpx;" 
+        bindtap="showAddDialog"
+      >
+        添加菜品
+      </button>
+    </view>
+    
+    <view wx:if="{{filteredDishes.length === 0}}" style="padding: 40rpx 0; text-align: center; color: #999;">
+      暂无菜品，请添加
+    </view>
+    
+    <view wx:else>
+      <view 
+        wx:for="{{filteredDishes}}" 
+        wx:key="{{item.id}}" 
+        class="list-item"
+      >
+        <view class="list-item__content">
+          <text class="list-item__title">{{item.name}}</text>
+        </view>
+        <view class="list-item__actions">
+          <button 
+            style="font-size: 24rpx; padding: 6rpx 12rpx; margin-right: 12rpx;" 
+            bindtap="showEditDialog" 
+            data-id="{{item.id}}"
+          >
+            编辑
+          </button>
+          <button 
+            style="font-size: 24rpx; padding: 6rpx 12rpx; color: #ff3b30;" 
+            bindtap="deleteDish" 
+            data-id="{{item.id}}"
+          >
+            删除
+          </button>
+        </view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 发起一餐按钮 -->
+  <button class="btn" bindtap="navigateToInitiateMeal">发起一餐</button>
+  
+  <!-- 添加菜品对话框 -->
+  <view wx:if="{{showAddDialog}}" class="dialog">
+    <view class="dialog-content">
+      <text class="dialog-title">添加菜品</text>
+      <input 
+        class="input" 
+        placeholder="请输入菜品名称" 
+        bindinput="onDishNameInput"
+        value="{{newDishName}}"
+      />
+      <view class="dialog-actions">
+        <view class="dialog-btn dialog-btn--cancel" bindtap="hideAddDialog">取消</view>
+        <view class="dialog-btn dialog-btn--confirm" bindtap="addDish">确定</view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 编辑菜品对话框 -->
+  <view wx:if="{{showEditDialog}}" class="dialog">
+    <view class="dialog-content">
+      <text class="dialog-title">编辑菜品</text>
+      <input 
+        class="input" 
+        placeholder="请输入菜品名称" 
+        bindinput="onDishNameInput"
+        value="{{editingDishName}}"
+      />
+      <view class="dialog-actions">
+        <view class="dialog-btn dialog-btn--cancel" bindtap="hideEditDialog">取消</view>
+        <view class="dialog-btn dialog-btn--confirm" bindtap="updateDish">确定</view>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,66 @@
+<!-- pages/order-food/order-food.wxml -->
+<view class="container">
+  <!-- 餐名显示 -->
+  <view class="section" wx:if="{{currentMeal}}">
+    <text style="font-size: 36rpx; font-weight: 600; display: block; margin-bottom: 12rpx;">
+      {{currentMeal.name}}
+    </text>
+    <text style="font-size: 24rpx; color: #999;">
+      发起时间：{{formatTime(currentMeal.createdAt)}}
+    </text>
+  </view>
+  
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <text class="search-icon">🔍</text>
+    <input 
+      class="search-input" 
+      placeholder="搜索菜品" 
+      bindinput="onSearch"
+      value="{{searchKeyword}}"
+    />
+  </view>
+  
+  <!-- 菜品列表 -->
+  <view class="section">
+    <view wx:if="{{!currentMeal}}" style="padding: 40rpx 0; text-align: center; color: #999;">
+      暂无发起的餐食，请先发起一餐
+    </view>
+    
+    <view wx:elif="{{filteredDishes.length === 0}}" style="padding: 40rpx 0; text-align: center; color: #999;">
+      没有找到匹配的菜品
+    </view>
+    
+    <view wx:else>
+      <view 
+        wx:for="{{filteredDishes}}" 
+        wx:key="{{item.id}}" 
+        class="list-item"
+      >
+        <view style="display: flex; align-items: center; flex: 1;">
+          <checkbox 
+            class="checkbox" 
+            checked="{{userSelectedDishes.includes(item.id)}}"
+            bindchange="toggleDishSelection"
+            data-id="{{item.id}}"
+          />
+          <view>
+            <text class="list-item__title">{{item.name}}</text>
+            <text class="list-item__desc">
+              {{getDishOrderers(item.id).length > 0 ? '已点：' + getDishOrderers(item.id).join('、') : '暂无点选'}}
+            </text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 下单按钮 -->
+  <button 
+    class="btn" 
+    bindtap="placeOrder"
+    wx:if="{{currentMeal}}"
+  >
+    下单
+  </button>
+</view>
