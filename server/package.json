@@ -1,0 +1,51 @@
+{
+  "name": "what-to-eat-server",
+  "version": "1.0.0",
+  "description": "吃什么小程序后端服务",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest --coverage",
+    "test:watch": "jest --watch",
+    "test:sqlite": "jest tests/*.sqlite.test.js --coverage",
+    "test:sqlite:dish": "jest tests/dish.sqlite.test.js",
+    "test:sqlite:meal": "jest tests/meal.sqlite.test.js",
+    "test:sqlite:order": "jest tests/order.sqlite.test.js",
+    "test:sqlite:user": "jest tests/user.sqlite.test.js",
+    "test:dish": "jest tests/dish.test.js",
+    "test:meal": "jest tests/meal.test.js",
+    "test:order": "jest tests/order.test.js",
+    "test:user": "jest tests/user.test.js",
+    "lint": "eslint functions/ tests/",
+    "deploy": "node scripts/deploy.js"
+  },
+  "keywords": [
+    "wechat",
+    "miniprogram",
+    "cloud-functions"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "mysql2": "^3.6.5"
+  },
+  "devDependencies": {
+    "better-sqlite3": "^12.6.2",
+    "eslint": "^8.55.0",
+    "jest": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coverageDirectory": "coverage",
+    "collectCoverageFrom": [
+      "functions/**/*.js",
+      "!functions/**/node_modules/**"
+    ],
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ],
+    "setupFilesAfterEnv": [
+      "./tests/setup.js"
+    ],
+    "verbose": true
+  }
+}

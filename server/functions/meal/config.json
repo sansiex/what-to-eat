@@ -1,0 +1,21 @@
+{
+  "name": "meal",
+  "version": "1.0.0",
+  "description": "点餐管理云函数",
+  "runtime": "Nodejs18",
+  "handler": "index.main",
+  "memorySize": 128,
+  "timeout": 10,
+  "environment": {
+    "DB_HOST": "172.17.0.3",
+    "DB_PORT": "3306",
+    "DB_USER": "mpfunctions",
+    "DB_PASSWORD": "Func8675309",
+    "DB_NAME": "dev-0gtpuq9p785f5498"
+  },
+  "triggers": [],
+  "vpc": {
+    "vpcId": "vpc-32df4ns4",
+    "subnetId": "subnet-gjfzd531"
+  }
+}
