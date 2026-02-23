@@ -6,7 +6,7 @@
       {{currentMeal.name}}
     </text>
     <text style="font-size: 24rpx; color: #999;">
-      发起时间：{{formatTime(currentMeal.createdAt)}}
+      发起时间：{{currentMeal.formattedCreatedAt}}
     </text>
   </view>
   
@@ -32,26 +32,24 @@
     </view>
     
     <view wx:else>
-      <view 
-        wx:for="{{filteredDishes}}" 
-        wx:key="{{item.id}}" 
-        class="list-item"
-      >
-        <view style="display: flex; align-items: center; flex: 1;">
-          <checkbox 
-            class="checkbox" 
-            checked="{{userSelectedDishes.includes(item.id)}}"
-            bindchange="toggleDishSelection"
-            data-id="{{item.id}}"
-          />
-          <view>
-            <text class="list-item__title">{{item.name}}</text>
-            <text class="list-item__desc">
-              {{getDishOrderers(item.id).length > 0 ? '已点：' + getDishOrderers(item.id).join('、') : '暂无点选'}}
-            </text>
+      <checkbox-group bindchange="onCheckboxChange">
+        <view wx:for="{{filteredDishes}}" wx:key="id" class="list-item">
+          <view style="display: flex; align-items: center; padding: 16rpx 0;">
+            <!-- 复选框 -->
+            <checkbox 
+              value="{{item.id}}" 
+              checked="{{dishSelectionMap[item.id] || false}}"
+              style="transform: scale(1.2); margin-right: 16rpx;"
+            />
+            
+            <!-- 菜品信息 -->
+            <view style="margin-left: 16rpx; flex: 1; display: flex; flex-direction: column;">
+              <text class="list-item__title" style="margin-bottom: 8rpx;">{{item.name}}</text>
+              <text class="list-item__desc">{{dishOrderersMap[item.id] || '暂无点选'}}</text>
+            </view>
           </view>
         </view>
-      </view>
+      </checkbox-group>
     </view>
   </view>
   

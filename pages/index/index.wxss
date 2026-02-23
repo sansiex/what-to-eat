@@ -1,0 +1,87 @@
+/* pages/index/index.wxss */
+
+.section-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 20rpx;
+}
+
+.header-btn {
+  flex: 1;
+  min-width: 0;
+  max-width: 50%;
+  height: 64rpx;
+  line-height: 64rpx;
+  padding: 0 12rpx;
+  font-size: 26rpx;
+  border-radius: 12rpx;
+  background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+  color: #333;
+  font-weight: 600;
+  text-align: center;
+  border: none;
+  box-shadow: 0 4rpx 8rpx rgba(255, 154, 158, 0.3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header-btn:active {
+  background: linear-gradient(135deg, #ff7a80 0%, #fcb0d0 50%, #fcb0d0 100%);
+  transform: scale(0.98);
+}
+
+.list-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.list-item__content {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.list-item__title {
+  font-size: 32rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.list-item__actions {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  width: 100%;
+}
+
+.list-item__actions button {
+  min-width: 80rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  padding: 0 16rpx;
+  font-size: 26rpx;
+  border-radius: 8rpx;
+  background-color: #f0f0f0;
+  color: #666;
+}
+
+.list-item__actions button[bindtap="deleteDish"] {
+  background-color: #fff0f0;
+  color: #ff6b6b;
+}
+
+.dialog-content .input {
+  height: 80rpx;
+  line-height: 80rpx;
+  padding: 0 24rpx;
+  font-size: 32rpx;
+  border: 1rpx solid #e0e0e0;
+  border-radius: 8rpx;
+  background-color: #fafafa;
+}

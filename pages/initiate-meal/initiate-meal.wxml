@@ -1,23 +1,23 @@
 <!-- pages/initiate-meal/initiate-meal.wxml -->
 <view class="container">
   <view class="section">
-    <text class="dialog-title">发起一餐</text>
+    <text class="dialog-title">{{isEditMode ? '编辑点餐' : '开始点菜'}}</text>
     
     <!-- 餐名选择 -->
     <view style="margin-bottom: 24rpx;">
       <text style="display: block; margin-bottom: 12rpx; font-size: 28rpx;">餐名</text>
-      <view style="display: flex; flex-wrap: wrap; gap: 12rpx;">
+      <view style="display: flex; gap: 12rpx; margin-bottom: 16rpx;">
         <button 
           wx:for="{{mealTypes}}" 
           wx:key="{{item}}"
-          style="font-size: 28rpx; padding: 12rpx 24rpx; margin-right: 12rpx; margin-bottom: 12rpx;"
+          style="font-size: 28rpx; padding: 12rpx 24rpx; flex: 1; text-align: center;"
           bindtap="selectMealType" 
           data-type="{{item}}"
         >
           {{item}}
         </button>
         <button 
-          style="font-size: 28rpx; padding: 12rpx 24rpx; margin-bottom: 12rpx;"
+          style="font-size: 28rpx; padding: 12rpx 24rpx; flex: 1; text-align: center;"
           bindtap="showCustomMealDialog"
         >
           自定义
@@ -60,8 +60,9 @@
           <view style="display: flex; align-items: center;">
             <checkbox 
               class="checkbox" 
-              checked="{{selectedDishes.includes(item.id)}}"
-              bindchange="toggleDishSelection"
+              value="{{item.id}}"
+              checked="{{item.selected}}" 
+              bindtap="toggleDishSelection"
               data-id="{{item.id}}"
             />
             <text class="list-item__title">{{item.name}}</text>
@@ -70,13 +71,28 @@
       </view>
     </view>
     
-    <!-- 发起按钮 -->
+    <!-- 按钮区域 -->
+    <view wx:if="{{isEditMode}}" style="display: flex; gap: 20rpx; margin-top: 40rpx;">
+      <button 
+        class="btn" 
+        style="flex: 1; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"
+        bindtap="completeEdit"
+        disabled="{{!selectedMealName}}">
+        完成
+      </button>
+      <button 
+        class="btn" 
+        style="flex: 1; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"
+        bindtap="goBack">
+        返回
+      </button>
+    </view>
     <button 
+      wx:else
       class="btn" 
       bindtap="initiateMeal"
-      disabled="{{!selectedMealName || selectedDishes.length === 0}}"
-    >
-      发起
+      disabled="{{!selectedMealName}}">
+      开始点菜
     </button>
   </view>
   

@@ -2,7 +2,8 @@
   "pages": [
     "pages/index/index",
     "pages/initiate-meal/initiate-meal",
-    "pages/order-food/order-food"
+    "pages/order-food/order-food",
+    "pages/meal-list/meal-list"
   ],
   "window": {
     "backgroundTextStyle": "light",
@@ -17,6 +18,12 @@
         "text": "首页",
         "iconPath": "images/tab-home.png",
         "selectedIconPath": "images/tab-home-active.png"
+      },
+      {
+        "pagePath": "pages/meal-list/meal-list",
+        "text": "点餐列表",
+        "iconPath": "images/tab-order.png",
+        "selectedIconPath": "images/tab-order-active.png"
       },
       {
         "pagePath": "pages/order-food/order-food",
