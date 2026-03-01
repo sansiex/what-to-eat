@@ -18,7 +18,7 @@
           </view>
         </view>
         <text class="meal-time">开始时间：{{item.formattedCreatedAt}}</text>
-        <text class="meal-dishes">菜品数：{{item.dishes.length}} 道</text>
+        <text class="meal-dishes">菜品数：{{item.dishCount || 0}} 道</text>
       </view>
 
       <!-- 操作按钮 -->

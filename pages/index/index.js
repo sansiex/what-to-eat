@@ -1,4 +1,6 @@
 // pages/index/index.js
+const { API } = require('../../utils/cloud-api.js')
+
 Page({
   data: {
     dishes: [],
@@ -10,45 +12,50 @@ Page({
     editingDishId: '',
     editingDishName: ''
   },
-  
+
   onLoad() {
     // 加载菜品数据
     this.loadDishes()
   },
-  
-  loadDishes() {
-    const dishes = wx.getStorageSync('dishes') || []
-    this.setData({
-      dishes,
-      filteredDishes: dishes
-    })
+
+  async loadDishes() {
+    try {
+      const result = await API.dish.list()
+      const dishes = result.data.list || []
+      this.setData({
+        dishes,
+        filteredDishes: dishes
+      })
+    } catch (err) {
+      console.error('加载菜品失败:', err)
+    }
   },
-  
+
   onSearch(e) {
     const keyword = e.detail.value
     this.setData({ searchKeyword: keyword })
     this.filterDishes(keyword)
   },
-  
+
   filterDishes(keyword) {
     const dishes = this.data.dishes
-    const filteredDishes = dishes.filter(dish => 
+    const filteredDishes = dishes.filter(dish =>
       dish.name.toLowerCase().includes(keyword.toLowerCase())
     )
     this.setData({ filteredDishes })
   },
-  
+
   showAddDialog() {
-    this.setData({ 
+    this.setData({
       showAddDialog: true,
       newDishName: ''
     })
   },
-  
+
   hideAddDialog() {
     this.setData({ showAddDialog: false })
   },
-  
+
   showEditDialog(e) {
     const id = e.currentTarget.dataset.id
     const dish = this.data.dishes.find(d => d.id === id)
@@ -58,11 +65,11 @@ Page({
       editingDishName: dish.name
     })
   },
-  
+
   hideEditDialog() {
     this.setData({ showEditDialog: false })
   },
-  
+
   onDishNameInput(e) {
     if (this.data.showAddDialog) {
       this.setData({ newDishName: e.detail.value })
@@ -70,77 +77,67 @@ Page({
       this.setData({ editingDishName: e.detail.value })
     }
   },
-  
-  addDish() {
+
+  async addDish() {
     const name = this.data.newDishName.trim()
     if (!name) {
       wx.showToast({ title: '请输入菜品名称', icon: 'none' })
       return
     }
-    
-    const dishes = this.data.dishes
-    const newId = String(dishes.length + 1)
-    const newDish = { id: newId, name }
-    
-    dishes.push(newDish)
-    wx.setStorageSync('dishes', dishes)
-    
-    this.setData({ 
-      dishes,
-      filteredDishes: dishes,
-      showAddDialog: false,
-      newDishName: ''
-    })
-    
-    wx.showToast({ title: '添加成功', icon: 'success' })
+
+    try {
+      await API.dish.create(name)
+      wx.showToast({ title: '添加成功', icon: 'success' })
+      this.setData({
+        showAddDialog: false,
+        newDishName: ''
+      })
+      // 重新加载菜品列表
+      this.loadDishes()
+    } catch (err) {
+      console.error('添加菜品失败:', err)
+    }
   },
-  
-  updateDish() {
+
+  async updateDish() {
     const name = this.data.editingDishName.trim()
     if (!name) {
       wx.showToast({ title: '请输入菜品名称', icon: 'none' })
       return
     }
-    
-    const dishes = this.data.dishes
-    const index = dishes.findIndex(d => d.id === this.data.editingDishId)
-    
-    if (index !== -1) {
-      dishes[index].name = name
-      wx.setStorageSync('dishes', dishes)
-      
-      this.setData({ 
-        dishes,
-        filteredDishes: dishes,
-        showEditDialog: false
-      })
-      
+
+    try {
+      await API.dish.update(this.data.editingDishId, name)
       wx.showToast({ title: '更新成功', icon: 'success' })
+      this.setData({ showEditDialog: false })
+      // 重新加载菜品列表
+      this.loadDishes()
+    } catch (err) {
+      console.error('更新菜品失败:', err)
     }
   },
-  
+
   deleteDish(e) {
     const id = e.currentTarget.dataset.id
-    
+
     wx.showModal({
       title: '确认删除',
       content: '确定要删除这个菜品吗？',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          const dishes = this.data.dishes.filter(d => d.id !== id)
-          wx.setStorageSync('dishes', dishes)
-          
-          this.setData({ 
-            dishes,
-            filteredDishes: dishes
-          })
-          
-          wx.showToast({ title: '删除成功', icon: 'success' })
+          try {
+            await API.dish.delete(id)
+            wx.showToast({ title: '删除成功', icon: 'success' })
+            // 重新加载菜品列表
+            this.loadDishes()
+          } catch (err) {
+            console.error('删除菜品失败:', err)
+          }
         }
       }
     })
   },
-  
+
   navigateToInitiateMeal() {
     wx.navigateTo({ url: '/pages/initiate-meal/initiate-meal' })
   }

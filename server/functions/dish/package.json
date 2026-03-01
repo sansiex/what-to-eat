@@ -1,0 +1,13 @@
+{
+  "name": "dish",
+  "version": "1.0.0",
+  "description": "菜品管理云函数",
+  "main": "index.js",
+  "scripts": {},
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@cloudbase/node-sdk": "latest",
+    "mysql2": "^3.6.0"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "order",
+  "version": "1.0.0",
+  "description": "订单管理云函数",
+  "main": "index.js",
+  "scripts": {},
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@cloudbase/node-sdk": "latest",
+    "mysql2": "^3.6.0"
+  }
+}

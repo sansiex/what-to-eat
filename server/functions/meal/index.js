@@ -3,8 +3,8 @@
  * 提供点餐活动的增删改查、收单等功能
  */
 
-const { query, transaction, getUserId } = require('../utils/db');
-const { success, error, paramError, notFound } = require('../utils/response');
+const { query, transaction, getUserId } = require('./utils/db');
+const { success, error, paramError, notFound } = require('./utils/response');
 
 /**
  * 主入口函数
@@ -347,10 +347,10 @@ async function getMeal(data, context) {
   
   const userId = getUserId(context);
   
-  // 获取点餐基本信息
+  // 获取点餐基本信息（不限制用户，允许查看他人创建的点餐）
   const meal = await query(
-    'SELECT id, name, status, created_at, closed_at FROM wte_meals WHERE id = ? AND user_id = ?',
-    [id, userId]
+    'SELECT id, name, status, created_at, closed_at FROM wte_meals WHERE id = ?',
+    [id]
   );
   
   if (meal.length === 0) {

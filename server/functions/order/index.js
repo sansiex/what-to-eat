@@ -3,8 +3,8 @@
  * 提供下单、取消订单、查询订单等功能
  */
 
-const { query, transaction, getUserId } = require('../utils/db');
-const { success, error, paramError, notFound } = require('../utils/response');
+const { query, transaction, getUserId } = require('./utils/db');
+const { success, error, paramError, notFound } = require('./utils/response');
 
 /**
  * 主入口函数
@@ -292,16 +292,16 @@ async function listOrdersByUser(data, context) {
  */
 async function getMyOrder(data, context) {
   const { mealId } = data || {};
-  
+
   if (!mealId) {
     return paramError('点餐ID不能为空');
   }
-  
+
   const userId = getUserId(context);
-  
+
   // 获取用户的订单
   const orders = await query(
-    `SELECT 
+    `SELECT
        o.id,
        o.dish_id,
        d.name as dish_name,
@@ -312,21 +312,22 @@ async function getMyOrder(data, context) {
      ORDER BY o.created_at DESC`,
     [mealId, userId]
   );
-  
+
   if (orders.length === 0) {
     return success({
       mealId,
-      ordered: false,
-      dishes: []
+      hasOrdered: false,
+      orders: []
     });
   }
-  
+
   return success({
     mealId,
-    ordered: true,
-    dishes: orders.map(order => ({
-      id: order.dish_id,
-      name: order.dish_name
+    hasOrdered: true,
+    orders: orders.map(order => ({
+      dishId: order.dish_id,
+      dishName: order.dish_name,
+      createdAt: order.created_at
     }))
   });
 }

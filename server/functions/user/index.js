@@ -3,8 +3,8 @@
  * 提供用户登录、注册、信息更新等功能
  */
 
-const { query, getUserId } = require('../utils/db');
-const { success, error, paramError, notFound } = require('../utils/response');
+const { query, getUserId } = require('./utils/db');
+const { success, error, paramError, notFound } = require('./utils/response');
 
 /**
  * 主入口函数

@@ -1,4 +1,6 @@
 // pages/initiate-meal/initiate-meal.js
+const { API } = require('../../utils/cloud-api.js')
+
 Page({
   data: {
     mealTypes: ['早餐', '午餐', '晚餐'],
@@ -12,7 +14,7 @@ Page({
     isEditMode: false,
     editingMealId: ''
   },
-  
+
   onLoad(options) {
     // 检查是否是编辑模式
     if (options && options.mode === 'edit') {
@@ -23,15 +25,17 @@ Page({
       this.loadDishes()
     }
   },
-  
+
   onShow() {
     // 页面显示时重新加载菜品数据，确保获取最新数据
-    this.loadDishes()
+    if (!this.data.isEditMode) {
+      this.loadDishes()
+    }
   },
-  
+
   // 加载正在编辑的餐食数据
-  loadEditingMeal() {
-    const editingMeal = wx.getStorageSync('editingMeal')
+  async loadEditingMeal() {
+    const editingMeal = getApp().globalData.editingMeal
     if (!editingMeal) {
       wx.showToast({ title: '没有要编辑的点餐', icon: 'none' })
       wx.navigateBack()
@@ -40,53 +44,64 @@ Page({
 
     console.log('加载编辑的餐食数据:', editingMeal)
 
-    // 获取所有菜品
-    const allDishes = wx.getStorageSync('dishes') || []
+    try {
+      // 获取所有菜品
+      const result = await API.dish.list()
+      const allDishes = result.data.list || []
 
-    // 构建菜品选择状态
-    const mealDishIds = editingMeal.dishes.map(d => d.id)
-    const dishesWithSelected = allDishes.map(dish => ({
-      ...dish,
-      selected: mealDishIds.includes(dish.id)
-    }))
+      // 构建菜品选择状态
+      const mealDishIds = editingMeal.dishes.map(d => d.id)
+      const dishesWithSelected = allDishes.map(dish => ({
+        ...dish,
+        selected: mealDishIds.includes(dish.id)
+      }))
 
-    const selectedDishes = dishesWithSelected.filter(d => d.selected).map(d => d.id)
+      const selectedDishes = dishesWithSelected.filter(d => d.selected).map(d => d.id)
 
-    this.setData({
-      editingMealId: editingMeal.id,
-      selectedMealName: editingMeal.name,
-      dishes: dishesWithSelected,
-      selectedDishes,
-      selectAll: selectedDishes.length === allDishes.length && allDishes.length > 0
-    })
+      this.setData({
+        editingMealId: editingMeal.id,
+        selectedMealName: editingMeal.name,
+        dishes: dishesWithSelected,
+        selectedDishes,
+        selectAll: selectedDishes.length === allDishes.length && allDishes.length > 0
+      })
+    } catch (err) {
+      console.error('加载编辑数据失败:', err)
+      wx.showToast({ title: '加载失败', icon: 'none' })
+    }
   },
 
-  loadDishes() {
-    const dishes = wx.getStorageSync('dishes') || []
-    console.log('加载的菜品数据:', dishes)
+  async loadDishes() {
+    try {
+      const result = await API.dish.list()
+      const dishes = result.data.list || []
+      console.log('加载的菜品数据:', dishes)
 
-    // 确保selectedDishes数组包含所有菜品的ID
-    const selectedDishes = dishes.map(dish => dish.id)
-    console.log('默认选中的菜品ID:', selectedDishes)
+      // 确保selectedDishes数组包含所有菜品的ID
+      const selectedDishes = dishes.map(dish => dish.id)
+      console.log('默认选中的菜品ID:', selectedDishes)
 
-    // 为每个菜品添加一个selected属性
-    const dishesWithSelected = dishes.map(dish => ({
-      ...dish,
-      selected: true // 默认全选
-    }))
+      // 为每个菜品添加一个selected属性
+      const dishesWithSelected = dishes.map(dish => ({
+        ...dish,
+        selected: true // 默认全选
+      }))
 
-    this.setData({
-      dishes: dishesWithSelected,
-      selectedDishes,
-      selectAll: selectedDishes.length > 0
-    }, () => {
-      // 数据更新完成后的回调
-      console.log('数据更新完成，selectedDishes:', this.data.selectedDishes)
-      console.log('数据更新完成，selectAll:', this.data.selectAll)
-      console.log('数据更新完成，dishes:', this.data.dishes)
-    })
+      this.setData({
+        dishes: dishesWithSelected,
+        selectedDishes,
+        selectAll: selectedDishes.length > 0
+      }, () => {
+        // 数据更新完成后的回调
+        console.log('数据更新完成，selectedDishes:', this.data.selectedDishes)
+        console.log('数据更新完成，selectAll:', this.data.selectAll)
+        console.log('数据更新完成，dishes:', this.data.dishes)
+      })
+    } catch (err) {
+      console.error('加载菜品失败:', err)
+    }
   },
-  
+
   selectMealType(e) {
     const type = e.currentTarget.dataset.type
     this.setData({
@@ -95,45 +110,45 @@ Page({
       customMealName: ''
     })
   },
-  
+
   showCustomMealDialog() {
-    this.setData({ 
+    this.setData({
       showCustomDialog: true,
       customMealName: ''
     })
   },
-  
+
   hideCustomDialog() {
     this.setData({ showCustomDialog: false })
   },
-  
+
   onCustomMealInput(e) {
     this.setData({ customMealName: e.detail.value })
   },
-  
+
   confirmCustomMeal() {
     const name = this.data.customMealName.trim()
     if (!name) {
       wx.showToast({ title: '请输入餐名', icon: 'none' })
       return
     }
-    
+
     this.setData({
       selectedMealName: name,
       showCustomDialog: false
     })
   },
-  
+
   toggleSelectAll() {
     const selectAll = !this.data.selectAll
     const dishes = [...this.data.dishes].map(dish => ({
       ...dish,
       selected: selectAll
     }))
-    
+
     // 更新selectedDishes数组
     const selectedDishes = selectAll ? dishes.map(dish => dish.id) : []
-    
+
     this.setData({
       dishes,
       selectedDishes,
@@ -144,31 +159,31 @@ Page({
       console.log('切换全选状态后，dishes:', this.data.dishes)
     })
   },
-  
+
   toggleDishSelection(e) {
     const id = e.currentTarget.dataset.id
-    
+
     console.log('toggleDishSelection被调用，id:', id)
-    
+
     const dishes = [...this.data.dishes]
     const dishIndex = dishes.findIndex(dish => dish.id === id)
-    
+
     if (dishIndex !== -1) {
       // 切换菜品的选中状态
       dishes[dishIndex].selected = !dishes[dishIndex].selected
-      
+
       console.log('菜品', id, '的选中状态变为:', dishes[dishIndex].selected)
-      
+
       // 更新selectedDishes数组
       const selectedDishes = dishes.filter(dish => dish.selected).map(dish => dish.id)
-      
+
       // 更新全选状态
       const selectAll = selectedDishes.length === dishes.length && dishes.length > 0
-      
+
       console.log('更新前dishes:', this.data.dishes)
       console.log('更新后dishes:', dishes)
       console.log('selectedDishes:', selectedDishes)
-      
+
       this.setData({
         dishes,
         selectedDishes,
@@ -180,9 +195,9 @@ Page({
       })
     }
   },
-  
+
   // 完成编辑
-  completeEdit() {
+  async completeEdit() {
     const { selectedMealName, dishes, editingMealId } = this.data
 
     if (!selectedMealName) {
@@ -196,50 +211,38 @@ Page({
       return
     }
 
-    // 获取所有餐食
-    let meals = wx.getStorageSync('meals') || []
+    try {
+      // 调用云函数更新点餐
+      const selectedDishIds = selectedDishDetails.map(d => d.id)
+      await API.meal.update(editingMealId, selectedMealName, selectedDishIds)
 
-    // 找到要编辑的餐食
-    const mealIndex = meals.findIndex(m => m.id === editingMealId)
-    if (mealIndex === -1) {
-      wx.showToast({ title: '点餐不存在', icon: 'none' })
-      return
+      // 清除编辑状态
+      getApp().globalData.editingMeal = null
+
+      wx.showToast({ title: '修改成功', icon: 'success' })
+
+      // 返回上一页
+      setTimeout(() => {
+        wx.navigateBack()
+      }, 1500)
+    } catch (err) {
+      console.error('更新点餐失败:', err)
     }
-
-    // 更新餐食数据
-    meals[mealIndex] = {
-      ...meals[mealIndex],
-      name: selectedMealName,
-      dishes: selectedDishDetails
-    }
-
-    // 保存到本地存储
-    wx.setStorageSync('meals', meals)
-
-    // 清除编辑状态
-    wx.removeStorageSync('editingMeal')
-
-    wx.showToast({ title: '修改成功', icon: 'success' })
-
-    // 返回上一页
-    setTimeout(() => {
-      wx.navigateBack()
-    }, 1500)
   },
 
   // 返回（取消编辑）
   goBack() {
-    wx.removeStorageSync('editingMeal')
+    getApp().globalData.editingMeal = null
     wx.navigateBack()
   },
 
-  initiateMeal() {
+  async initiateMeal() {
     console.log('initiateMeal函数被调用')
     const { selectedMealName } = this.data
-    
+
     // 重新获取最新的 dishes 数据
     const dishes = this.data.dishes
-    
+
     console.log('当前数据:', { selectedMealName, dishesLength: dishes.length })
 
     if (!selectedMealName) {
@@ -263,49 +266,34 @@ Page({
     // 显示加载提示
     wx.showLoading({ title: '正在创建点餐流程...' })
 
-    // 构建餐食数据
-    const mealData = {
-      id: String(Date.now()),
-      name: selectedMealName,
-      dishes: selectedDishDetails,
-      status: 'ordering',
-      createdAt: new Date().toISOString()
+    try {
+      // 调用云函数创建点餐
+      const selectedDishIds = selectedDishDetails.map(d => d.id)
+      const result = await API.meal.create(selectedMealName, selectedDishIds)
+      const mealData = result.data
+
+      console.log('创建点餐成功:', mealData)
+
+      // 存储当前点餐到全局数据
+      getApp().globalData.currentMeal = mealData
+
+      // 跳转到点餐页面
+      console.log('准备跳转到点餐页面')
+      wx.switchTab({
+        url: '/pages/order-food/order-food',
+        success: function(res) {
+          console.log('跳转成功:', res)
+          wx.hideLoading()
+        },
+        fail: function(res) {
+          console.log('跳转失败:', res)
+          wx.hideLoading()
+          wx.showToast({ title: '跳转失败，请重试', icon: 'none' })
+        }
+      })
+    } catch (err) {
+      console.error('创建点餐失败:', err)
+      wx.hideLoading()
     }
-
-    console.log('构建的餐食数据:', mealData)
-
-    // 存储到本地
-    wx.setStorageSync('currentMeal', mealData)
-
-    // 同时添加到 meals 列表
-    let meals = wx.getStorageSync('meals') || []
-    meals.push(mealData)
-    wx.setStorageSync('meals', meals)
-
-    console.log('已存储餐食数据到本地存储')
-
-    // 模拟上传到后台
-    this.uploadMealData(mealData)
-
-    // 跳转到点餐页面
-    console.log('准备跳转到点餐页面')
-    wx.switchTab({
-      url: '/pages/order-food/order-food',
-      success: function(res) {
-        console.log('跳转成功:', res)
-        wx.hideLoading()
-      },
-      fail: function(res) {
-        console.log('跳转失败:', res)
-        wx.hideLoading()
-        wx.showToast({ title: '跳转失败，请重试', icon: 'none' })
-      }
-    })
-  },
-  
-  uploadMealData(mealData) {
-    // 模拟后台请求
-    console.log('上传餐食数据到后台:', mealData)
-    // 实际项目中这里会调用 wx.request 发送请求
   }
 })
