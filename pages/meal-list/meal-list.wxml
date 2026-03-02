@@ -23,9 +23,17 @@
 
       <!-- 操作按钮 -->
       <view class="meal-actions">
-        <button class="action-btn btn-edit" bindtap="editMeal" data-id="{{item.id}}">编辑</button>
-        <button wx:if="{{item.status === 'ordering'}}" class="action-btn btn-close" bindtap="closeMeal" data-id="{{item.id}}">收单</button>
-        <button class="action-btn btn-order" bindtap="goOrder" data-id="{{item.id}}">点餐</button>
+        <!-- 点餐中状态：显示编辑、收单、点餐按钮 -->
+        <block wx:if="{{item.status === 'ordering'}}">
+          <button class="action-btn btn-edit" bindtap="editMeal" data-id="{{item.id}}">编辑</button>
+          <button class="action-btn btn-close" bindtap="closeMeal" data-id="{{item.id}}">收单</button>
+          <button class="action-btn btn-order" bindtap="goOrder" data-id="{{item.id}}">点餐</button>
+        </block>
+        <!-- 已收单状态：显示查看、恢复点餐按钮 -->
+        <block wx:else>
+          <button class="action-btn btn-view" bindtap="viewMeal" data-id="{{item.id}}">查看</button>
+          <button class="action-btn btn-reopen" bindtap="reopenMeal" data-id="{{item.id}}">恢复点餐</button>
+        </block>
       </view>
     </view>
   </view>

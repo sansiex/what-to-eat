@@ -8,40 +8,45 @@
     <text style="font-size: 24rpx; color: #999;">
       发起时间：{{currentMeal.formattedCreatedAt}}
     </text>
+    <!-- 已收单标记 -->
+    <text wx:if="{{viewMode}}" style="font-size: 24rpx; color: #999; margin-top: 8rpx; display: block;">
+      已收单
+    </text>
   </view>
-  
+
   <!-- 搜索栏 -->
-  <view class="search-bar">
+  <view class="search-bar" wx:if="{{!viewMode}}">
     <text class="search-icon">🔍</text>
-    <input 
-      class="search-input" 
-      placeholder="搜索菜品" 
+    <input
+      class="search-input"
+      placeholder="搜索菜品"
       bindinput="onSearch"
       value="{{searchKeyword}}"
     />
   </view>
-  
+
   <!-- 菜品列表 -->
   <view class="section">
     <view wx:if="{{!currentMeal}}" style="padding: 40rpx 0; text-align: center; color: #999;">
       暂无发起的餐食，请先发起一餐
     </view>
-    
+
     <view wx:elif="{{filteredDishes.length === 0}}" style="padding: 40rpx 0; text-align: center; color: #999;">
       没有找到匹配的菜品
     </view>
-    
+
     <view wx:else>
-      <checkbox-group bindchange="onCheckboxChange">
+      <!-- 正常模式：带复选框 -->
+      <checkbox-group wx:if="{{!viewMode}}" bindchange="onCheckboxChange">
         <view wx:for="{{filteredDishes}}" wx:key="id" class="list-item">
           <view style="display: flex; align-items: center; padding: 16rpx 0;">
             <!-- 复选框 -->
-            <checkbox 
-              value="{{item.id}}" 
+            <checkbox
+              value="{{item.id}}"
               checked="{{dishSelectionMap[item.id] || false}}"
               style="transform: scale(1.2); margin-right: 16rpx;"
             />
-            
+
             <!-- 菜品信息 -->
             <view style="margin-left: 16rpx; flex: 1; display: flex; flex-direction: column;">
               <text class="list-item__title" style="margin-bottom: 8rpx;">{{item.name}}</text>
@@ -50,14 +55,27 @@
           </view>
         </view>
       </checkbox-group>
+
+      <!-- 查看模式：只显示列表 -->
+      <view wx:else>
+        <view wx:for="{{filteredDishes}}" wx:key="id" class="list-item">
+          <view style="display: flex; align-items: center; padding: 16rpx 0;">
+            <!-- 菜品信息 -->
+            <view style="flex: 1; display: flex; flex-direction: column;">
+              <text class="list-item__title" style="margin-bottom: 8rpx;">{{item.name}}</text>
+              <text class="list-item__desc">{{dishOrderersMap[item.id] || '暂无点选'}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
     </view>
   </view>
-  
-  <!-- 下单按钮 -->
-  <button 
-    class="btn" 
+
+  <!-- 下单按钮（仅正常模式显示） -->
+  <button
+    class="btn"
     bindtap="placeOrder"
-    wx:if="{{currentMeal}}"
+    wx:if="{{currentMeal && !viewMode}}"
   >
     下单
   </button>

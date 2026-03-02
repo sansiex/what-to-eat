@@ -74,20 +74,28 @@ Page({
   // 编辑点餐
   async editMeal(e) {
     const mealId = e.currentTarget.dataset.id
-    const meal = this.data.meals.find(m => m.id === mealId)
 
-    if (!meal) {
-      wx.showToast({ title: '点餐不存在', icon: 'none' })
-      return
+    try {
+      // 获取完整的餐食详情（包含菜品列表）
+      const result = await API.meal.get(mealId)
+      const meal = result.data
+
+      if (!meal) {
+        wx.showToast({ title: '点餐不存在', icon: 'none' })
+        return
+      }
+
+      // 存储当前编辑的餐食数据到全局
+      getApp().globalData.editingMeal = meal
+
+      // 跳转到编辑页面（使用 initiate-meal 页面，传入编辑模式参数）
+      wx.navigateTo({
+        url: '/pages/initiate-meal/initiate-meal?mode=edit'
+      })
+    } catch (err) {
+      console.error('获取餐食详情失败:', err)
+      wx.showToast({ title: '加载失败', icon: 'none' })
     }
-
-    // 存储当前编辑的餐食数据到全局
-    getApp().globalData.editingMeal = meal
-
-    // 跳转到编辑页面（使用 initiate-meal 页面，传入编辑模式参数）
-    wx.navigateTo({
-      url: '/pages/initiate-meal/initiate-meal?mode=edit'
-    })
   },
 
   // 收单
@@ -137,6 +145,58 @@ Page({
     // 跳转到点餐页面
     wx.switchTab({
       url: '/pages/order-food/order-food'
+    })
+  },
+
+  // 查看点餐详情（只读模式）
+  async viewMeal(e) {
+    const mealId = e.currentTarget.dataset.id
+
+    try {
+      // 获取完整的餐食详情
+      const result = await API.meal.get(mealId)
+      const meal = result.data
+
+      if (!meal) {
+        wx.showToast({ title: '点餐不存在', icon: 'none' })
+        return
+      }
+
+      // 存储到全局数据
+      getApp().globalData.currentMeal = meal
+      getApp().globalData.viewMode = true // 标记为查看模式
+
+      // 跳转到点餐页面（查看模式）
+      wx.switchTab({
+        url: '/pages/order-food/order-food'
+      })
+    } catch (err) {
+      console.error('获取餐食详情失败:', err)
+      wx.showToast({ title: '加载失败', icon: 'none' })
+    }
+  },
+
+  // 恢复点餐（将已收单的点餐恢复为点餐中状态）
+  async reopenMeal(e) {
+    const mealId = e.currentTarget.dataset.id
+
+    wx.showModal({
+      title: '确认恢复点餐',
+      content: '恢复后可以继续点餐，是否继续？',
+      success: async (res) => {
+        if (res.confirm) {
+          try {
+            // 调用云函数恢复点餐
+            await API.meal.reopen(mealId)
+            wx.showToast({ title: '恢复成功', icon: 'success' })
+            // 刷新列表
+            this.loadMeals()
+          } catch (err) {
+            console.error('恢复点餐失败:', err)
+            wx.showToast({ title: '恢复失败', icon: 'none' })
+          }
+        }
+      }
     })
   }
 })

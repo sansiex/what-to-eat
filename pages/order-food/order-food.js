@@ -10,10 +10,15 @@ Page({
     dishSelectionMap: {}, // 用于存储每个菜品的选中状态
     orders: [],
     orderStats: [], // 订单统计
-    updateTimestamp: Date.now()
+    updateTimestamp: Date.now(),
+    viewMode: false // 是否为查看模式（只读）
   },
 
   onLoad() {
+    // 检查是否为查看模式
+    const viewMode = getApp().globalData.viewMode || false
+    this.setData({ viewMode })
+
     this.loadCurrentMeal()
     this.loadOrders()
   },
@@ -55,10 +60,28 @@ Page({
   },
 
   onShow() {
-    // 加载订单数据
-    this.loadOrders()
-    // 重新加载当前餐食数据（支持从点餐列表切换不同餐食）
-    this.loadCurrentMeal()
+    // 检查是否为查看模式
+    const viewMode = getApp().globalData.viewMode || false
+    this.setData({ viewMode })
+
+    // 检查是否需要重新加载餐食（globalData中的餐食与当前不同）
+    const globalMeal = getApp().globalData.currentMeal
+    const currentMeal = this.data.currentMeal
+
+    if (globalMeal && (!currentMeal || currentMeal.id !== globalMeal.id)) {
+      // 餐食发生变化，重新加载
+      this.loadCurrentMeal()
+    } else if (currentMeal) {
+      // 餐食未变，只刷新订单统计和点选信息，不覆盖用户选择
+      this.loadOrderStats(currentMeal.id)
+      // 刷新点选信息映射
+      this.refreshDishOrderersMap()
+    }
+  },
+
+  onHide() {
+    // 离开页面时清除查看模式标记
+    getApp().globalData.viewMode = false
   },
 
   // 格式化时间为北京时间
@@ -169,15 +192,34 @@ Page({
     if (!mealId) return
     try {
       const result = await API.order.listByMeal(mealId)
-      const orderStats = result.data.stats || []
+      // 后端返回的是 dishOrders，需要转换为前端需要的格式
+      const dishOrders = result.data.dishOrders || []
+      const orderStats = dishOrders.map(order => ({
+        dishId: order.dishId,
+        ordererNames: order.orderers || [],
+        orderCount: order.orderCount
+      }))
       this.setData({ orderStats })
     } catch (err) {
       console.error('加载订单统计失败:', err)
     }
   },
 
-  // 加载订单数据
+  // 加载订单数据（仅加载，不覆盖用户选择）
   async loadOrders() {
+    const currentMeal = this.data.currentMeal
+    if (!currentMeal) return
+
+    try {
+      // 刷新订单统计
+      await this.loadOrderStats(currentMeal.id)
+    } catch (err) {
+      console.error('加载订单失败:', err)
+    }
+  },
+
+  // 同步订单到选择状态（用于页面加载时恢复用户的订单选择）
+  async syncOrderToSelection() {
     const currentMeal = this.data.currentMeal
     if (!currentMeal) return
 
@@ -186,7 +228,7 @@ Page({
       const result = await API.order.getMyOrder(currentMeal.id)
       const myOrder = result.data
 
-      // 更新用户选择
+      // 如果用户已下单，同步到选择状态
       if (myOrder.hasOrdered && myOrder.orders) {
         const userSelectedDishes = myOrder.orders.map(o => o.dishId)
         const dishSelectionMap = {}
@@ -199,11 +241,8 @@ Page({
           dishSelectionMap
         })
       }
-
-      // 刷新订单统计
-      this.loadOrderStats(currentMeal.id)
     } catch (err) {
-      console.error('加载订单失败:', err)
+      console.error('同步订单到选择失败:', err)
     }
   },
 
@@ -230,8 +269,9 @@ Page({
     console.log('onCheckboxChange被调用')
     console.log('事件对象:', e)
 
-    const selectedValues = e.detail.value || []
-    console.log('选中的值:', selectedValues)
+    // checkbox-group 返回的是字符串数组，需要转换为数字
+    const selectedValues = (e.detail.value || []).map(v => parseInt(v))
+    console.log('选中的值(转换后):', selectedValues)
 
     // 构建新的状态映射
     const newSelectionMap = {}
@@ -277,6 +317,12 @@ Page({
     return dishOrderersMap
   },
 
+  // 刷新菜品点选信息映射（不覆盖用户选择）
+  refreshDishOrderersMap() {
+    const dishOrderersMap = this.buildDishOrderersMap()
+    this.setData({ dishOrderersMap })
+  },
+
   // 获取菜品点选人数
   getDishOrderCount(dishId) {
     const orderStats = this.data.orderStats
@@ -303,10 +349,13 @@ Page({
       // 显示成功提示
       wx.showToast({ title: '下单成功', icon: 'success' })
 
-      // 刷新订单数据
-      this.loadOrders()
+      // 刷新订单数据和统计（使用 await 确保顺序执行）
+      await this.loadOrders()
 
-      // 清空用户选择
+      // 刷新点选信息映射（显示已点用户）
+      this.refreshDishOrderersMap()
+
+      // 清空用户选择（下单成功后清除勾选）
       this.setData({
         userSelectedDishes: [],
         dishSelectionMap: {}

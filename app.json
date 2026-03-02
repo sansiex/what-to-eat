@@ -22,8 +22,8 @@
       {
         "pagePath": "pages/meal-list/meal-list",
         "text": "点餐列表",
-        "iconPath": "images/tab-order.png",
-        "selectedIconPath": "images/tab-order-active.png"
+        "iconPath": "images/tab-list.png",
+        "selectedIconPath": "images/tab-list-active.png"
       },
       {
         "pagePath": "pages/order-food/order-food",

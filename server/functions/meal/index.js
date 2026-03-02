@@ -29,6 +29,8 @@ exports.main = async (event, context) => {
         return await getMeal(data, context);
       case 'close':
         return await closeMeal(data, context);
+      case 'reopen':
+        return await reopenMeal(data, context);
       default:
         return paramError('未知的操作类型');
     }
@@ -408,33 +410,70 @@ async function getMeal(data, context) {
  */
 async function closeMeal(data, context) {
   const { id } = data || {};
-  
+
   if (!id) {
     return paramError('点餐ID不能为空');
   }
-  
+
   const userId = getUserId(context);
-  
+
   // 检查点餐是否存在且属于当前用户
   const existingMeal = await query(
     'SELECT id, status FROM wte_meals WHERE id = ? AND user_id = ?',
     [id, userId]
   );
-  
+
   if (existingMeal.length === 0) {
     return notFound('点餐活动不存在');
   }
-  
+
   if (existingMeal[0].status === 2) {
     return error('该点餐活动已经收单');
   }
-  
+
   await query(
     'UPDATE wte_meals SET status = 2, closed_at = NOW() WHERE id = ?',
     [id]
   );
-  
+
   return success(null, '收单成功');
+}
+
+/**
+ * 恢复点餐（将已收单的点餐恢复为点餐中状态）
+ * @param {Object} data - 恢复数据
+ * @param {Object} context - 上下文
+ * @returns {Object} 恢复结果
+ */
+async function reopenMeal(data, context) {
+  const { id } = data || {};
+
+  if (!id) {
+    return paramError('点餐ID不能为空');
+  }
+
+  const userId = getUserId(context);
+
+  // 检查点餐是否存在且属于当前用户
+  const existingMeal = await query(
+    'SELECT id, status FROM wte_meals WHERE id = ? AND user_id = ?',
+    [id, userId]
+  );
+
+  if (existingMeal.length === 0) {
+    return notFound('点餐活动不存在');
+  }
+
+  if (existingMeal[0].status === 1) {
+    return error('该点餐活动正在点餐中');
+  }
+
+  await query(
+    'UPDATE wte_meals SET status = 1, closed_at = NULL WHERE id = ?',
+    [id]
+  );
+
+  return success(null, '恢复点餐成功');
 }
 
 /**

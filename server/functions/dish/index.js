@@ -5,6 +5,7 @@
 
 let db;
 let response;
+let loadError = null;
 
 try {
   db = require('./utils/db');
@@ -12,18 +13,16 @@ try {
   console.log('Utils loaded successfully');
 } catch (err) {
   console.error('Failed to load utils:', err);
-  // 如果加载失败，返回错误
-  exports.main = async () => ({
-    success: false,
-    code: -1,
-    message: 'Failed to load dependencies: ' + err.message,
-    data: null
-  });
-  return;
+  loadError = err;
 }
 
-const { query, getUserId } = db;
-const { success, error, paramError, notFound } = response;
+const { query, getUserId } = db || {};
+
+// 使用函数包装，确保在测试时能获取到 mock 的 response 函数
+const success = (data, message) => response?.success(data, message) || { code: 0, message, data, success: true };
+const error = (message, code) => response?.error(message, code) || { code: code || -1, message, data: null, success: false };
+const paramError = (message) => response?.paramError(message) || { code: 400, message, data: null, success: false };
+const notFound = (message) => response?.notFound(message) || { code: 404, message, data: null, success: false };
 
 /**
  * 主入口函数
@@ -32,6 +31,16 @@ const { success, error, paramError, notFound } = response;
  * @returns {Object} 响应结果
  */
 exports.main = async (event, context) => {
+  // 检查依赖加载是否失败
+  if (loadError) {
+    return {
+      success: false,
+      code: -1,
+      message: 'Failed to load dependencies: ' + loadError.message,
+      data: null
+    };
+  }
+
   const { action, data } = event;
 
   console.log('Dish function called:', { action, data });

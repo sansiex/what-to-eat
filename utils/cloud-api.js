@@ -13,8 +13,12 @@ const API = {
   // 菜品管理
   dish: {
     // 获取菜品列表
-    list(keyword = '') {
-      return callHttpFunction('dish', 'list', { keyword })
+    list(kitchenId = null, keyword = '') {
+      const data = { keyword }
+      if (kitchenId) {
+        data.kitchenId = kitchenId
+      }
+      return callHttpFunction('dish', 'list', data)
     },
 
     // 创建菜品
@@ -69,6 +73,11 @@ const API = {
     // 收单
     close(id) {
       return callHttpFunction('meal', 'close', { id })
+    },
+
+    // 恢复点餐（将已收单的点餐恢复为点餐中状态）
+    reopen(id) {
+      return callHttpFunction('meal', 'reopen', { id })
     }
   },
 
@@ -115,6 +124,34 @@ const API = {
     // 更新用户信息
     update(nickname, avatarUrl) {
       return callHttpFunction('user', 'update', { nickname, avatarUrl })
+    }
+  },
+
+  // 厨房管理
+  kitchen: {
+    // 获取厨房列表
+    list() {
+      return callHttpFunction('kitchen', 'list')
+    },
+
+    // 创建厨房
+    create(name) {
+      return callHttpFunction('kitchen', 'create', { name })
+    },
+
+    // 更新厨房
+    update(id, name) {
+      return callHttpFunction('kitchen', 'update', { id, name })
+    },
+
+    // 删除厨房
+    delete(id) {
+      return callHttpFunction('kitchen', 'delete', { id })
+    },
+
+    // 设置默认厨房
+    setDefault(id) {
+      return callHttpFunction('kitchen', 'setDefault', { id })
     }
   }
 }

@@ -1,60 +1,38 @@
-# SVG 图标代码
+# SVG 图标说明
 
-## 首页图标
+## 点餐列表图标 (tab-list.png / tab-list-active.png)
 
-### 默认状态
+建议使用以下 SVG 作为点餐列表的图标，这是一个列表/菜单样式：
+
 ```svg
+<!-- 未选中状态 (灰色 #999) -->
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M3 9L12 2L21 9V20C21 20.5523 20.5523 21 20 21H4C3.44772 21 3 20.5523 3 20V9Z" stroke="#999999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M9 22V12H15V22" stroke="#999999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="3" y="5" width="18" height="2" rx="1" fill="#999999"/>
+  <rect x="3" y="11" width="18" height="2" rx="1" fill="#999999"/>
+  <rect x="3" y="17" width="18" height="2" rx="1" fill="#999999"/>
+</svg>
+
+<!-- 选中状态 (蓝色 #007AFF) -->
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="3" y="5" width="18" height="2" rx="1" fill="#007AFF"/>
+  <rect x="3" y="11" width="18" height="2" rx="1" fill="#007AFF"/>
+  <rect x="3" y="17" width="18" height="2" rx="1" fill="#007AFF"/>
 </svg>
 ```
 
-### 选中状态
-```svg
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M3 9L12 2L21 9V20C21 20.5523 20.5523 21 20 21H4C3.44772 21 3 20.5523 3 20V9Z" stroke="#007AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M9 22V12H15V22" stroke="#007AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
-```
+## 图标尺寸要求
 
-## 点餐图标
+- 大小: 81px x 81px (或 24px x 24px，微信会自动缩放)
+- 格式: PNG
+- 背景: 透明
 
-### 默认状态
-```svg
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M3 11H21" stroke="#999999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M3 16H21" stroke="#999999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M8 2L12 6L16 2" stroke="#999999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M12 6V22" stroke="#999999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
-```
+## 在线转换工具
 
-### 选中状态
-```svg
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M3 11H21" stroke="#007AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M3 16H21" stroke="#007AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M8 2L12 6L16 2" stroke="#007AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M12 6V22" stroke="#007AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
-```
+可以使用以下工具将 SVG 转换为 PNG：
+1. https://convertio.co/zh/svg-png/
+2. https://www.aconvert.com/cn/image/svg-to-png/
+3. https://cloudconvert.com/svg-to-png
 
-## 使用方法
-
-1. 将上述SVG代码复制到一个SVG文件中，例如 `home.svg` 和 `order.svg`
-2. 使用在线工具将SVG转换为PNG文件，推荐使用：
-   - https://convertio.co/zh/svg-png/
-   - https://www.online-convert.com/
-3. 将转换后的PNG文件重命名为：
-   - `tab-home.png` (首页默认)
-   - `tab-home-active.png` (首页选中)
-   - `tab-order.png` (点餐默认)
-   - `tab-order-active.png` (点餐选中)
-4. 将这些文件保存到 `images` 目录中
-5. 在 `app.json` 文件中恢复图标路径配置
-
-## 替代方案：使用自定义TabBar
-
-如果不想使用图片文件，可以考虑使用自定义TabBar组件，这样可以直接使用SVG图标。具体实现可以参考微信小程序官方文档：
-https://developers.weixin.qq.com/miniprogram/dev/framework/ability/custom-tabbar.html
+转换后请命名为：
+- `tab-list.png` (未选中状态，灰色)
+- `tab-list-active.png` (选中状态，蓝色 #007AFF)
