@@ -153,6 +153,27 @@ const API = {
     setDefault(id) {
       return callHttpFunction('kitchen', 'setDefault', { id })
     }
+  },
+
+  // 分享功能
+  share: {
+    // 生成分享链接
+    generateShareLink(mealId) {
+      return callHttpFunction('meal', 'generateShareLink', { mealId })
+    },
+
+    // 通过分享令牌获取点餐详情
+    getByShareToken(shareToken, mealId) {
+      return callHttpFunction('meal', 'getByShareToken', { shareToken, mealId })
+    }
+  },
+
+  // 匿名订单
+  anonymousOrder: {
+    // 匿名用户下单
+    create(mealId, dishIds, shareToken, userName) {
+      return callHttpFunction('order', 'createAnonymous', { mealId, dishIds, shareToken, userName })
+    }
   }
 }
 

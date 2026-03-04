@@ -1,0 +1,51 @@
+{
+    "case_name": "test_name_input_dialog",
+    "run_time": "20260304 02:31:11",
+    "test_type": "ShareMealTest",
+    "case_doc": "\u6d4b\u8bd5\u59d3\u540d\u8f93\u5165\u5f39\u7a97",
+    "success": false,
+    "failures": "",
+    "errors": "Traceback (most recent call last):\n  File \"/Users/sansi/dev/trae_projects/what-to-eat/venv/lib/python3.14/site-packages/minium/framework/libs/unittest/suite.py\", line 64, in _handleClassSetUp\n    _miniClassSetUp()\n    ~~~~~~~~~~~~~~~^^\n  File \"/Users/sansi/dev/trae_projects/what-to-eat/venv/lib/python3.14/site-packages/minium/framework/minitest.py\", line 334, in _miniClassSetUp\n    native, mini, miniprogram = init_miniprogram(cls.CONFIG)\n                                ~~~~~~~~~~~~~~~~^^^^^^^^^^^^\n  File \"/Users/sansi/dev/trae_projects/what-to-eat/venv/lib/python3.14/site-packages/minium/framework/minitest.py\", line 204, in init_miniprogram\n    mini = get_minium(cfg)\n  File \"/Users/sansi/dev/trae_projects/what-to-eat/venv/lib/python3.14/site-packages/minium/framework/minitest.py\", line 164, in get_minium\n    g_minium = minium.miniprogram.get_minium_driver(conf=cfg, native=g_native)\n  File \"/Users/sansi/dev/trae_projects/what-to-eat/venv/lib/python3.14/site-packages/minium/miniprogram/__init__.py\", line 28, in get_minium_driver\n    return APP[application](conf, *args, **kwargs)\n           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sansi/dev/trae_projects/what-to-eat/venv/lib/python3.14/site-packages/minium/miniprogram/wx_minium.py\", line 160, in __init__\n    self.launch_weapp()\n    ~~~~~~~~~~~~~~~~~^^\n  File \"/Users/sansi/dev/trae_projects/what-to-eat/venv/lib/python3.14/site-packages/minium/miniprogram/base_driver/minium_log.py\", line 148, in wrapper\n    result = func(*args, **kwargs)\n  File \"/Users/sansi/dev/trae_projects/what-to-eat/venv/lib/python3.14/site-packages/minium/miniprogram/wx_minium.py\", line 635, in launch_weapp\n    self.launch_dev_tool()\n    ~~~~~~~~~~~~~~~~~~~~^^\n  File \"/Users/sansi/dev/trae_projects/what-to-eat/venv/lib/python3.14/site-packages/minium/miniprogram/base_driver/minium_log.py\", line 148, in wrapper\n    result = func(*args, **kwargs)\n  File \"/Users/sansi/dev/trae_projects/what-to-eat/venv/lib/python3.14/site-packages/minium/miniprogram/wx_minium.py\", line 773, in launch_dev_tool\n    raise MiniLaunchError(err_msg)\nminium.framework.exception.MiniLaunchError: [error] IDE service port disabled. To use CLI Call, please enter y to confirm enabling CLI capability, or manually open IDE -> Settings -> Security Settings, and set Service Port On.\nFor more details see: https://developers.weixin.qq.com/miniprogram/en/dev/devtools/cli.html\n[error] \u5de5\u5177\u7684\u670d\u52a1\u7aef\u53e3\u5df2\u5173\u95ed\u3002\u8981\u4f7f\u7528\u547d\u4ee4\u884c\u8c03\u7528\u5de5\u5177\uff0c\u8bf7\u5728\u4e0b\u65b9\u8f93\u5165 y \u4ee5\u786e\u8ba4\u5f00\u542f\uff0c\u6216\u624b\u52a8\u6253\u5f00\u5de5\u5177 -> \u8bbe\u7f6e -> \u5b89\u5168\u8bbe\u7f6e\uff0c\u5c06\u670d\u52a1\u7aef\u53e3\u5f00\u542f\u3002\n\u8be6\u7ec6\u4fe1\u606f: https://developers.weixin.qq.com/miniprogram/dev/devtools/cli.html\n\n? Enable IDE Service (y/N) \u001b[27D\u001b[27C\u001b[2K\u001b[G? Enable IDE Service (y/N) y\u001b[28D\u001b[28C\u001b[2K\u001b[G? Enable IDE Service Yes\u001b[24D\u001b[24C\n\n",
+    "start_timestamp": 1772562671.741617,
+    "is_failure": false,
+    "is_error": true,
+    "module": ".Users.sansi.dev.trae_projects.what-to-eat.tests.test-share-meal",
+    "package": "test-share-meal",
+    "failed_line_num": 334,
+    "device": {},
+    "log_filename": "run.log",
+    "error_type": "MiniLaunchError",
+    "error_value": "[error] IDE service port disabled. To use CLI Call, please enter y to confirm enabling CLI capability, or manually open IDE -> Settings -> Security Settings, and set Service Port On.\nFor more details see: https://developers.weixin.qq.com/miniprogram/en/dev/devtools/cli.html\n[error] \u5de5\u5177\u7684\u670d\u52a1\u7aef\u53e3\u5df2\u5173\u95ed\u3002\u8981\u4f7f\u7528\u547d\u4ee4\u884c\u8c03\u7528\u5de5\u5177\uff0c\u8bf7\u5728\u4e0b\u65b9\u8f93\u5165 y \u4ee5\u786e\u8ba4\u5f00\u542f\uff0c\u6216\u624b\u52a8\u6253\u5f00\u5de5\u5177 -> \u8bbe\u7f6e -> \u5b89\u5168\u8bbe\u7f6e\uff0c\u5c06\u670d\u52a1\u7aef\u53e3\u5f00\u542f\u3002\n\u8be6\u7ec6\u4fe1\u606f: https://developers.weixin.qq.com/miniprogram/dev/devtools/cli.html\n\n? Enable IDE Service (y/N) \u001b[27D\u001b[27C\u001b[2K\u001b[G? Enable IDE Service (y/N) y\u001b[28D\u001b[28C\u001b[2K\u001b[G? Enable IDE Service Yes\u001b[24D\u001b[24C\n",
+    "error_extra_info": "",
+    "error_stages": [
+        "_miniClassSetUp"
+    ],
+    "screen_info": [],
+    "step_info": [],
+    "check_list": [],
+    "assert_list": [],
+    "stop_timestamp": 1772562671.742291,
+    "appId": "",
+    "appName": "",
+    "source": {
+        "code": [
+            "    @classmethod\n",
+            "    def _miniClassSetUp(cls):\n",
+            "        logger.debug(\"=====================\")\n",
+            "        logger.debug(\"Testing class\uff1a%s\" % cls.__name__)\n",
+            "        logger.debug(\"=====================\")\n",
+            "        super(MiniTest, cls)._miniClassSetUp()\n",
+            "        if not cls.CONFIG.report_usage:\n",
+            "            minium.miniprogram.base_driver.minium_log.existFlag = 1\n",
+            "\n",
+            "        native, mini, miniprogram = init_miniprogram(cls.CONFIG)\n",
+            "        cls.native = native\n",
+            "        cls.mini = mini\n",
+            "        if cls.CONFIG.need_perf:  # start get perf thread\n",
+            "            cls.native.start_get_perf(timeinterval=0.8)\n",
+            "        cls.DEVICE_INFO[\"system_info\"] = miniprogram.system_info\n"
+        ],
+        "start": 325
+    },
+    "filename": "result.json"
+}

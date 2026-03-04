@@ -3,7 +3,8 @@
     "pages/index/index",
     "pages/initiate-meal/initiate-meal",
     "pages/order-food/order-food",
-    "pages/meal-list/meal-list"
+    "pages/meal-list/meal-list",
+    "pages/share-meal/share-meal"
   ],
   "window": {
     "backgroundTextStyle": "light",

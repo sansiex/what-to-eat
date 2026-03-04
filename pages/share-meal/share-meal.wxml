@@ -1,0 +1,80 @@
+<!-- pages/share-meal/share-meal.wxml -->
+<view class="container">
+  <!-- 点餐信息 -->
+  <view class="section" wx:if="{{meal}}">
+    <text class="meal-name">{{meal.name}}</text>
+    <text class="meal-info">发起人：{{meal.creatorName || '未知'}}</text>
+    <text class="meal-info">发起时间：{{meal.createdAt}}</text>
+  </view>
+
+  <!-- 加载中 -->
+  <view wx:if="{{!meal}}" class="loading">
+    加载中...
+  </view>
+
+  <!-- 菜品列表 -->
+  <view class="section" wx:if="{{meal}}">
+    <text class="section-title">选择菜品</text>
+    
+    <view wx:if="{{dishes.length === 0}}" class="empty">
+      暂无菜品
+    </view>
+
+    <checkbox-group wx:else bindchange="onCheckboxChange">
+      <view wx:for="{{dishes}}" wx:key="id" class="dish-item">
+        <view class="dish-content">
+          <checkbox
+            value="{{item.id}}"
+            checked="{{dishSelectionMap[item.id]}}"
+            class="dish-checkbox"
+          />
+          <view class="dish-info">
+            <text class="dish-name">{{item.name}}</text>
+            <text class="dish-orderers" wx:if="{{item.orderers && item.orderers.length > 0}}">
+              已点：{{item.orderers.join('、')}}
+            </text>
+            <text class="dish-orderers" wx:else>暂无人点选</text>
+          </view>
+        </view>
+      </view>
+    </checkbox-group>
+  </view>
+
+  <!-- 下单按钮 -->
+  <view class="button-group" wx:if="{{meal && !hasOrdered}}">
+    <button class="btn-primary" bindtap="showNameInput">
+      下单
+    </button>
+  </view>
+
+  <!-- 已下单提示 -->
+  <view class="success-message" wx:if="{{hasOrdered}}">
+    <text>✓ 下单成功</text>
+  </view>
+
+  <!-- 进入我的厨房按钮 -->
+  <view class="button-group" wx:if="{{showEnterKitchenButton}}">
+    <button class="btn-secondary" bindtap="enterMyKitchen">
+      进入我自己的厨房
+    </button>
+  </view>
+
+  <!-- 姓名输入弹窗 -->
+  <view class="dialog" wx:if="{{showNameInput}}">
+    <view class="dialog-mask" bindtap="hideNameInput"></view>
+    <view class="dialog-content">
+      <view class="dialog-title">请输入您的姓名</view>
+      <input
+        class="dialog-input"
+        placeholder="例如：张三"
+        value="{{userName}}"
+        bindinput="onNameInput"
+        focus="{{showNameInput}}"
+      />
+      <view class="dialog-buttons">
+        <button class="dialog-btn btn-cancel" bindtap="hideNameInput">取消</button>
+        <button class="dialog-btn btn-confirm" bindtap="submitOrder">确定</button>
+      </view>
+    </view>
+  </view>
+</view>

@@ -31,6 +31,10 @@ exports.main = async (event, context) => {
         return await closeMeal(data, context);
       case 'reopen':
         return await reopenMeal(data, context);
+      case 'generateShareLink':
+        return await generateShareLink(data, context);
+      case 'getByShareToken':
+        return await getByShareToken(data, context);
       default:
         return paramError('未知的操作类型');
     }
@@ -484,12 +488,132 @@ async function reopenMeal(data, context) {
  */
 function parseDishes(ids, names) {
   if (!ids) return [];
-  
+
   const idArray = ids.split(',');
   const nameArray = names ? names.split(',') : [];
-  
+
   return idArray.map((id, index) => ({
     id: parseInt(id),
     name: nameArray[index] || ''
   }));
+}
+
+/**
+ * 生成分享链接
+ * @param {Object} data - 分享数据
+ * @param {Object} context - 上下文
+ * @returns {Object} 分享链接
+ */
+async function generateShareLink(data, context) {
+  const { mealId } = data || {};
+
+  if (!mealId) {
+    return paramError('点餐ID不能为空');
+  }
+
+  const userId = getUserId(context);
+
+  // 验证点餐是否存在且属于当前用户
+  const meal = await query(
+    'SELECT id, name, status FROM wte_meals WHERE id = ? AND user_id = ? AND status = 1',
+    [mealId, userId]
+  );
+
+  if (meal.length === 0) {
+    return notFound('点餐活动不存在或已关闭');
+  }
+
+  // 生成分享令牌
+  const shareToken = `share_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+  // 保存分享记录
+  await query(
+    'INSERT INTO wte_meal_shares (meal_id, share_token, created_by) VALUES (?, ?, ?)',
+    [mealId, shareToken, userId]
+  );
+
+  return success({
+    shareToken,
+    mealId,
+    shareUrl: `/pages/share-meal/share-meal?token=${shareToken}&mealId=${mealId}`
+  }, '分享链接生成成功');
+}
+
+/**
+ * 通过分享令牌获取点餐详情
+ * @param {Object} data - 请求数据
+ * @param {Object} context - 上下文
+ * @returns {Object} 点餐详情
+ */
+async function getByShareToken(data, context) {
+  const { shareToken, mealId } = data || {};
+
+  if (!shareToken || !mealId) {
+    return paramError('分享令牌和点餐ID不能为空');
+  }
+
+  // 验证分享令牌是否有效
+  const shareRecord = await query(
+    'SELECT id, meal_id FROM wte_meal_shares WHERE share_token = ? AND meal_id = ? AND status = 1',
+    [shareToken, mealId]
+  );
+
+  if (shareRecord.length === 0) {
+    return notFound('分享链接已失效或不存在');
+  }
+
+  // 获取点餐详情
+  const meal = await query(
+    `SELECT m.id, m.name, m.status, m.created_at, u.nickname as creator_name
+     FROM wte_meals m
+     LEFT JOIN wte_users u ON m.user_id = u.id
+     WHERE m.id = ? AND m.status = 1`,
+    [mealId]
+  );
+
+  if (meal.length === 0) {
+    return notFound('点餐活动不存在或已关闭');
+  }
+
+  // 获取关联的菜品
+  const dishes = await query(
+    `SELECT d.id, d.name
+     FROM wte_meal_dishes md
+     JOIN wte_dishes d ON md.dish_id = d.id
+     WHERE md.meal_id = ? AND md.status = 1 AND d.status = 1`,
+    [mealId]
+  );
+
+  // 获取订单统计
+  const orders = await query(
+    `SELECT o.dish_id, u.nickname as orderer_name
+     FROM wte_orders o
+     LEFT JOIN wte_users u ON o.user_id = u.id
+     WHERE o.meal_id = ? AND o.status = 1`,
+    [mealId]
+  );
+
+  // 构建菜品点选信息
+  const dishOrderersMap = {};
+  orders.forEach(order => {
+    if (!dishOrderersMap[order.dish_id]) {
+      dishOrderersMap[order.dish_id] = [];
+    }
+    dishOrderersMap[order.dish_id].push(order.orderer_name);
+  });
+
+  const dishesWithOrderers = dishes.map(dish => ({
+    ...dish,
+    orderers: dishOrderersMap[dish.id] || [],
+    orderCount: (dishOrderersMap[dish.id] || []).length
+  }));
+
+  return success({
+    id: meal[0].id,
+    name: meal[0].name,
+    status: meal[0].status,
+    createdAt: meal[0].created_at,
+    creatorName: meal[0].creator_name,
+    dishes: dishesWithOrderers
+  });
 }

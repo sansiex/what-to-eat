@@ -27,6 +27,8 @@ exports.main = async (event, context) => {
         return await listOrdersByUser(data, context);
       case 'getMyOrder':
         return await getMyOrder(data, context);
+      case 'createAnonymous':
+        return await createAnonymousOrder(data, context);
       default:
         return paramError('未知的操作类型');
     }
@@ -329,5 +331,101 @@ async function getMyOrder(data, context) {
       dishName: order.dish_name,
       createdAt: order.created_at
     }))
+  });
+}
+
+/**
+ * 匿名用户下单（通过分享链接）
+ * @param {Object} data - 订单数据
+ * @param {Object} context - 上下文
+ * @returns {Object} 创建结果
+ */
+async function createAnonymousOrder(data, context) {
+  const { mealId, dishIds, shareToken, userName } = data || {};
+
+  if (!mealId || !dishIds || !Array.isArray(dishIds) || dishIds.length === 0) {
+    return paramError('点餐ID和菜品不能为空');
+  }
+
+  if (!shareToken) {
+    return paramError('分享令牌不能为空');
+  }
+
+  if (!userName || userName.trim() === '') {
+    return paramError('请输入您的姓名');
+  }
+
+  return await transaction(async (connection) => {
+    // 验证分享令牌是否有效
+    const [shareRecord] = await connection.execute(
+      'SELECT id FROM wte_meal_shares WHERE share_token = ? AND meal_id = ? AND status = 1',
+      [shareToken, mealId]
+    );
+
+    if (shareRecord.length === 0) {
+      throw new Error('分享链接已失效');
+    }
+
+    // 验证点餐是否处于进行中状态
+    const [meal] = await connection.execute(
+      'SELECT id, status FROM wte_meals WHERE id = ? AND status = 1',
+      [mealId]
+    );
+
+    if (meal.length === 0) {
+      throw new Error('该点餐活动已结束');
+    }
+
+    // 检查菜品是否都在该点餐活动中
+    const placeholders = dishIds.map(() => '?').join(',');
+    const [validDishes] = await connection.execute(
+      `SELECT dish_id FROM wte_meal_dishes 
+       WHERE meal_id = ? AND dish_id IN (${placeholders}) AND status = 1`,
+      [mealId, ...dishIds]
+    );
+
+    if (validDishes.length !== dishIds.length) {
+      throw new Error('部分菜品不在该点餐活动中');
+    }
+
+    // 创建或查找匿名用户
+    const trimmedName = userName.trim();
+    const [existingUser] = await connection.execute(
+      'SELECT id FROM wte_users WHERE nickname = ? AND openid LIKE "anonymous_%"',
+      [trimmedName]
+    );
+
+    let userId;
+    if (existingUser.length === 0) {
+      const [result] = await connection.execute(
+        'INSERT INTO wte_users (openid, nickname) VALUES (?, ?)',
+        [`anonymous_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, trimmedName]
+      );
+      userId = result.insertId;
+    } else {
+      userId = existingUser[0].id;
+    }
+
+    // 取消该用户之前在该点餐活动中的所有订单
+    await connection.execute(
+      'UPDATE wte_orders SET status = 0, canceled_at = NOW() WHERE meal_id = ? AND user_id = ? AND status = 1',
+      [mealId, userId]
+    );
+
+    // 创建新订单
+    const orderIds = [];
+    for (const dishId of dishIds) {
+      const [result] = await connection.execute(
+        'INSERT INTO wte_orders (meal_id, user_id, dish_id) VALUES (?, ?, ?)',
+        [mealId, userId, dishId]
+      );
+      orderIds.push(result.insertId);
+    }
+
+    return success({
+      orderId: orderIds[0],
+      userId,
+      userName: trimmedName
+    }, '下单成功');
   });
 }

@@ -198,5 +198,51 @@ Page({
         }
       }
     })
+  },
+
+  // 分享点餐
+  async shareMeal(e) {
+    const mealId = e.currentTarget.dataset.id
+    const meal = this.data.meals.find(m => m.id === mealId)
+
+    if (!meal) {
+      wx.showToast({ title: '点餐不存在', icon: 'none' })
+      return
+    }
+
+    // 检查是否已收单
+    if (meal.status === 'closed') {
+      wx.showToast({ title: '已收单的点餐不能分享', icon: 'none' })
+      return
+    }
+
+    try {
+      // 调用云函数生成分享链接
+      const result = await API.share.generateShareLink(mealId)
+      const { shareUrl } = result.data
+
+      // 显示分享菜单
+      wx.showActionSheet({
+        itemList: ['复制链接', '分享给好友'],
+        success: (res) => {
+          if (res.tapIndex === 0) {
+            // 复制链接
+            wx.setClipboardData({
+              data: shareUrl,
+              success: () => {
+                wx.showToast({ title: '链接已复制', icon: 'success' })
+              }
+            })
+          } else if (res.tapIndex === 1) {
+            // 调用微信分享
+            // 这里可以调用 wx.shareAppMessage
+            wx.showToast({ title: '请使用右上角分享按钮', icon: 'none' })
+          }
+        }
+      })
+    } catch (err) {
+      console.error('生成分享链接失败:', err)
+      wx.showToast({ title: '分享失败', icon: 'none' })
+    }
   }
 })

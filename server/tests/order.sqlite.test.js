@@ -65,38 +65,37 @@ async function orderMain(event, context) {
           [mealId, userId]
         );
 
-        // 创建新订单
-        const orderIds = [];
+        // 创建新订单（不直接包含 dish_id）
+        const orderResult = testQuery(
+          'INSERT INTO wte_orders (meal_id, user_id, status) VALUES (?, ?, 1)',
+          [mealId, userId]
+        );
+        const orderId = orderResult.insertId;
+
+        // 关联菜品到订单
         for (const dishId of dishIds) {
-          const result = testQuery(
-            'INSERT INTO wte_orders (meal_id, user_id, dish_id) VALUES (?, ?, ?)',
-            [mealId, userId, dishId]
+          testQuery(
+            'INSERT INTO wte_order_dishes (order_id, dish_id) VALUES (?, ?)',
+            [orderId, dishId]
           );
-          orderIds.push(result.insertId);
         }
 
         // 返回订单信息
-        const orders = [];
-        for (const orderId of orderIds) {
-          const order = testQuery(
-            `SELECT o.id, o.dish_id, d.name as dish_name, o.created_at
-             FROM wte_orders o
-             INNER JOIN wte_dishes d ON o.dish_id = d.id
-             WHERE o.id = ?`,
-            [orderId]
-          );
-          if (order.length > 0) {
-            orders.push(order[0]);
-          }
-        }
+        const orderDishes = testQuery(
+          `SELECT od.dish_id, d.name as dish_name
+           FROM wte_order_dishes od
+           INNER JOIN wte_dishes d ON od.dish_id = d.id
+           WHERE od.order_id = ? AND od.status = 1`,
+          [orderId]
+        );
 
         return success({
           mealId,
-          orders: orders.map(order => ({
-            id: order.id,
-            dishId: order.dishId,
-            dishName: order.dishName,
-            createdAt: order.createdAt
+          orders: orderDishes.map(od => ({
+            id: orderId,
+            dishId: od.dishId,
+            dishName: od.dishName,
+            createdAt: new Date().toISOString()
           }))
         }, '下单成功');
       }
@@ -158,16 +157,17 @@ async function orderMain(event, context) {
           return notFound('点餐活动不存在');
         }
 
-        // 获取订单统计
+        // 获取订单统计（使用新的表结构 wte_order_dishes）
         const stats = testQuery(
           `SELECT 
             d.id as dish_id,
             d.name as dish_name,
-            COUNT(o.id) as order_count,
+            COUNT(DISTINCT o.id) as order_count,
             GROUP_CONCAT(DISTINCT u.nickname) as orderer_names
           FROM wte_dishes d
           INNER JOIN wte_meal_dishes md ON d.id = md.dish_id AND md.meal_id = ? AND md.status = 1
-          LEFT JOIN wte_orders o ON d.id = o.dish_id AND o.meal_id = ? AND o.status = 1
+          LEFT JOIN wte_orders o ON o.meal_id = ? AND o.status = 1
+          LEFT JOIN wte_order_dishes od ON o.id = od.order_id AND od.dish_id = d.id AND od.status = 1
           LEFT JOIN wte_users u ON o.user_id = u.id
           WHERE d.status = 1
           GROUP BY d.id
@@ -189,21 +189,22 @@ async function orderMain(event, context) {
       case 'listByUser': {
         const { page = 1, pageSize = 20 } = data || {};
 
-        // 获取用户的订单历史
+        // 获取用户的订单历史（使用新的表结构 wte_order_dishes）
         let sql = `
           SELECT 
             o.id,
             o.meal_id,
             m.name as meal_name,
-            o.dish_id,
-            d.name as dish_name,
+            GROUP_CONCAT(d.name) as dish_names,
             o.status,
             o.created_at,
             o.canceled_at
           FROM wte_orders o
           INNER JOIN wte_meals m ON o.meal_id = m.id
-          INNER JOIN wte_dishes d ON o.dish_id = d.id
+          LEFT JOIN wte_order_dishes od ON o.id = od.order_id AND od.status = 1
+          LEFT JOIN wte_dishes d ON od.dish_id = d.id
           WHERE o.user_id = ?
+          GROUP BY o.id
           ORDER BY o.created_at DESC
         `;
 
@@ -223,8 +224,7 @@ async function orderMain(event, context) {
             id: o.id,
             mealId: o.mealId || o.meal_id,
             mealName: o.mealName || o.meal_name,
-            dishId: o.dishId || o.dish_id,
-            dishName: o.dishName || o.dish_name,
+            dishNames: o.dishNames || o.dish_names,
             status: o.status,
             createdAt: o.createdAt || o.created_at,
             canceledAt: o.canceledAt || o.canceled_at
@@ -242,15 +242,16 @@ async function orderMain(event, context) {
           return paramError('点餐ID不能为空');
         }
 
-        // 获取用户在该点餐中的订单
+        // 获取用户在该点餐中的订单（使用新的表结构 wte_order_dishes）
         const orders = testQuery(
           `SELECT 
             o.id,
-            o.dish_id,
+            d.id as dish_id,
             d.name as dish_name,
             o.created_at
           FROM wte_orders o
-          INNER JOIN wte_dishes d ON o.dish_id = d.id
+          INNER JOIN wte_order_dishes od ON o.id = od.order_id AND od.status = 1
+          INNER JOIN wte_dishes d ON od.dish_id = d.id
           WHERE o.meal_id = ? AND o.user_id = ? AND o.status = 1`,
           [mealId, userId]
         );
@@ -413,9 +414,11 @@ describe('订单管理云函数测试 (SQLite)', () => {
       expect(result.success).toBe(true);
       expect(result.data.orders.length).toBe(2);
 
-      // 验证旧订单已被取消
+      // 验证旧订单已被取消（使用新的表结构查询）
       const oldOrders = testQuery(
-        'SELECT * FROM wte_orders WHERE meal_id = ? AND user_id = ? AND dish_id = ? AND status = 1',
+        `SELECT o.* FROM wte_orders o
+         INNER JOIN wte_order_dishes od ON o.id = od.order_id
+         WHERE o.meal_id = ? AND o.user_id = ? AND od.dish_id = ? AND o.status = 1`,
         [mealId, otherUserId, dishIds[0]]
       );
       expect(oldOrders.length).toBe(0);

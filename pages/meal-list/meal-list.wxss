@@ -126,6 +126,11 @@
   color: #333;
 }
 
+.btn-share {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+  box-shadow: 0 4rpx 12rpx rgba(238, 90, 111, 0.4);
+}
+
 .action-btn::after {
   border: none;
 }

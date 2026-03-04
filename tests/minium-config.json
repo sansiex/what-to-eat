@@ -1,0 +1,13 @@
+{
+  "project_path": "/Users/sansi/dev/trae_projects/what-to-eat",
+  "dev_tool_path": "/Applications/wechatwebdevtools.app/Contents/MacOS/cli",
+  "platform": "ide",
+  "app": "wx",
+  "account": "test",
+  "debug_mode": "debug",
+  "auto_relaunch": true,
+  "close_ide": false,
+  "test_port": 9420,
+  "request_timeout": 60,
+  "remote_connect_timeout": 180
+}

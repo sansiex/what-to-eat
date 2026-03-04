@@ -114,7 +114,6 @@ function initSchema() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       meal_id INTEGER NOT NULL,
       user_id INTEGER NOT NULL,
-      dish_id INTEGER NOT NULL,
       status INTEGER DEFAULT 1,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -122,8 +121,38 @@ function initSchema() {
     );
     CREATE INDEX IF NOT EXISTS idx_order_meal_id ON wte_orders(meal_id);
     CREATE INDEX IF NOT EXISTS idx_order_user_id ON wte_orders(user_id);
-    CREATE INDEX IF NOT EXISTS idx_order_dish_id ON wte_orders(dish_id);
     CREATE INDEX IF NOT EXISTS idx_order_status ON wte_orders(status);
+  `);
+  
+  // 订单菜品关联表
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS wte_order_dishes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      order_id INTEGER NOT NULL,
+      dish_id INTEGER NOT NULL,
+      status INTEGER DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE INDEX IF NOT EXISTS idx_od_order_id ON wte_order_dishes(order_id);
+    CREATE INDEX IF NOT EXISTS idx_od_dish_id ON wte_order_dishes(dish_id);
+    CREATE INDEX IF NOT EXISTS idx_od_status ON wte_order_dishes(status);
+  `);
+  
+  // 点餐分享表
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS wte_meal_shares (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      meal_id INTEGER NOT NULL,
+      share_token TEXT NOT NULL UNIQUE,
+      created_by INTEGER NOT NULL,
+      status INTEGER DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE INDEX IF NOT EXISTS idx_share_meal_id ON wte_meal_shares(meal_id);
+    CREATE INDEX IF NOT EXISTS idx_share_token ON wte_meal_shares(share_token);
+    CREATE INDEX IF NOT EXISTS idx_share_created_by ON wte_meal_shares(created_by);
+    CREATE INDEX IF NOT EXISTS idx_share_status ON wte_meal_shares(status);
   `);
 }
 
@@ -277,11 +306,20 @@ function linkDishToMeal(mealId, dishId) {
  */
 function createTestOrder(mealId, userId, dishId) {
   const database = getTestDB();
+  // 创建订单主记录
   const stmt = database.prepare(
-    'INSERT INTO wte_orders (meal_id, user_id, dish_id) VALUES (?, ?, ?)'
+    'INSERT INTO wte_orders (meal_id, user_id, status) VALUES (?, ?, 1)'
   );
-  const result = stmt.run(mealId, userId, dishId);
-  return result.lastInsertRowid;
+  const result = stmt.run(mealId, userId);
+  const orderId = result.lastInsertRowid;
+  
+  // 关联菜品到订单
+  const dishStmt = database.prepare(
+    'INSERT INTO wte_order_dishes (order_id, dish_id) VALUES (?, ?)'
+  );
+  dishStmt.run(orderId, dishId);
+  
+  return orderId;
 }
 
 /**
