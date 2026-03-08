@@ -20,5 +20,17 @@
     "bigPackageSizeSupport": false,
     "useIsolateContext": true
   },
-  "condition": {}
+  "condition": {
+    "miniprogram": {
+      "list": [
+        {
+          "name": "/pages/share-meal/share-meal",
+          "pathName": "/pages/share-meal/share-meal",
+          "query": "token=share_1772989822839_j6pkaedn4&mealId=1",
+          "scene": null,
+          "launchMode": "default"
+        }
+      ]
+    }
+  }
 }

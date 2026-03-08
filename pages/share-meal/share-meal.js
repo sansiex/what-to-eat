@@ -45,6 +45,7 @@ Page({
       )
 
       const meal = result.data
+      console.log('Loaded meal data:', meal)
       
       // 默认选中所有菜品
       const selectedDishes = meal.dishes.map(d => d.id)
@@ -53,9 +54,17 @@ Page({
         dishSelectionMap[dish.id] = true
       })
 
+      // 预处理菜品数据，将orderers数组转换为字符串
+      const dishes = meal.dishes.map(dish => ({
+        ...dish,
+        orderersText: dish.orderers && dish.orderers.length > 0 
+          ? dish.orderers.join('、') 
+          : ''
+      }))
+
       this.setData({
-        meal,
-        dishes: meal.dishes,
+        meal: meal,
+        dishes: dishes,
         selectedDishes,
         dishSelectionMap
       })
@@ -83,7 +92,7 @@ Page({
     })
   },
 
-  // 显示姓名输入框
+  // 显示姓名输入框（已废弃，直接获取微信昵称）
   showNameInput() {
     if (this.data.selectedDishes.length === 0) {
       wx.showToast({
@@ -93,24 +102,29 @@ Page({
       return
     }
 
-    this.setData({
-      showNameInput: true
+    // 直接获取用户信息并下单
+    this.getUserProfileAndSubmit()
+  },
+
+  // 获取用户信息并提交订单
+  getUserProfileAndSubmit() {
+    wx.getUserProfile({
+      desc: '用于显示点餐人姓名',
+      success: (res) => {
+        const userName = res.userInfo.nickName
+        this.setData({ userName })
+        this.submitOrder()
+      },
+      fail: (err) => {
+        console.error('获取用户信息失败:', err)
+        // 如果用户拒绝授权，使用默认名称
+        this.setData({ userName: '微信用户' })
+        this.submitOrder()
+      }
     })
   },
 
-  // 隐藏姓名输入框
-  hideNameInput() {
-    this.setData({
-      showNameInput: false
-    })
-  },
 
-  // 姓名输入
-  onNameInput(e) {
-    this.setData({
-      userName: e.detail.value
-    })
-  },
 
   // 提交订单
   async submitOrder() {

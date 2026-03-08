@@ -93,6 +93,10 @@
   height: 96rpx;
   line-height: 96rpx;
   border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
 }
 
 .btn-primary::after {

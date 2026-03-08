@@ -43,7 +43,7 @@
     <view wx:else>
       <view
         wx:for="{{filteredDishes}}"
-        wx:key="{{item.id}}"
+        wx:key="id"
         class="list-item"
       >
         <view class="list-item__content">

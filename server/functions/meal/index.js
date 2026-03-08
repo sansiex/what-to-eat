@@ -593,14 +593,23 @@ async function getByShareToken(data, context) {
     [mealId]
   );
 
+  console.log('Orders query result:', orders);
+  console.log('First order keys:', orders.length > 0 ? Object.keys(orders[0]) : 'no orders');
+
   // 构建菜品点选信息
   const dishOrderersMap = {};
   orders.forEach(order => {
     if (!dishOrderersMap[order.dish_id]) {
       dishOrderersMap[order.dish_id] = [];
     }
-    dishOrderersMap[order.dish_id].push(order.orderer_name);
+    // 直接使用 nickname 字段
+    const ordererName = order.orderer_name || order.nickname;
+    if (ordererName) {
+      dishOrderersMap[order.dish_id].push(ordererName);
+    }
   });
+
+  console.log('Dish orderers map:', dishOrderersMap);
 
   const dishesWithOrderers = dishes.map(dish => ({
     ...dish,

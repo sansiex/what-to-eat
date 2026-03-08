@@ -20,24 +20,26 @@
       暂无菜品
     </view>
 
-    <checkbox-group wx:else bindchange="onCheckboxChange">
-      <view wx:for="{{dishes}}" wx:key="id" class="dish-item">
-        <view class="dish-content">
-          <checkbox
-            value="{{item.id}}"
-            checked="{{dishSelectionMap[item.id]}}"
-            class="dish-checkbox"
-          />
-          <view class="dish-info">
-            <text class="dish-name">{{item.name}}</text>
-            <text class="dish-orderers" wx:if="{{item.orderers && item.orderers.length > 0}}">
-              已点：{{item.orderers.join('、')}}
-            </text>
-            <text class="dish-orderers" wx:else>暂无人点选</text>
+    <view wx:else>
+      <checkbox-group bindchange="onCheckboxChange">
+        <view wx:for="{{dishes}}" wx:key="id" class="dish-item">
+          <view class="dish-content">
+            <checkbox
+              value="{{item.id}}"
+              checked="{{dishSelectionMap[item.id]}}"
+              class="dish-checkbox"
+            />
+            <view class="dish-info">
+              <text class="dish-name">{{item.name}}</text>
+              <text class="dish-orderers" wx:if="{{item.orderersText}}">
+                已点：{{item.orderersText}}
+              </text>
+              <text class="dish-orderers" wx:else>暂无人点选</text>
+            </view>
           </view>
         </view>
-      </view>
-    </checkbox-group>
+      </checkbox-group>
+    </view>
   </view>
 
   <!-- 下单按钮 -->
@@ -57,24 +59,5 @@
     <button class="btn-secondary" bindtap="enterMyKitchen">
       进入我自己的厨房
     </button>
-  </view>
-
-  <!-- 姓名输入弹窗 -->
-  <view class="dialog" wx:if="{{showNameInput}}">
-    <view class="dialog-mask" bindtap="hideNameInput"></view>
-    <view class="dialog-content">
-      <view class="dialog-title">请输入您的姓名</view>
-      <input
-        class="dialog-input"
-        placeholder="例如：张三"
-        value="{{userName}}"
-        bindinput="onNameInput"
-        focus="{{showNameInput}}"
-      />
-      <view class="dialog-buttons">
-        <button class="dialog-btn btn-cancel" bindtap="hideNameInput">取消</button>
-        <button class="dialog-btn btn-confirm" bindtap="submitOrder">确定</button>
-      </view>
-    </view>
   </view>
 </view>

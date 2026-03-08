@@ -25,14 +25,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/179</span>
+                <span class='fraction'>0/184</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/124</span>
+                <span class='fraction'>0/130</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/174</span>
+                <span class='fraction'>0/179</span>
             </div>
         
             
@@ -682,7 +682,16 @@
 <a name='L617'></a><a href='#L617'>617</a>
 <a name='L618'></a><a href='#L618'>618</a>
 <a name='L619'></a><a href='#L619'>619</a>
-<a name='L620'></a><a href='#L620'>620</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L620'></a><a href='#L620'>620</a>
+<a name='L621'></a><a href='#L621'>621</a>
+<a name='L622'></a><a href='#L622'>622</a>
+<a name='L623'></a><a href='#L623'>623</a>
+<a name='L624'></a><a href='#L624'>624</a>
+<a name='L625'></a><a href='#L625'>625</a>
+<a name='L626'></a><a href='#L626'>626</a>
+<a name='L627'></a><a href='#L627'>627</a>
+<a name='L628'></a><a href='#L628'>628</a>
+<a name='L629'></a><a href='#L629'>629</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1277,14 +1286,23 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1896,14 +1914,23 @@ async function <span class="fstat-no" title="function not covered" >getByShareTo
     [mealId]
   );
 &nbsp;
+<span class="cstat-no" title="statement not covered" >  console.log('Orders query result:', orders);</span>
+<span class="cstat-no" title="statement not covered" >  console.log('First order keys:', orders.length &gt; 0 ? Object.keys(orders[0]) : 'no orders');</span>
+&nbsp;
   // 构建菜品点选信息
   const dishOrderersMap = <span class="cstat-no" title="statement not covered" >{};</span>
 <span class="cstat-no" title="statement not covered" >  orders.forEach(<span class="fstat-no" title="function not covered" >or</span>der =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    if (!dishOrderersMap[order.dish_id]) {</span>
 <span class="cstat-no" title="statement not covered" >      dishOrderersMap[order.dish_id] = [];</span>
     }
-<span class="cstat-no" title="statement not covered" >    dishOrderersMap[order.dish_id].push(order.orderer_name);</span>
+    // 直接使用 nickname 字段
+    const ordererName = <span class="cstat-no" title="statement not covered" >order.orderer_name || order.nickname;</span>
+<span class="cstat-no" title="statement not covered" >    if (ordererName) {</span>
+<span class="cstat-no" title="statement not covered" >      dishOrderersMap[order.dish_id].push(ordererName);</span>
+    }
   });
+&nbsp;
+<span class="cstat-no" title="statement not covered" >  console.log('Dish orderers map:', dishOrderersMap);</span>
 &nbsp;
   const dishesWithOrderers = <span class="cstat-no" title="statement not covered" >dishes.map(<span class="fstat-no" title="function not covered" >di</span>sh =&gt; (<span class="cstat-no" title="statement not covered" >{</span></span>
     ...dish,
@@ -1927,7 +1954,7 @@ async function <span class="fstat-no" title="function not covered" >getByShareTo
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-03T18:18:31.364Z
+                at 2026-03-08T17:28:59.061Z
             </div>
         <script src="../prettify.js"></script>
         <script>
