@@ -81,7 +81,7 @@ async function createDish(data, context) {
     return paramError('菜品名称不能为空');
   }
 
-  const userId = getUserId(context);
+  const userId = await getUserId(context);
   const trimmedName = name.trim();
   const trimmedDesc = description ? description.trim() : null;
 
@@ -149,7 +149,7 @@ async function updateDish(data, context) {
     return paramError('菜品名称不能为空');
   }
 
-  const userId = getUserId(context);
+  const userId = await getUserId(context);
   const trimmedName = name.trim();
   const trimmedDesc = description ? description.trim() : null;
 
@@ -210,7 +210,7 @@ async function deleteDish(data, context) {
     return paramError('菜品ID不能为空');
   }
 
-  const userId = getUserId(context);
+  const userId = await getUserId(context);
 
   // 检查菜品是否存在且属于当前用户
   const existingDish = await query(
@@ -239,7 +239,7 @@ async function deleteDish(data, context) {
  */
 async function listDishes(data, context) {
   const { keyword, kitchenId, page = 1, pageSize = 100 } = data || {};
-  const userId = getUserId(context);
+  const userId = await getUserId(context);
 
   // 如果没有提供kitchenId，获取或创建用户的默认厨房
   let targetKitchenId = kitchenId;
@@ -316,7 +316,7 @@ async function getDish(data, context) {
     return paramError('菜品ID不能为空');
   }
 
-  const userId = getUserId(context);
+  const userId = await getUserId(context);
 
   const dish = await query(
     'SELECT id, name, description, created_at FROM wte_dishes WHERE id = ? AND user_id = ? AND status = 1',

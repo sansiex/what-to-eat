@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/32</span>
+                <span class='fraction'>0/38</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/32</span>
+                <span class='fraction'>0/38</span>
             </div>
         
             
@@ -171,7 +171,21 @@
 <a name='L106'></a><a href='#L106'>106</a>
 <a name='L107'></a><a href='#L107'>107</a>
 <a name='L108'></a><a href='#L108'>108</a>
-<a name='L109'></a><a href='#L109'>109</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a>
+<a name='L113'></a><a href='#L113'>113</a>
+<a name='L114'></a><a href='#L114'>114</a>
+<a name='L115'></a><a href='#L115'>115</a>
+<a name='L116'></a><a href='#L116'>116</a>
+<a name='L117'></a><a href='#L117'>117</a>
+<a name='L118'></a><a href='#L118'>118</a>
+<a name='L119'></a><a href='#L119'>119</a>
+<a name='L120'></a><a href='#L120'>120</a>
+<a name='L121'></a><a href='#L121'>121</a>
+<a name='L122'></a><a href='#L122'>122</a>
+<a name='L123'></a><a href='#L123'>123</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -259,6 +273,12 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -266,6 +286,14 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -350,32 +378,46 @@ async function <span class="fstat-no" title="function not covered" >transaction(
  * @param {Object} context - 云函数上下文
  * @returns {number} 用户ID
  */
-function <span class="fstat-no" title="function not covered" >getUserId(</span>context) {
+async function <span class="fstat-no" title="function not covered" >getUserId(</span>context) {
   // 从云函数上下文中获取用户信息
   // 支持多种调用方式：云函数调用、HTTP调用
 <span class="cstat-no" title="statement not covered" >  if (!context) {</span>
 <span class="cstat-no" title="statement not covered" >    console.warn('Context is undefined, using default userId 1');</span>
 <span class="cstat-no" title="statement not covered" >    return 1;</span>
   }
-  
+&nbsp;
   // 优先从 context.userId 获取
 <span class="cstat-no" title="statement not covered" >  if (context.userId) {</span>
-<span class="cstat-no" title="statement not covered" >    return parseInt(context.userId) || 1;</span>
+<span class="cstat-no" title="statement not covered" >    return context.userId;</span>
   }
-  
+&nbsp;
+  // 从小程序云函数调用中获取用户信息（通过 data._openid）
+<span class="cstat-no" title="statement not covered" >  if (context.data &amp;&amp; context.data._openid) {</span>
+    const openid = <span class="cstat-no" title="statement not covered" >context.data._openid;</span>
+    // 根据 openid 查询用户ID
+    const [users] = <span class="cstat-no" title="statement not covered" >await pool.query(</span>
+      'SELECT id FROM wte_users WHERE openid = ? AND status = 1',
+      [openid]
+    );
+<span class="cstat-no" title="statement not covered" >    if (users.length &gt; 0) {</span>
+<span class="cstat-no" title="statement not covered" >      return users[0].id;</span>
+    }
+    // 如果用户不存在，创建新用户
+    const userInfo = <span class="cstat-no" title="statement not covered" >context.data._userInfo || {};</span>
+    const nickname = <span class="cstat-no" title="statement not covered" >userInfo.nickName || '微信用户';</span>
+    const avatarUrl = <span class="cstat-no" title="statement not covered" >userInfo.avatarUrl || '';</span>
+    const [result] = <span class="cstat-no" title="statement not covered" >await pool.query(</span>
+      'INSERT INTO wte_users (openid, nickname, avatar_url) VALUES (?, ?, ?)',
+      [openid, nickname, avatarUrl]
+    );
+<span class="cstat-no" title="statement not covered" >    return result.insertId;</span>
+  }
+&nbsp;
   // HTTP 调用时，从 context.data 中获取
 <span class="cstat-no" title="statement not covered" >  if (context.data &amp;&amp; context.data.userId) {</span>
-<span class="cstat-no" title="statement not covered" >    return parseInt(context.data.userId) || 1;</span>
+<span class="cstat-no" title="statement not covered" >    return context.data.userId;</span>
   }
-  
-  // 从 HTTP 请求头中获取用户ID
-<span class="cstat-no" title="statement not covered" >  if (context.headers) {</span>
-    const userId = <span class="cstat-no" title="statement not covered" >context.headers['x-user-id'] || context.headers['X-User-Id'];</span>
-<span class="cstat-no" title="statement not covered" >    if (userId) {</span>
-<span class="cstat-no" title="statement not covered" >      return parseInt(userId) || 1;</span>
-    }
-  }
-  
+&nbsp;
   // 默认返回1，实际应该根据openid查询
 <span class="cstat-no" title="statement not covered" >  console.warn('UserId not found in context, using default userId 1');</span>
 <span class="cstat-no" title="statement not covered" >  return 1;</span>
@@ -394,7 +436,7 @@ function <span class="fstat-no" title="function not covered" >getUserId(</span>c
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-08T17:28:59.061Z
+                at 2026-03-14T17:45:31.015Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <!-- 菜品图标激活状态 -->
+  <circle cx="24" cy="20" r="10" fill="#667eea" stroke="#667eea" stroke-width="3"/>
+  <path d="M18 30 L16 40" stroke="#667eea" stroke-width="3" stroke-linecap="round"/>
+  <path d="M30 30 L32 40" stroke="#667eea" stroke-width="3" stroke-linecap="round"/>
+  <path d="M20 40 L28 40" stroke="#667eea" stroke-width="3" stroke-linecap="round"/>
+</svg>

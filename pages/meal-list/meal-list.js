@@ -143,7 +143,7 @@ Page({
     getApp().globalData.currentMeal = meal
 
     // 跳转到点餐页面
-    wx.switchTab({
+    wx.navigateTo({
       url: '/pages/order-food/order-food'
     })
   },
@@ -167,7 +167,7 @@ Page({
       getApp().globalData.viewMode = true // 标记为查看模式
 
       // 跳转到点餐页面（查看模式）
-      wx.switchTab({
+      wx.navigateTo({
         url: '/pages/order-food/order-food'
       })
     } catch (err) {

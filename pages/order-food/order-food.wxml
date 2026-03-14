@@ -71,12 +71,22 @@
     </view>
   </view>
 
-  <!-- 下单按钮（仅正常模式显示） -->
-  <button
-    class="btn"
-    bindtap="placeOrder"
-    wx:if="{{currentMeal && !viewMode}}"
-  >
-    下单
-  </button>
+  <!-- 按钮区域（仅正常模式显示） -->
+  <view wx:if="{{currentMeal && !viewMode}}" style="display: flex; gap: 16rpx; width: 100%;">
+    <button
+      class="btn"
+      bindtap="placeOrder"
+      style="flex: 1;"
+    >
+      下单
+    </button>
+    <button
+      class="btn btn-share"
+      bindtap="shareMeal"
+      style="flex: 1;"
+      wx:if="{{isInitiator}}"
+    >
+      分享
+    </button>
+  </view>
 </view>

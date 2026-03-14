@@ -1,0 +1,75 @@
+<!-- pages/menu-list/menu-list.wxml -->
+<view class="container">
+  <!-- 创建菜单按钮 -->
+  <view class="header-actions">
+    <button class="btn btn-primary" bindtap="createMenu">创建菜单</button>
+  </view>
+
+  <!-- 菜单列表 -->
+  <view class="menu-list">
+    <view wx:if="{{menus.length === 0}}" class="empty-state">
+      <text>暂无菜单，点击上方按钮创建</text>
+    </view>
+
+    <view wx:else>
+      <view wx:for="{{menus}}" wx:key="id" class="menu-card">
+        <view class="menu-info">
+          <text class="menu-name">{{item.name}}</text>
+          <text class="menu-count">{{item.dishCount}} 道菜</text>
+        </view>
+        
+        <view class="menu-actions">
+          <button class="btn btn-small" bindtap="editMenu" data-id="{{item.id}}">编辑</button>
+          <button class="btn btn-small btn-danger" bindtap="deleteMenu" data-id="{{item.id}}">删除</button>
+          <button class="btn btn-small btn-primary" bindtap="showInitiateMealDialog" data-id="{{item.id}}">发起点餐</button>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 发起点餐弹窗 -->
+  <view wx:if="{{showInitiateDialog}}" class="dialog-overlay">
+    <view class="dialog">
+      <view class="dialog-header">
+        <text class="dialog-title">确认发起点餐</text>
+        <text class="dialog-close" bindtap="hideInitiateDialog">×</text>
+      </view>
+      
+      <view class="dialog-content">
+        <!-- 菜单名称 -->
+        <view class="menu-name-section">
+          <text class="label">菜单名称：</text>
+          <text class="value">{{selectedMenu.name}}</text>
+        </view>
+
+        <!-- 搜索框 -->
+        <view class="search-section">
+          <input 
+            class="search-input" 
+            placeholder="搜索菜品" 
+            bindinput="onSearchDishes"
+            value="{{searchKeyword}}"
+          />
+        </view>
+
+        <!-- 菜品列表 -->
+        <view class="dishes-section">
+          <text class="section-title">菜品列表（{{selectedCount}}/{{selectedMenu.dishes.length}}）</text>
+          <scroll-view class="dishes-scroll" scroll-y>
+            <view wx:for="{{filteredDishes}}" wx:key="id" class="dish-item" bindtap="toggleDishSelection" data-id="{{item.id}}">
+              <view class="checkbox {{item.selected ? 'checked' : ''}}">
+                <view wx:if="{{item.selected}}" class="checkmark">✓</view>
+              </view>
+              <text class="dish-name {{item.selected ? '' : 'disabled'}}">{{item.name}}</text>
+            </view>
+          </scroll-view>
+        </view>
+      </view>
+
+      <view class="dialog-actions">
+        <button class="btn btn-cancel" bindtap="hideInitiateDialog">取消</button>
+        <button class="btn btn-confirm" bindtap="confirmInitiateMeal">确定</button>
+      </view>
+    </view>
+  </view>
+</view>

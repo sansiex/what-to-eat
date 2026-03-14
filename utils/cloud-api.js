@@ -127,31 +127,64 @@ const API = {
     }
   },
 
+  // 菜单管理
+  menu: {
+    // 获取菜单列表
+    list(kitchenId) {
+      return callLocalFunction('menu', 'list', { kitchenId })
+    },
+
+    // 创建菜单
+    create(data) {
+      return callLocalFunction('menu', 'create', data)
+    },
+
+    // 更新菜单
+    update(data) {
+      return callLocalFunction('menu', 'update', data)
+    },
+
+    // 删除菜单（软删除）
+    delete(id) {
+      return callLocalFunction('menu', 'delete', { id })
+    },
+
+    // 获取单个菜单
+    get(id) {
+      return callLocalFunction('menu', 'get', { id })
+    }
+  },
+
   // 厨房管理
   kitchen: {
     // 获取厨房列表
     list() {
-      return callHttpFunction('kitchen', 'list')
+      return callLocalFunction('kitchen', 'list')
     },
 
     // 创建厨房
     create(name) {
-      return callHttpFunction('kitchen', 'create', { name })
+      return callLocalFunction('kitchen', 'create', { name })
     },
 
     // 更新厨房
     update(id, name) {
-      return callHttpFunction('kitchen', 'update', { id, name })
+      return callLocalFunction('kitchen', 'update', { id, name })
     },
 
     // 删除厨房
     delete(id) {
-      return callHttpFunction('kitchen', 'delete', { id })
+      return callLocalFunction('kitchen', 'delete', { id })
     },
 
     // 设置默认厨房
     setDefault(id) {
-      return callHttpFunction('kitchen', 'setDefault', { id })
+      return callLocalFunction('kitchen', 'setDefault', { id })
+    },
+
+    // 获取或创建默认厨房
+    getOrCreateDefault() {
+      return callLocalFunction('kitchen', 'getOrCreateDefault')
     }
   },
 
@@ -192,7 +225,7 @@ function callHttpFunction(functionName, action, data = {}) {
       data
     }
     console.log(`调用云函数 ${functionName}，请求体:`, requestBody)
-    
+
     wx.request({
       url: url,
       method: 'POST',
@@ -229,6 +262,57 @@ function callHttpFunction(functionName, action, data = {}) {
         console.error(`调用云函数 ${functionName} 失败:`, err)
         wx.showToast({
           title: '网络错误，请稍后重试',
+          icon: 'none'
+        })
+        reject(err)
+      }
+    })
+  })
+}
+
+/**
+ * 通过 wx.cloud.callFunction 调用本地云函数（开发环境使用）
+ * @param {string} functionName - 云函数名称
+ * @param {string} action - 操作类型
+ * @param {Object} data - 请求数据
+ * @returns {Promise} 请求结果
+ */
+function callLocalFunction(functionName, action, data = {}) {
+  return new Promise((resolve, reject) => {
+    // 获取本地存储的用户信息
+    const userInfo = wx.getStorageSync('userInfo') || {}
+    const openid = wx.getStorageSync('openid') || ''
+
+    const requestData = {
+      action,
+      data: {
+        ...data,
+        _userInfo: userInfo,
+        _openid: openid
+      }
+    }
+    console.log(`调用本地云函数 ${functionName}，请求体:`, requestData)
+
+    wx.cloud.callFunction({
+      name: functionName,
+      data: requestData,
+      success: (res) => {
+        console.log(`调用本地云函数 ${functionName} 响应:`, res)
+        const result = res.result
+        if (result.success) {
+          resolve(result)
+        } else {
+          wx.showToast({
+            title: result.message || '操作失败',
+            icon: 'none'
+          })
+          reject(new Error(result.message || '操作失败'))
+        }
+      },
+      fail: (err) => {
+        console.error(`调用本地云函数 ${functionName} 失败:`, err)
+        wx.showToast({
+          title: '调用失败，请稍后重试',
           icon: 'none'
         })
         reject(err)

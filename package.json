@@ -1,5 +1,22 @@
 {
+  "name": "what-to-eat-frontend",
+  "version": "1.0.0",
+  "description": "吃什么小程序前端",
+  "scripts": {
+    "test": "jest --coverage",
+    "test:watch": "jest --watch",
+    "test:menu-list": "jest tests/menu-list.test.js",
+    "test:menu-edit": "jest tests/menu-edit.test.js",
+    "test:app-config": "jest tests/app-config.test.js"
+  },
   "dependencies": {
     "mysql2": "^3.18.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "miniprogram-simulate": "^1.6.1",
+    "sharp": "^0.34.5",
+    "svg-to-png": "^4.0.0"
   }
 }

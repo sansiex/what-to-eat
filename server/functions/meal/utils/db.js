@@ -69,24 +69,46 @@ async function transaction(callback) {
  * @param {Object} context - 云函数上下文
  * @returns {number} 用户ID
  */
-function getUserId(context) {
+async function getUserId(context) {
   // 从云函数上下文中获取用户信息
   // 支持多种调用方式：云函数调用、HTTP调用
   if (!context) {
     console.warn('Context is undefined, using default userId 1');
     return 1;
   }
-  
+
   // 优先从 context.userId 获取
   if (context.userId) {
     return context.userId;
   }
-  
+
+  // 从小程序云函数调用中获取用户信息（通过 data._openid）
+  if (context.data && context.data._openid) {
+    const openid = context.data._openid;
+    // 根据 openid 查询用户ID
+    const [users] = await pool.query(
+      'SELECT id FROM wte_users WHERE openid = ? AND status = 1',
+      [openid]
+    );
+    if (users.length > 0) {
+      return users[0].id;
+    }
+    // 如果用户不存在，创建新用户
+    const userInfo = context.data._userInfo || {};
+    const nickname = userInfo.nickName || '微信用户';
+    const avatarUrl = userInfo.avatarUrl || '';
+    const [result] = await pool.query(
+      'INSERT INTO wte_users (openid, nickname, avatar_url) VALUES (?, ?, ?)',
+      [openid, nickname, avatarUrl]
+    );
+    return result.insertId;
+  }
+
   // HTTP 调用时，从 context.data 中获取
   if (context.data && context.data.userId) {
     return context.data.userId;
   }
-  
+
   // 默认返回1，实际应该根据openid查询
   console.warn('UserId not found in context, using default userId 1');
   return 1;

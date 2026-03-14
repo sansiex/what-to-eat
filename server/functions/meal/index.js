@@ -61,7 +61,7 @@ async function createMeal(data, context) {
     return paramError('请至少选择一个菜品');
   }
   
-  const userId = getUserId(context);
+  const userId = await getUserId(context);
   const trimmedName = name.trim();
   
   // 如果没有提供kitchenId，获取用户的默认厨房
@@ -149,7 +149,7 @@ async function updateMeal(data, context) {
     return paramError('请至少选择一个菜品');
   }
   
-  const userId = getUserId(context);
+  const userId = await getUserId(context);
   const trimmedName = name.trim();
   
   // 检查点餐是否存在且属于当前用户
@@ -234,7 +234,7 @@ async function deleteMeal(data, context) {
     return paramError('点餐ID不能为空');
   }
   
-  const userId = getUserId(context);
+  const userId = await getUserId(context);
   
   // 检查点餐是否存在且属于当前用户
   const existingMeal = await query(
@@ -271,7 +271,7 @@ async function deleteMeal(data, context) {
  */
 async function listMeals(data, context) {
   const { status, kitchenId, page = 1, pageSize = 100 } = data || {};
-  const userId = getUserId(context);
+  const userId = await getUserId(context);
   
   // 如果没有提供kitchenId，获取用户的默认厨房
   let targetKitchenId = kitchenId;
@@ -351,7 +351,7 @@ async function getMeal(data, context) {
     return paramError('点餐ID不能为空');
   }
   
-  const userId = getUserId(context);
+  const userId = await getUserId(context);
   
   // 获取点餐基本信息（不限制用户，允许查看他人创建的点餐）
   const meal = await query(
@@ -419,7 +419,7 @@ async function closeMeal(data, context) {
     return paramError('点餐ID不能为空');
   }
 
-  const userId = getUserId(context);
+  const userId = await getUserId(context);
 
   // 检查点餐是否存在且属于当前用户
   const existingMeal = await query(
@@ -456,7 +456,7 @@ async function reopenMeal(data, context) {
     return paramError('点餐ID不能为空');
   }
 
-  const userId = getUserId(context);
+  const userId = await getUserId(context);
 
   // 检查点餐是否存在且属于当前用户
   const existingMeal = await query(
@@ -511,7 +511,7 @@ async function generateShareLink(data, context) {
     return paramError('点餐ID不能为空');
   }
 
-  const userId = getUserId(context);
+  const userId = await getUserId(context);
 
   // 验证点餐是否存在且属于当前用户
   const meal = await query(

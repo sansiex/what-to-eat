@@ -1,0 +1,92 @@
+/* pages/order-food/order-food.wxss */
+
+.container {
+  padding: 20rpx;
+}
+
+.meal-info {
+  background: #fff;
+  padding: 30rpx;
+  border-radius: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.meal-name {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.meal-status {
+  font-size: 24rpx;
+  color: #07c160;
+  margin-top: 10rpx;
+}
+
+.dish-list {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 20rpx;
+}
+
+.dish-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx;
+  border-bottom: 1rpx solid #eee;
+}
+
+.dish-item:last-child {
+  border-bottom: none;
+}
+
+.dish-checkbox {
+  margin-right: 20rpx;
+}
+
+.dish-name {
+  flex: 1;
+  font-size: 32rpx;
+  color: #333;
+}
+
+.dish-count {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  padding: 20rpx 30rpx;
+  display: flex;
+  gap: 20rpx;
+  box-shadow: 0 -2rpx 10rpx rgba(0,0,0,0.1);
+}
+
+.btn-share {
+  flex: 1;
+  background: #576b95;
+  color: #fff;
+  text-align: center;
+  padding: 24rpx 0;
+  border-radius: 8rpx;
+  font-size: 32rpx;
+}
+
+.btn-order {
+  flex: 1;
+  background: #07c160;
+  color: #fff;
+  text-align: center;
+  padding: 24rpx 0;
+  border-radius: 8rpx;
+  font-size: 32rpx;
+}
+
+.btn-disabled {
+  background: #ccc;
+}

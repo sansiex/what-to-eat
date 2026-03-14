@@ -1,0 +1,86 @@
+<!-- pages/menu-edit/menu-edit.wxml -->
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <text class="page-title">{{isEditMode ? '编辑菜单' : '创建菜单'}}</text>
+  </view>
+
+  <!-- 菜单名称 -->
+  <view class="form-section">
+    <text class="form-label">菜单名称</text>
+    <input 
+      class="form-input" 
+      placeholder="请输入菜单名称（如：午餐、晚餐）" 
+      bindinput="onMenuNameInput"
+      value="{{menuName}}"
+    />
+  </view>
+
+  <!-- 菜品选择 -->
+  <view class="form-section">
+    <view class="section-header">
+      <text class="form-label">选择菜品</text>
+      <button class="btn btn-small btn-primary" bindtap="showAddDishDialog">新增菜品</button>
+    </view>
+    
+    <!-- 搜索框 -->
+    <input 
+      class="search-input" 
+      placeholder="搜索菜品" 
+      bindinput="onSearch"
+      value="{{searchKeyword}}"
+    />
+
+    <!-- 菜品列表 -->
+    <view class="dishes-list">
+      <view wx:if="{{filteredDishes.length === 0}}" class="empty-tip">
+        <text>暂无菜品</text>
+      </view>
+      
+      <view wx:else>
+        <view 
+          wx:for="{{filteredDishes}}" 
+          wx:key="id" 
+          class="dish-item {{item.selected ? 'selected' : ''}}"
+          bindtap="toggleDishSelection"
+          data-id="{{item.id}}"
+        >
+          <checkbox checked="{{item.selected}}" />
+          <text class="dish-name">{{item.name}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 保存按钮 -->
+  <view class="form-actions">
+    <button class="btn btn-primary" bindtap="saveMenu">
+      {{isEditMode ? '保存修改' : '创建菜单'}}
+    </button>
+  </view>
+
+  <!-- 新增菜品弹窗 -->
+  <view wx:if="{{showAddDishDialog}}" class="dialog-overlay">
+    <view class="dialog">
+      <view class="dialog-header">
+        <text class="dialog-title">新增菜品</text>
+        <text class="dialog-close" bindtap="hideAddDishDialog">×</text>
+      </view>
+      
+      <view class="dialog-content">
+        <input 
+          class="form-input" 
+          placeholder="请输入菜品名称" 
+          bindinput="onNewDishNameInput"
+          value="{{newDishName}}"
+          focus="{{showAddDishDialog}}"
+        />
+      </view>
+
+      <view class="dialog-actions">
+        <button class="btn btn-cancel" bindtap="hideAddDishDialog">取消</button>
+        <button class="btn btn-confirm" bindtap="confirmAddDish">确定</button>
+      </view>
+    </view>
+  </view>
+</view>

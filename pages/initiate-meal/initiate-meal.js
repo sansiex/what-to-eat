@@ -279,7 +279,7 @@ Page({
 
       // 跳转到点餐页面
       console.log('准备跳转到点餐页面')
-      wx.switchTab({
+      wx.navigateTo({
         url: '/pages/order-food/order-food',
         success: function(res) {
           console.log('跳转成功:', res)

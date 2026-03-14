@@ -11,7 +11,8 @@ Page({
     orders: [],
     orderStats: [], // 订单统计
     updateTimestamp: Date.now(),
-    viewMode: false // 是否为查看模式（只读）
+    viewMode: false, // 是否为查看模式（只读）
+    isInitiator: false // 是否是点餐发起人
   },
 
   onLoad() {
@@ -170,12 +171,17 @@ Page({
         formattedCreatedAt
       }
 
+      // 判断当前用户是否是发起人
+      const currentUser = wx.getStorageSync('currentUser') || ''
+      const isInitiator = currentMeal.initiator === currentUser
+
       this.setData({
         currentMeal: currentMealWithFormattedTime,
         filteredDishes: currentMeal.dishes,
         userSelectedDishes,
         dishSelectionMap,
-        dishOrderersMap
+        dishOrderersMap,
+        isInitiator
       })
 
       // 加载订单统计
@@ -362,6 +368,51 @@ Page({
       })
     } catch (err) {
       console.error('下单失败:', err)
+    }
+  },
+
+  // 分享点餐
+  async shareMeal() {
+    const { currentMeal } = this.data
+
+    if (!currentMeal) {
+      wx.showToast({ title: '暂无发起的餐食', icon: 'none' })
+      return
+    }
+
+    // 检查是否已收单
+    if (currentMeal.status === 'closed') {
+      wx.showToast({ title: '已收单的点餐不能分享', icon: 'none' })
+      return
+    }
+
+    try {
+      // 调用云函数生成分享链接
+      const result = await API.share.generateShareLink(currentMeal.id)
+      const { shareUrl } = result.data
+
+      // 显示分享菜单
+      wx.showActionSheet({
+        itemList: ['复制链接', '分享给好友'],
+        success: (res) => {
+          if (res.tapIndex === 0) {
+            // 复制链接
+            wx.setClipboardData({
+              data: shareUrl,
+              success: () => {
+                wx.showToast({ title: '链接已复制', icon: 'success' })
+              }
+            })
+          } else if (res.tapIndex === 1) {
+            // 调用微信分享
+            // 这里可以调用 wx.shareAppMessage
+            wx.showToast({ title: '请使用右上角分享按钮', icon: 'none' })
+          }
+        }
+      })
+    } catch (err) {
+      console.error('生成分享链接失败:', err)
+      wx.showToast({ title: '分享失败', icon: 'none' })
     }
   }
 })

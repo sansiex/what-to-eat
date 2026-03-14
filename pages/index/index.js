@@ -202,7 +202,7 @@ Page({
 
   navigateToInitiateMeal() {
     wx.navigateTo({
-      url: '/pages/initiate-meal/index'
+      url: '/pages/initiate-meal/initiate-meal'
     })
   }
 })

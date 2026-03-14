@@ -7,7 +7,7 @@ const fs = require('fs');
 const path = require('path');
 
 // 云函数列表
-const functions = ['dish', 'meal', 'order', 'user'];
+const functions = ['dish', 'meal', 'order', 'user', 'menu', 'kitchen'];
 
 /**
  * 部署单个云函数

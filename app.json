@@ -1,9 +1,10 @@
 {
   "pages": [
-    "pages/index/index",
-    "pages/initiate-meal/initiate-meal",
-    "pages/order-food/order-food",
+    "pages/menu-list/menu-list",
+    "pages/dish-list/dish-list",
     "pages/meal-list/meal-list",
+    "pages/menu-edit/menu-edit",
+    "pages/order-food/order-food",
     "pages/share-meal/share-meal"
   ],
   "window": {
@@ -15,20 +16,26 @@
   "tabBar": {
     "list": [
       {
-        "pagePath": "pages/index/index",
-        "text": "首页",
-        "iconPath": "images/tab-home.png",
-        "selectedIconPath": "images/tab-home-active.png"
+        "pagePath": "pages/menu-list/menu-list",
+        "text": "菜单",
+        "iconPath": "images/tab-menu.png",
+        "selectedIconPath": "images/tab-menu-active.png"
+      },
+      {
+        "pagePath": "pages/dish-list/dish-list",
+        "text": "菜品",
+        "iconPath": "images/tab-dish.png",
+        "selectedIconPath": "images/tab-dish-active.png"
       },
       {
         "pagePath": "pages/meal-list/meal-list",
-        "text": "点餐列表",
-        "iconPath": "images/tab-list.png",
-        "selectedIconPath": "images/tab-list-active.png"
+        "text": "点餐",
+        "iconPath": "images/tab-meal.png",
+        "selectedIconPath": "images/tab-meal-active.png"
       }
     ],
     "color": "#999",
-    "selectedColor": "#007AFF",
+    "selectedColor": "#667eea",
     "backgroundColor": "#fff",
     "borderStyle": "black"
   },

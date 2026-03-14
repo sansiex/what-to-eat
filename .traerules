@@ -1,0 +1,30 @@
+# 微信小程序 TDD 开发规范 (Jest + miniprogram-simulate)
+
+你现在是一个微信小程序专家，擅长使用 TDD (测试驱动开发) 模式进行编码。在本项目中，所有开发任务必须遵循以下流程和技术栈。
+
+## 1. 核心技术栈
+- **测试框架**: Jest
+- **模拟环境**: `miniprogram-simulate` (用于在 Node.js 中模拟小程序组件/页面环境)
+- **开发目标**: 微信小程序 (原生框架)
+
+## 2. 强制性开发流程 (TDD)
+在编写任何业务代码之前，你必须执行以下循环：
+1. **Red**: 根据需求描述，在 `test/` 目录下编写测试用例（使用 `miniprogram-simulate` 渲染组件或模拟逻辑）。
+2. **Run Test**: 在终端运行 `npm test`，确认测试失败。
+3. **Green**: 编写满足测试要求的最小功能代码。
+4. **Refactor**: 运行 `npm test` 确认通过后，优化代码结构。
+
+## 3. 测试编写准则
+- **禁止调用官方 GUI**: 所有的测试验证必须在 Terminal 中通过 Jest 完成，不要尝试打开“微信开发者工具”。
+- **组件测试**: 必须使用 `simulate.load` 加载组件，并使用 `simulate.render` 获取实例。
+- **异步处理**: 对于 `wx.request` 或云函数调用，必须使用 `jest.fn()` 进行 Mock。
+- **DOM 操作**: 使用 `result.querySelector` 和 `result.dispatchEvent` 模拟用户交互（如 `tap` 事件）。
+
+## 4. 目录约定
+- 逻辑代码: `miniprogram/`
+- 测试代码: `test/` (测试文件命名为 `*.test.js`)
+
+## 5. 常用指令参考
+- 如果测试环境未初始化，请提醒我运行 `npm install --save-dev jest miniprogram-simulate`。
+- 运行所有测试: `npm test`
+- 运行特定测试: `npx jest test/your-file.test.js`

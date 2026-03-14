@@ -56,5 +56,6 @@
     "tabSize": 2
   },
   "cloudfunctionRoot": "server/functions/",
-  "simulatorPluginLibVersion": {}
+  "simulatorPluginLibVersion": {},
+  "cloudfunctionTemplateRoot": "cloudfunctionTemplate/"
 }

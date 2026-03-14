@@ -31,7 +31,7 @@
           class="header-btn"
           bindtap="navigateToInitiateMeal"
         >
-          开始点菜
+          发起点菜
         </button>
       </view>
     </view>
@@ -76,15 +76,15 @@
     <view class="dialog-content">
       <view class="dialog-title">添加菜品</view>
       <input
-        class="dialog-input"
+        class="input"
         placeholder="请输入菜品名称"
         value="{{newDishName}}"
         bindinput="onDishNameInput"
         focus="{{showAddDialog}}"
       />
-      <view class="dialog-buttons">
-        <button class="dialog-btn btn-cancel" bindtap="hideAddDialog">取消</button>
-        <button class="dialog-btn btn-confirm" bindtap="addDish">确定</button>
+      <view class="dialog-actions">
+        <button class="dialog-btn dialog-btn--cancel" bindtap="hideAddDialog">取消</button>
+        <button class="dialog-btn dialog-btn--confirm" bindtap="addDish">确定</button>
       </view>
     </view>
   </view>
@@ -95,15 +95,15 @@
     <view class="dialog-content">
       <view class="dialog-title">编辑菜品</view>
       <input
-        class="dialog-input"
+        class="input"
         placeholder="请输入菜品名称"
         value="{{editingDishName}}"
         bindinput="onDishNameInput"
         focus="{{showEditDialog}}"
       />
-      <view class="dialog-buttons">
-        <button class="dialog-btn btn-cancel" bindtap="hideEditDialog">取消</button>
-        <button class="dialog-btn btn-confirm" bindtap="updateDish">确定</button>
+      <view class="dialog-actions">
+        <button class="dialog-btn dialog-btn--cancel" bindtap="hideEditDialog">取消</button>
+        <button class="dialog-btn dialog-btn--confirm" bindtap="updateDish">确定</button>
       </view>
     </view>
   </view>

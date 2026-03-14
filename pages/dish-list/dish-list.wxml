@@ -1,0 +1,68 @@
+<!-- pages/dish-list/dish-list.wxml -->
+<view class="container">
+  <!-- 搜索和添加 -->
+  <view class="header-actions">
+    <input 
+      class="search-input" 
+      placeholder="搜索菜品" 
+      bindinput="onSearch"
+      value="{{keyword}}"
+    />
+    <button class="btn btn-primary" bindtap="showAddDialog">添加菜品</button>
+  </view>
+
+  <!-- 菜品列表 -->
+  <view class="dish-list">
+    <view wx:if="{{dishes.length === 0}}" class="empty-state">
+      <text>暂无菜品，点击上方按钮添加</text>
+    </view>
+
+    <view wx:else>
+      <view wx:for="{{dishes}}" wx:key="id" class="dish-card">
+        <view class="dish-info">
+          <text class="dish-name">{{item.name}}</text>
+          <text wx:if="{{item.description}}" class="dish-desc">{{item.description}}</text>
+        </view>
+        <button 
+          class="btn btn-small btn-danger" 
+          bindtap="deleteDish" 
+          data-id="{{item.id}}"
+          data-name="{{item.name}}"
+        >
+          删除
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 添加菜品弹窗 -->
+  <view wx:if="{{showAddDialog}}" class="dialog-overlay">
+    <view class="dialog">
+      <view class="dialog-header">
+        <text class="dialog-title">添加菜品</text>
+        <text class="dialog-close" bindtap="hideAddDialog">×</text>
+      </view>
+      
+      <view class="dialog-content">
+        <input 
+          class="form-input" 
+          placeholder="请输入菜品名称" 
+          bindinput="onDishNameInput"
+          value="{{newDishName}}"
+        />
+        <input 
+          class="form-input" 
+          placeholder="请输入菜品描述（可选）" 
+          bindinput="onDishDescInput"
+          value="{{newDishDescription}}"
+          style="margin-top: 20rpx;"
+        />
+      </view>
+
+      <view class="dialog-actions">
+        <button class="btn btn-cancel" bindtap="hideAddDialog">取消</button>
+        <button class="btn btn-confirm" bindtap="addDish">确定</button>
+      </view>
+    </view>
+  </view>
+</view>

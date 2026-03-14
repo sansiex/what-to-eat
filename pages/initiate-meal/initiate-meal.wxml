@@ -10,14 +10,14 @@
         <button 
           wx:for="{{mealTypes}}" 
           wx:key="{{item}}"
-          style="font-size: 28rpx; padding: 12rpx 24rpx; flex: 1; text-align: center;"
+          class="{{selectedMealName === item ? 'meal-type-btn meal-type-btn--active' : 'meal-type-btn'}}"
           bindtap="selectMealType" 
           data-type="{{item}}"
         >
           {{item}}
         </button>
         <button 
-          style="font-size: 28rpx; padding: 12rpx 24rpx; flex: 1; text-align: center;"
+          class="{{showCustomInput ? 'meal-type-btn meal-type-btn--active' : 'meal-type-btn'}}"
           bindtap="showCustomMealDialog"
         >
           自定义

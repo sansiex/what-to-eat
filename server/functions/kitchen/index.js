@@ -56,6 +56,8 @@ exports.main = async (event, context) => {
         return await getKitchen(data, context);
       case 'setDefault':
         return await setDefaultKitchen(data, context);
+      case 'getOrCreateDefault':
+        return await getOrCreateDefaultKitchen(data, context);
       default:
         return paramError('未知的操作类型');
     }
@@ -75,7 +77,7 @@ async function createKitchen(data, context) {
     return paramError('厨房名称不能为空');
   }
 
-  const userId = getUserId(context);
+  const userId = await getUserId(context);
   const trimmedName = name.trim();
 
   // 检查是否已存在同名厨房
@@ -123,7 +125,7 @@ async function updateKitchen(data, context) {
     return paramError('厨房名称不能为空');
   }
 
-  const userId = getUserId(context);
+  const userId = await getUserId(context);
   const trimmedName = name.trim();
 
   // 检查厨房是否存在且属于当前用户
@@ -170,7 +172,7 @@ async function deleteKitchen(data, context) {
     return paramError('厨房ID不能为空');
   }
 
-  const userId = getUserId(context);
+  const userId = await getUserId(context);
 
   // 检查厨房是否存在且属于当前用户
   const existingKitchen = await query(
@@ -200,7 +202,7 @@ async function deleteKitchen(data, context) {
  * 获取厨房列表
  */
 async function listKitchens(data, context) {
-  const userId = getUserId(context);
+  const userId = await getUserId(context);
 
   const kitchens = await query(
     'SELECT id, name, is_default, created_at FROM wte_kitchens WHERE user_id = ? AND status = 1 ORDER BY is_default DESC, created_at DESC',
@@ -222,7 +224,7 @@ async function getKitchen(data, context) {
     return paramError('厨房ID不能为空');
   }
 
-  const userId = getUserId(context);
+  const userId = await getUserId(context);
 
   const kitchen = await query(
     'SELECT id, name, is_default, created_at FROM wte_kitchens WHERE id = ? AND user_id = ? AND status = 1',
@@ -246,7 +248,7 @@ async function setDefaultKitchen(data, context) {
     return paramError('厨房ID不能为空');
   }
 
-  const userId = getUserId(context);
+  const userId = await getUserId(context);
 
   // 检查厨房是否存在且属于当前用户
   const existingKitchen = await query(
@@ -276,4 +278,50 @@ async function setDefaultKitchen(data, context) {
   );
 
   return success(updatedKitchen[0], '默认厨房设置成功');
+}
+
+/**
+ * 获取或创建默认厨房
+ * 如果用户没有厨房，自动创建一个名为"我的厨房"的默认厨房
+ */
+async function getOrCreateDefaultKitchen(data, context) {
+  const userId = await getUserId(context);
+
+  // 先查找用户的默认厨房
+  const defaultKitchen = await query(
+    'SELECT id, name, is_default, created_at FROM wte_kitchens WHERE user_id = ? AND is_default = 1 AND status = 1',
+    [userId]
+  );
+
+  if (defaultKitchen.length > 0) {
+    return success(defaultKitchen[0], '获取默认厨房成功');
+  }
+
+  // 查找用户的任意一个厨房
+  const anyKitchen = await query(
+    'SELECT id, name, is_default, created_at FROM wte_kitchens WHERE user_id = ? AND status = 1 ORDER BY created_at DESC LIMIT 1',
+    [userId]
+  );
+
+  if (anyKitchen.length > 0) {
+    // 将这个厨房设为默认
+    await query(
+      'UPDATE wte_kitchens SET is_default = 1 WHERE id = ?',
+      [anyKitchen[0].id]
+    );
+    return success({ ...anyKitchen[0], is_default: 1 }, '获取默认厨房成功');
+  }
+
+  // 用户没有厨房，创建一个默认厨房
+  const result = await query(
+    'INSERT INTO wte_kitchens (user_id, name, is_default, status) VALUES (?, ?, 1, 1)',
+    [userId, '我的厨房']
+  );
+
+  const newKitchen = await query(
+    'SELECT id, name, is_default, created_at FROM wte_kitchens WHERE id = ?',
+    [result.insertId]
+  );
+
+  return success(newKitchen[0], '创建默认厨房成功');
 }
