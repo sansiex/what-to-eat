@@ -40,7 +40,6 @@
     <view class="dialog">
       <view class="dialog-header">
         <text class="dialog-title">添加菜品</text>
-        <text class="dialog-close" bindtap="hideAddDialog">×</text>
       </view>
       
       <view class="dialog-content">
@@ -60,8 +59,8 @@
       </view>
 
       <view class="dialog-actions">
-        <button class="btn btn-cancel" bindtap="hideAddDialog">取消</button>
-        <button class="btn btn-confirm" bindtap="addDish">确定</button>
+        <view class="dialog-btn dialog-btn-cancel" bindtap="hideAddDialog">取消</view>
+        <view class="dialog-btn dialog-btn-confirm" bindtap="addDish">确定</view>
       </view>
     </view>
   </view>
