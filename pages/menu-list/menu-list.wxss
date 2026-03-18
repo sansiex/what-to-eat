@@ -8,6 +8,8 @@
 
 /* 头部操作区 */
 .header-actions {
+  display: flex;
+  gap: 16rpx;
   margin-bottom: 20rpx;
 }
 

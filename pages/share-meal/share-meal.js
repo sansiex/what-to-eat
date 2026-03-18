@@ -32,6 +32,12 @@ Page({
       mealId: parseInt(mealId)
     })
 
+    // 检查用户是否已设置昵称
+    const userInfo = wx.getStorageSync('userInfo')
+    if (userInfo && userInfo.nickName && userInfo.nickName !== '微信用户') {
+      this.setData({ userName: userInfo.nickName })
+    }
+
     // 加载分享的点餐详情
     this.loadSharedMeal()
   },
@@ -108,18 +114,27 @@ Page({
 
   // 获取用户信息并提交订单
   getUserProfileAndSubmit() {
-    wx.getUserProfile({
-      desc: '用于显示点餐人姓名',
+    // 优先使用已保存的用户昵称
+    const userInfo = wx.getStorageSync('userInfo')
+    if (userInfo && userInfo.nickName && userInfo.nickName !== '微信用户') {
+      this.setData({ userName: userInfo.nickName })
+      this.submitOrder()
+      return
+    }
+
+    // 如果未设置昵称，提示用户先设置
+    wx.showModal({
+      title: '提示',
+      content: '请先设置您的昵称后再下单',
+      confirmText: '去设置',
       success: (res) => {
-        const userName = res.userInfo.nickName
-        this.setData({ userName })
-        this.submitOrder()
-      },
-      fail: (err) => {
-        console.error('获取用户信息失败:', err)
-        // 如果用户拒绝授权，使用默认名称
-        this.setData({ userName: '微信用户' })
-        this.submitOrder()
+        if (res.confirm) {
+          // 跳转到登录页
+          const currentUrl = `/pages/share-meal/share-meal?token=${this.data.shareToken}&mealId=${this.data.mealId}`
+          wx.navigateTo({
+            url: `/pages/login/login?redirect=${encodeURIComponent(currentUrl)}`
+          })
+        }
       }
     })
   },

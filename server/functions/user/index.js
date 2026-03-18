@@ -39,30 +39,38 @@ exports.main = async (event, context) => {
  * @returns {Object} 登录结果
  */
 async function login(data, context) {
-  const { code, userInfo } = data || {};
-  
-  if (!code) {
+  const { code, openid, userInfo } = data || {};
+
+  console.log('User login received:', { code: code ? '存在' : '不存在', openid: openid ? openid.substring(0, 20) + '...' : '不存在', userInfo });
+
+  // 支持直接传入 openid 或 code
+  let userOpenid = openid;
+  if (!userOpenid && code) {
+    // 实际部署时，这里需要调用微信接口获取openid
+    // 目前使用模拟数据
+    userOpenid = `mock_openid_${code}`;
+  }
+
+  if (!userOpenid) {
     return paramError('登录凭证不能为空');
   }
-  
-  // 实际部署时，这里需要调用微信接口获取openid
-  // 目前使用模拟数据
-  const mockOpenid = `mock_openid_${code}`;
+
+  console.log('Using userOpenid:', userOpenid.substring(0, 30) + '...');
   
   // 查询用户是否存在
   let user = await query(
     'SELECT id, openid, nickname, avatar_url, status FROM wte_users WHERE openid = ?',
-    [mockOpenid]
+    [userOpenid]
   );
-  
+
   if (user.length === 0) {
     // 新用户，创建用户记录
     const nickname = userInfo?.nickName || '微信用户';
     const avatarUrl = userInfo?.avatarUrl || null;
-    
+
     const result = await query(
       'INSERT INTO wte_users (openid, nickname, avatar_url) VALUES (?, ?, ?)',
-      [mockOpenid, nickname, avatarUrl]
+      [userOpenid, nickname, avatarUrl]
     );
     
     user = await query(
@@ -127,7 +135,7 @@ async function login(data, context) {
  */
 async function updateUser(data, context) {
   const { nickname, avatarUrl } = data || {};
-  const userId = getUserId(context);
+  const userId = await getUserId(data, context);
   
   // 检查用户是否存在
   const user = await query(
@@ -184,7 +192,7 @@ async function updateUser(data, context) {
  * @returns {Object} 用户信息
  */
 async function getUser(data, context) {
-  const userId = getUserId(context);
+  const userId = await getUserId(data, context);
   
   const user = await query(
     'SELECT id, openid, nickname, avatar_url, status, created_at, last_login_at FROM wte_users WHERE id = ?',

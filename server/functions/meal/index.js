@@ -45,6 +45,46 @@ exports.main = async (event, context) => {
 };
 
 /**
+ * 获取或创建默认厨房
+ * @param {number} userId - 用户ID
+ * @returns {Promise<number>} 厨房ID
+ */
+async function getOrCreateDefaultKitchen(userId) {
+  // 先查找用户的默认厨房
+  const defaultKitchen = await query(
+    'SELECT id FROM wte_kitchens WHERE user_id = ? AND is_default = 1 AND status = 1',
+    [userId]
+  );
+
+  if (defaultKitchen.length > 0) {
+    return defaultKitchen[0].id;
+  }
+
+  // 查找用户的任意一个厨房
+  const anyKitchen = await query(
+    'SELECT id FROM wte_kitchens WHERE user_id = ? AND status = 1 ORDER BY created_at DESC LIMIT 1',
+    [userId]
+  );
+
+  if (anyKitchen.length > 0) {
+    // 将这个厨房设为默认
+    await query(
+      'UPDATE wte_kitchens SET is_default = 1 WHERE id = ?',
+      [anyKitchen[0].id]
+    );
+    return anyKitchen[0].id;
+  }
+
+  // 用户没有厨房，创建一个默认厨房
+  const result = await query(
+    'INSERT INTO wte_kitchens (user_id, name, is_default, status) VALUES (?, ?, 1, 1)',
+    [userId, '我的厨房']
+  );
+
+  return result.insertId;
+}
+
+/**
  * 创建点餐活动
  * @param {Object} data - 点餐数据
  * @param {Object} context - 上下文
@@ -61,20 +101,23 @@ async function createMeal(data, context) {
     return paramError('请至少选择一个菜品');
   }
   
-  const userId = await getUserId(context);
+  const userId = await getUserId(data, context);
   const trimmedName = name.trim();
-  
-  // 如果没有提供kitchenId，获取用户的默认厨房
+
+  // 如果没有提供kitchenId，获取或创建用户的默认厨房
   let targetKitchenId = kitchenId;
   if (!targetKitchenId) {
-    const defaultKitchen = await query(
-      'SELECT id FROM wte_kitchens WHERE user_id = ? AND is_default = 1 AND status = 1',
-      [userId]
+    targetKitchenId = await getOrCreateDefaultKitchen(userId);
+  } else {
+    // 验证提供的厨房属于当前用户
+    const kitchen = await query(
+      'SELECT id FROM wte_kitchens WHERE id = ? AND user_id = ? AND status = 1',
+      [kitchenId, userId]
     );
-    if (defaultKitchen.length === 0) {
-      return error('未找到默认厨房');
+    if (kitchen.length === 0) {
+      return notFound('厨房不存在或无权限访问');
     }
-    targetKitchenId = defaultKitchen[0].id;
+    targetKitchenId = kitchenId;
   }
   
   return await transaction(async (connection) => {
@@ -85,16 +128,16 @@ async function createMeal(data, context) {
     );
     
     const mealId = mealResult.insertId;
-    
-    // 验证菜品是否都属于当前用户和厨房
+
+    // 验证菜品是否都存在且状态正常
     const placeholders = dishIds.map(() => '?').join(',');
     const [validDishes] = await connection.execute(
-      `SELECT id FROM wte_dishes WHERE id IN (${placeholders}) AND user_id = ? AND kitchen_id = ? AND status = 1`,
-      [...dishIds, userId, targetKitchenId]
+      `SELECT id FROM wte_dishes WHERE id IN (${placeholders}) AND status = 1`,
+      [...dishIds]
     );
-    
+
     if (validDishes.length !== dishIds.length) {
-      throw new Error('部分菜品不存在或不属于当前用户');
+      throw new Error('部分菜品不存在');
     }
     
     // 关联菜品
@@ -149,7 +192,7 @@ async function updateMeal(data, context) {
     return paramError('请至少选择一个菜品');
   }
   
-  const userId = await getUserId(context);
+  const userId = await getUserId(data, context);
   const trimmedName = name.trim();
   
   // 检查点餐是否存在且属于当前用户
@@ -234,7 +277,7 @@ async function deleteMeal(data, context) {
     return paramError('点餐ID不能为空');
   }
   
-  const userId = await getUserId(context);
+  const userId = await getUserId(data, context);
   
   // 检查点餐是否存在且属于当前用户
   const existingMeal = await query(
@@ -271,19 +314,12 @@ async function deleteMeal(data, context) {
  */
 async function listMeals(data, context) {
   const { status, kitchenId, page = 1, pageSize = 100 } = data || {};
-  const userId = await getUserId(context);
+  const userId = await getUserId(data, context);
   
-  // 如果没有提供kitchenId，获取用户的默认厨房
+  // 如果没有提供kitchenId，获取或创建用户的默认厨房
   let targetKitchenId = kitchenId;
   if (!targetKitchenId) {
-    const defaultKitchen = await query(
-      'SELECT id FROM wte_kitchens WHERE user_id = ? AND is_default = 1 AND status = 1',
-      [userId]
-    );
-    if (defaultKitchen.length === 0) {
-      return error('未找到默认厨房');
-    }
-    targetKitchenId = defaultKitchen[0].id;
+    targetKitchenId = await getOrCreateDefaultKitchen(userId);
   }
   
   let sql = `
@@ -302,7 +338,7 @@ async function listMeals(data, context) {
     params.push(status);
   }
   
-  sql += ' GROUP BY m.id ORDER BY m.status ASC, m.created_at DESC';
+  sql += ' GROUP BY m.id ORDER BY m.created_at DESC';
   
   // 分页
   const offset = (page - 1) * pageSize;
@@ -351,7 +387,7 @@ async function getMeal(data, context) {
     return paramError('点餐ID不能为空');
   }
   
-  const userId = await getUserId(context);
+  const userId = await getUserId(data, context);
   
   // 获取点餐基本信息（不限制用户，允许查看他人创建的点餐）
   const meal = await query(
@@ -419,7 +455,7 @@ async function closeMeal(data, context) {
     return paramError('点餐ID不能为空');
   }
 
-  const userId = await getUserId(context);
+  const userId = await getUserId(data, context);
 
   // 检查点餐是否存在且属于当前用户
   const existingMeal = await query(
@@ -456,7 +492,7 @@ async function reopenMeal(data, context) {
     return paramError('点餐ID不能为空');
   }
 
-  const userId = await getUserId(context);
+  const userId = await getUserId(data, context);
 
   // 检查点餐是否存在且属于当前用户
   const existingMeal = await query(
@@ -511,7 +547,7 @@ async function generateShareLink(data, context) {
     return paramError('点餐ID不能为空');
   }
 
-  const userId = await getUserId(context);
+  const userId = await getUserId(data, context);
 
   // 验证点餐是否存在且属于当前用户
   const meal = await query(

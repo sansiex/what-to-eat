@@ -28,7 +28,7 @@
           <button class="action-btn btn-edit" bindtap="editMeal" data-id="{{item.id}}">编辑</button>
           <button class="action-btn btn-close" bindtap="closeMeal" data-id="{{item.id}}">收单</button>
           <button class="action-btn btn-order" bindtap="goOrder" data-id="{{item.id}}">点餐</button>
-          <button class="action-btn btn-share" bindtap="shareMeal" data-id="{{item.id}}">分享</button>
+          <button class="action-btn btn-share" open-type="share" data-id="{{item.id}}" data-name="{{item.name}}">分享</button>
         </block>
         <!-- 已收单状态：显示查看、恢复点餐按钮 -->
         <block wx:else>

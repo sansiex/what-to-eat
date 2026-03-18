@@ -70,6 +70,12 @@ Page({
     this.setData({ menuName: e.detail.value })
   },
 
+  // 点击快捷标签
+  onQuickTagTap(e) {
+    const tag = e.currentTarget.dataset.tag
+    this.setData({ menuName: tag })
+  },
+
   // 搜索菜品
   onSearch(e) {
     const keyword = e.detail.value.toLowerCase()

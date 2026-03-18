@@ -26,15 +26,36 @@ Page({
 
       // 获取当前厨房
       let currentKitchen = getApp().globalData.currentKitchen
+      console.log('当前厨房:', currentKitchen)
 
       // 如果没有当前厨房，尝试初始化
       if (!currentKitchen) {
+        console.log('没有当前厨房，尝试初始化...')
         await getApp().initDefaultKitchen()
         currentKitchen = getApp().globalData.currentKitchen
+        console.log('初始化后的厨房:', currentKitchen)
+        
+        // 如果仍然无法获取厨房，尝试直接调用 kitchen 云函数
+        if (!currentKitchen) {
+          console.log('尝试直接调用 kitchen 云函数...')
+          try {
+            const result = await API.kitchen.getOrCreateDefault()
+            console.log('kitchen 云函数返回:', result)
+            if (result.success && result.data) {
+              currentKitchen = result.data
+              getApp().globalData.currentKitchen = result.data
+              wx.setStorageSync('currentKitchen', result.data)
+              wx.setStorageSync('kitchenOpenid', wx.getStorageSync('openid'))
+            }
+          } catch (err) {
+            console.error('调用 kitchen 云函数失败:', err)
+          }
+        }
       }
 
       if (!currentKitchen) {
         wx.hideLoading()
+        console.error('无法获取当前厨房')
         wx.showToast({ title: '请先选择厨房', icon: 'none' })
         return
       }

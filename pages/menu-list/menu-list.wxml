@@ -1,6 +1,6 @@
 <!-- pages/menu-list/menu-list.wxml -->
 <view class="container">
-  <!-- 创建菜单按钮 -->
+  <!-- 头部操作区 -->
   <view class="header-actions">
     <button class="btn btn-primary" bindtap="createMenu">创建菜单</button>
   </view>

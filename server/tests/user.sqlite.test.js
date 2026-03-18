@@ -20,20 +20,24 @@ async function userMain(event, context) {
   try {
     switch (action) {
       case 'login': {
-        const { code, userInfo } = data || {};
+        const { code, openid, userInfo } = data || {};
 
-        if (!code) {
-          return paramError('登录凭证不能为空');
+        // 支持直接传入 openid 或 code
+        let userOpenid = openid;
+        if (!userOpenid && code) {
+          // 实际部署时，这里需要调用微信接口获取openid
+          // 目前使用模拟数据
+          userOpenid = `mock_openid_${code}`;
         }
 
-        // 实际部署时，这里需要调用微信接口获取openid
-        // 目前使用模拟数据
-        const mockOpenid = `mock_openid_${code}`;
+        if (!userOpenid) {
+          return paramError('登录凭证不能为空');
+        }
 
         // 查询用户是否存在
         let user = testQuery(
           'SELECT id, openid, nickname, avatar_url, status FROM wte_users WHERE openid = ?',
-          [mockOpenid]
+          [userOpenid]
         );
 
         if (user.length === 0) {
@@ -43,7 +47,7 @@ async function userMain(event, context) {
 
           const result = testQuery(
             'INSERT INTO wte_users (openid, nickname, avatar_url) VALUES (?, ?, ?)',
-            [mockOpenid, nickname, avatarUrl]
+            [userOpenid, nickname, avatarUrl]
           );
 
           user = testQuery(
@@ -245,7 +249,56 @@ describe('用户管理云函数测试 (SQLite)', () => {
       expect(result.data.avatarUrl).toBe('https://example.com/new.jpg');
     });
 
-    test('登录失败-缺少code', async () => {
+    test('使用openid直接登录成功', async () => {
+      const event = {
+        action: 'login',
+        data: {
+          openid: 'direct_openid_123',
+          userInfo: {
+            nickName: '直接登录用户',
+            avatarUrl: 'https://example.com/direct.jpg'
+          }
+        }
+      };
+      const context = mockContext(1);
+
+      const result = await userMain(event, context);
+
+      expect(result.success).toBe(true);
+      expect(result.code).toBe(0);
+      expect(result.data.nickname).toBe('直接登录用户');
+      expect(result.data.avatarUrl).toBe('https://example.com/direct.jpg');
+      expect(result.data.userId).toBeDefined();
+    });
+
+    test('使用openid更新老用户信息', async () => {
+      // 先创建用户
+      const openid = 'existing_openid_for_update';
+      const result1 = testQuery(
+        'INSERT INTO wte_users (openid, nickname, avatar_url) VALUES (?, ?, ?)',
+        [openid, '原昵称', 'https://example.com/original.jpg']
+      );
+
+      const event = {
+        action: 'login',
+        data: {
+          openid: openid,
+          userInfo: {
+            nickName: '更新后的昵称',
+            avatarUrl: 'https://example.com/updated.jpg'
+          }
+        }
+      };
+      const context = mockContext(result1.insertId);
+
+      const result = await userMain(event, context);
+
+      expect(result.success).toBe(true);
+      expect(result.data.nickname).toBe('更新后的昵称');
+      expect(result.data.avatarUrl).toBe('https://example.com/updated.jpg');
+    });
+
+    test('登录失败-缺少code和openid', async () => {
       const event = {
         action: 'login',
         data: {

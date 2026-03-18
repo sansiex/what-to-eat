@@ -59,14 +59,7 @@ Page({
   // 排序餐食列表
   sortMeals(meals) {
     return meals.sort((a, b) => {
-      // 点餐中状态排在最前面
-      if (a.status === 'ordering' && b.status !== 'ordering') {
-        return -1
-      }
-      if (a.status !== 'ordering' && b.status === 'ordering') {
-        return 1
-      }
-      // 相同状态下按开始时间降序排列（最新的在前）
+      // 按开始时间降序排列（最新的在前），不区分状态
       return new Date(b.createdAt) - new Date(a.createdAt)
     })
   },
@@ -243,6 +236,28 @@ Page({
     } catch (err) {
       console.error('生成分享链接失败:', err)
       wx.showToast({ title: '分享失败', icon: 'none' })
+    }
+  },
+
+  // 用户点击分享按钮时触发
+  onShareAppMessage(e) {
+    const mealId = e.target.dataset.id
+    const mealName = e.target.dataset.name
+
+    if (!mealId) {
+      return {
+        title: '今天吃什么？一起来点餐吧！',
+        path: '/pages/meal-list/meal-list'
+      }
+    }
+
+    // 生成分享路径
+    const sharePath = `/pages/share-meal/share-meal?mealId=${mealId}`
+
+    return {
+      title: `【${mealName}】快来一起点餐吧！`,
+      path: sharePath,
+      imageUrl: '/images/share-meal.png' // 可以设置分享图片
     }
   }
 })

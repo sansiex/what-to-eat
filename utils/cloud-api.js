@@ -112,8 +112,14 @@ const API = {
   // 用户管理
   user: {
     // 登录
-    login(code, userInfo = null) {
-      return callHttpFunction('user', 'login', { code, userInfo })
+    // 支持传入 code 或 openid
+    login(codeOrOpenid, userInfo = null) {
+      // 判断是 openid 还是 code（openid 通常包含下划线或更长）
+      const isOpenid = codeOrOpenid && (codeOrOpenid.includes('_') || codeOrOpenid.length > 32)
+      const params = isOpenid
+        ? { openid: codeOrOpenid, userInfo }
+        : { code: codeOrOpenid, userInfo }
+      return callHttpFunction('user', 'login', params)
     },
 
     // 获取用户信息
@@ -220,9 +226,18 @@ const API = {
 function callHttpFunction(functionName, action, data = {}) {
   return new Promise((resolve, reject) => {
     const url = `${BASE_URL}/${functionName}`
+    
+    // 获取本地存储的用户信息
+    const userInfo = wx.getStorageSync('userInfo') || {}
+    const openid = wx.getStorageSync('openid') || ''
+    
     const requestBody = {
       action,
-      data
+      data: {
+        ...data,
+        _userInfo: userInfo,
+        _openid: openid
+      }
     }
     console.log(`调用云函数 ${functionName}，请求体:`, requestBody)
 

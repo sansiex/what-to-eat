@@ -8,6 +8,14 @@
   <!-- 菜单名称 -->
   <view class="form-section">
     <text class="form-label">菜单名称</text>
+    <!-- 快捷输入标签 -->
+    <view class="quick-tags">
+      <view class="quick-tag" bindtap="onQuickTagTap" data-tag="早餐">早餐</view>
+      <view class="quick-tag" bindtap="onQuickTagTap" data-tag="午餐">午餐</view>
+      <view class="quick-tag" bindtap="onQuickTagTap" data-tag="晚餐">晚餐</view>
+      <view class="quick-tag" bindtap="onQuickTagTap" data-tag="下午茶">下午茶</view>
+      <view class="quick-tag" bindtap="onQuickTagTap" data-tag="夜宵">夜宵</view>
+    </view>
     <input 
       class="form-input" 
       placeholder="请输入菜单名称（如：午餐、晚餐）" 

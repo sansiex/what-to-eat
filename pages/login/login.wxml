@@ -1,0 +1,46 @@
+<!-- pages/login/login.wxml -->
+<view class="login-container">
+  <!-- Logo 区域 -->
+  <view class="logo-section">
+    <view class="logo">
+      <image class="logo-image" src="/images/LOGO.jpg" mode="aspectFit"></image>
+    </view>
+    <text class="app-name">今天吃什么</text>
+    <text class="app-slogan">轻松解决每日点餐难题</text>
+  </view>
+
+  <!-- 登录表单 -->
+  <view class="login-form">
+    <text class="form-title">欢迎使用</text>
+    <text class="form-subtitle">请设置您的昵称，开始使用小程序</text>
+
+    <!-- 昵称输入 -->
+    <view class="input-section">
+      <text class="input-label">您的昵称</text>
+      <input
+        class="nickname-input"
+        type="nickname"
+        name="nickname"
+        placeholder="点击使用微信昵称或手动输入"
+        value="{{nickName}}"
+        bindblur="onNicknameChange"
+        bindinput="onNicknameInput"
+      />
+      <text class="input-hint">💡 点击输入框可使用微信昵称快速填充</text>
+    </view>
+
+    <!-- 确认按钮 -->
+    <button 
+      class="login-btn {{nickName ? 'active' : ''}}" 
+      bindtap="onLogin"
+      disabled="{{!nickName}}"
+    >
+      开始使用
+    </button>
+  </view>
+
+  <!-- 底部信息 -->
+  <view class="footer">
+    <text class="footer-text">登录即表示您同意相关服务条款</text>
+  </view>
+</view>

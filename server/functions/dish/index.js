@@ -81,7 +81,7 @@ async function createDish(data, context) {
     return paramError('菜品名称不能为空');
   }
 
-  const userId = await getUserId(context);
+  const userId = await getUserId(data, context);
   const trimmedName = name.trim();
   const trimmedDesc = description ? description.trim() : null;
 
@@ -149,7 +149,7 @@ async function updateDish(data, context) {
     return paramError('菜品名称不能为空');
   }
 
-  const userId = await getUserId(context);
+  const userId = await getUserId(data, context);
   const trimmedName = name.trim();
   const trimmedDesc = description ? description.trim() : null;
 
@@ -210,7 +210,7 @@ async function deleteDish(data, context) {
     return paramError('菜品ID不能为空');
   }
 
-  const userId = await getUserId(context);
+  const userId = await getUserId(data, context);
 
   // 检查菜品是否存在且属于当前用户
   const existingDish = await query(
@@ -239,33 +239,32 @@ async function deleteDish(data, context) {
  */
 async function listDishes(data, context) {
   const { keyword, kitchenId, page = 1, pageSize = 100 } = data || {};
-  const userId = await getUserId(context);
+  const userId = await getUserId(data, context);
 
-  // 如果没有提供kitchenId，获取或创建用户的默认厨房
+  // 确定要查询的厨房ID
   let targetKitchenId = kitchenId;
   if (!targetKitchenId) {
+    // 获取用户的默认厨房
     const defaultKitchen = await query(
       'SELECT id FROM wte_kitchens WHERE user_id = ? AND is_default = 1 AND status = 1',
       [userId]
     );
-    if (defaultKitchen.length === 0) {
-      // 自动创建默认厨房
-      const kitchenResult = await query(
-        'INSERT INTO wte_kitchens (user_id, name, is_default, status) VALUES (?, ?, 1, 1)',
-        [userId, '我的厨房']
-      );
-      targetKitchenId = parseInt(kitchenResult.insertId);
-      console.log('Created default kitchen:', targetKitchenId);
+    if (defaultKitchen.length > 0) {
+      targetKitchenId = defaultKitchen[0].id;
     } else {
-      targetKitchenId = parseInt(defaultKitchen[0].id);
+      // 用户没有默认厨房，返回空列表
+      return success({
+        list: [],
+        total: 0,
+        page: parseInt(page),
+        pageSize: parseInt(pageSize)
+      });
     }
-  } else {
-    targetKitchenId = parseInt(targetKitchenId);
   }
-  console.log('listDishes using kitchenId:', targetKitchenId, 'Type:', typeof targetKitchenId);
 
-  let sql = 'SELECT id, name, description, created_at FROM wte_dishes WHERE user_id = ? AND kitchen_id = ? AND status = 1';
-  const params = [parseInt(userId), targetKitchenId];
+  // 查询指定厨房的菜品
+  let sql = 'SELECT id, name, description, created_at FROM wte_dishes WHERE kitchen_id = ? AND status = 1';
+  const params = [parseInt(targetKitchenId)];
 
   if (keyword && keyword.trim() !== '') {
     sql += ' AND name LIKE ?';
@@ -280,13 +279,13 @@ async function listDishes(data, context) {
   params.push(parseInt(pageSize), offset);
 
   console.log('SQL:', sql);
-  console.log('Params:', params, 'Types:', params.map(p => typeof p));
+  console.log('Params:', params);
 
   const dishes = await query(sql, params);
 
   // 获取总数
-  let countSql = 'SELECT COUNT(*) as total FROM wte_dishes WHERE user_id = ? AND kitchen_id = ? AND status = 1';
-  const countParams = [userId, targetKitchenId];
+  let countSql = 'SELECT COUNT(*) as total FROM wte_dishes WHERE kitchen_id = ? AND status = 1';
+  const countParams = [parseInt(targetKitchenId)];
 
   if (keyword && keyword.trim() !== '') {
     countSql += ' AND name LIKE ?';
@@ -316,7 +315,7 @@ async function getDish(data, context) {
     return paramError('菜品ID不能为空');
   }
 
-  const userId = await getUserId(context);
+  const userId = await getUserId(data, context);
 
   const dish = await query(
     'SELECT id, name, description, created_at FROM wte_dishes WHERE id = ? AND user_id = ? AND status = 1',

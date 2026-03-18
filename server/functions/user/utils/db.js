@@ -66,51 +66,60 @@ async function transaction(callback) {
 
 /**
  * 获取用户ID（从上下文获取）
+ * @param {Object} eventData - 事件数据（包含 _openid 和 _userInfo）
  * @param {Object} context - 云函数上下文
  * @returns {number} 用户ID
  */
-async function getUserId(context) {
+async function getUserId(eventData, context) {
   // 从云函数上下文中获取用户信息
   // 支持多种调用方式：云函数调用、HTTP调用
-  if (!context) {
-    console.warn('Context is undefined, using default userId 1');
+  if (!eventData) {
+    console.warn('EventData is undefined, using default userId 1');
     return 1;
   }
 
   // 优先从 context.userId 获取
-  if (context.userId) {
+  if (context && context.userId) {
     return context.userId;
   }
 
-  // 从小程序云函数调用中获取用户信息（通过 data._openid）
-  if (context.data && context.data._openid) {
-    const openid = context.data._openid;
+  // 从 eventData 中获取用户信息（通过 _openid）
+  // 支持本地云函数调用和 HTTP 调用
+  if (eventData._openid) {
+    const openid = eventData._openid;
+    console.log('getUserId: found openid:', openid);
+    
     // 根据 openid 查询用户ID
     const [users] = await pool.query(
-      'SELECT id FROM wte_users WHERE openid = ? AND status = 1',
+      'SELECT id, nickname FROM wte_users WHERE openid = ? AND status = 1',
       [openid]
     );
     if (users.length > 0) {
+      console.log('getUserId: found existing user:', users[0].id, 'nickname:', users[0].nickname);
       return users[0].id;
     }
+    
     // 如果用户不存在，创建新用户
-    const userInfo = context.data._userInfo || {};
+    const userInfo = eventData._userInfo || {};
     const nickname = userInfo.nickName || '微信用户';
     const avatarUrl = userInfo.avatarUrl || '';
+    console.log('getUserId: creating new user with nickname:', nickname);
+    
     const [result] = await pool.query(
       'INSERT INTO wte_users (openid, nickname, avatar_url) VALUES (?, ?, ?)',
       [openid, nickname, avatarUrl]
     );
+    console.log('getUserId: created new user with id:', result.insertId);
     return result.insertId;
   }
 
-  // HTTP 调用时，从 context.data 中获取
-  if (context.data && context.data.userId) {
-    return context.data.userId;
+  // HTTP 调用时，从 eventData 中获取
+  if (eventData.userId) {
+    return eventData.userId;
   }
 
   // 默认返回1，实际应该根据openid查询
-  console.warn('UserId not found in context, using default userId 1');
+  console.warn('UserId not found in eventData, using default userId 1');
   return 1;
 }
 

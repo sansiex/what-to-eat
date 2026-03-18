@@ -52,6 +52,27 @@
   margin-bottom: 16rpx;
 }
 
+/* 快捷输入标签 */
+.quick-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.quick-tag {
+  padding: 12rpx 24rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+  box-shadow: 0 2rpx 8rpx rgba(102, 126, 234, 0.3);
+}
+
+.quick-tag:active {
+  opacity: 0.8;
+}
+
 /* 按钮样式 */
 .btn {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);

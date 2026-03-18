@@ -46,6 +46,7 @@ describe('App配置测试 - Tab页重构', () => {
 
   test('验证pages配置包含所有必要页面', () => {
     const requiredPages = [
+      'pages/login/login',
       'pages/menu-list/menu-list',
       'pages/dish-list/dish-list',
       'pages/meal-list/meal-list',

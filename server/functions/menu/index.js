@@ -44,9 +44,20 @@ exports.main = async (event, context) => {
  */
 async function listMenus(data, context) {
   const { kitchenId } = data || {}
+  const userId = await getUserId(data, context);
 
   if (!kitchenId) {
     return paramError('厨房ID不能为空')
+  }
+
+  // 验证厨房属于当前用户
+  const kitchen = await query(
+    'SELECT id FROM wte_kitchens WHERE id = ? AND user_id = ? AND status = 1',
+    [kitchenId, userId]
+  );
+
+  if (kitchen.length === 0) {
+    return notFound('厨房不存在或无权限访问');
   }
 
   // 获取指定厨房的所有菜单（未删除的）
@@ -110,7 +121,7 @@ async function createMenu(data, context) {
     return paramError('请至少选择一个菜品');
   }
 
-  const userId = await getUserId(context);
+  const userId = await getUserId(data, context);
 
   return await transaction(async (connection) => {
     // 创建菜单
@@ -169,7 +180,7 @@ async function updateMenu(data, context) {
     return paramError('请至少选择一个菜品');
   }
   
-  const userId = await getUserId(context);
+  const userId = await getUserId(data, context);
   
   // 检查菜单是否存在且属于当前用户
   const menu = await query(
@@ -220,7 +231,7 @@ async function deleteMenu(data, context) {
     return paramError('菜单ID不能为空');
   }
   
-  const userId = await getUserId(context);
+  const userId = await getUserId(data, context);
   
   // 检查菜单是否存在且属于当前用户
   const menu = await query(
@@ -260,7 +271,7 @@ async function getMenu(data, context) {
     return paramError('菜单ID不能为空');
   }
   
-  const userId = await getUserId(context);
+  const userId = await getUserId(data, context);
   
   // 获取菜单基本信息
   const [menu] = await query(

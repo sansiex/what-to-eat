@@ -77,7 +77,7 @@ async function createKitchen(data, context) {
     return paramError('厨房名称不能为空');
   }
 
-  const userId = await getUserId(context);
+  const userId = await getUserId(data, context);
   const trimmedName = name.trim();
 
   // 检查是否已存在同名厨房
@@ -125,7 +125,7 @@ async function updateKitchen(data, context) {
     return paramError('厨房名称不能为空');
   }
 
-  const userId = await getUserId(context);
+  const userId = await getUserId(data, context);
   const trimmedName = name.trim();
 
   // 检查厨房是否存在且属于当前用户
@@ -172,7 +172,7 @@ async function deleteKitchen(data, context) {
     return paramError('厨房ID不能为空');
   }
 
-  const userId = await getUserId(context);
+  const userId = await getUserId(data, context);
 
   // 检查厨房是否存在且属于当前用户
   const existingKitchen = await query(
@@ -202,7 +202,7 @@ async function deleteKitchen(data, context) {
  * 获取厨房列表
  */
 async function listKitchens(data, context) {
-  const userId = await getUserId(context);
+  const userId = await getUserId(data, context);
 
   const kitchens = await query(
     'SELECT id, name, is_default, created_at FROM wte_kitchens WHERE user_id = ? AND status = 1 ORDER BY is_default DESC, created_at DESC',
@@ -224,7 +224,7 @@ async function getKitchen(data, context) {
     return paramError('厨房ID不能为空');
   }
 
-  const userId = await getUserId(context);
+  const userId = await getUserId(data, context);
 
   const kitchen = await query(
     'SELECT id, name, is_default, created_at FROM wte_kitchens WHERE id = ? AND user_id = ? AND status = 1',
@@ -248,7 +248,7 @@ async function setDefaultKitchen(data, context) {
     return paramError('厨房ID不能为空');
   }
 
-  const userId = await getUserId(context);
+  const userId = await getUserId(data, context);
 
   // 检查厨房是否存在且属于当前用户
   const existingKitchen = await query(
@@ -285,7 +285,7 @@ async function setDefaultKitchen(data, context) {
  * 如果用户没有厨房，自动创建一个名为"我的厨房"的默认厨房
  */
 async function getOrCreateDefaultKitchen(data, context) {
-  const userId = await getUserId(context);
+  const userId = await getUserId(data, context);
 
   // 先查找用户的默认厨房
   const defaultKitchen = await query(

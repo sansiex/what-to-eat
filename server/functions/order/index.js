@@ -55,7 +55,7 @@ async function createOrder(data, context) {
     return paramError('请至少选择一个菜品');
   }
   
-  const userId = await getUserId(context);
+  const userId = await getUserId(data, context);
 
   return await transaction(async (connection) => {
     // 检查点餐活动是否存在且处于点餐中状态
@@ -134,7 +134,7 @@ async function cancelOrder(data, context) {
     return paramError('点餐ID不能为空');
   }
   
-  const userId = await getUserId(context);
+  const userId = await getUserId(data, context);
   
   // 检查点餐活动是否存在
   const meal = await query(
@@ -176,7 +176,7 @@ async function listOrdersByMeal(data, context) {
     return paramError('点餐ID不能为空');
   }
   
-  const userId = await getUserId(context);
+  const userId = await getUserId(data, context);
   
   // 检查点餐活动是否存在且属于当前用户
   const meal = await query(
@@ -239,7 +239,7 @@ async function listOrdersByMeal(data, context) {
  */
 async function listOrdersByUser(data, context) {
   const { page = 1, pageSize = 20 } = data || {};
-  const userId = await getUserId(context);
+  const userId = await getUserId(data, context);
   
   const offset = (page - 1) * pageSize;
   
@@ -299,7 +299,7 @@ async function getMyOrder(data, context) {
     return paramError('点餐ID不能为空');
   }
 
-  const userId = await getUserId(context);
+  const userId = await getUserId(data, context);
 
   // 获取用户的订单
   const orders = await query(

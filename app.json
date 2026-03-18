@@ -1,5 +1,6 @@
 {
   "pages": [
+    "pages/login/login",
     "pages/menu-list/menu-list",
     "pages/dish-list/dish-list",
     "pages/meal-list/meal-list",
