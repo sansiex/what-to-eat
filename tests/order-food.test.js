@@ -141,13 +141,16 @@ describe('点餐页面测试', () => {
     const wxml = fs.readFileSync('pages/order-food/order-food.wxml', 'utf-8');
     
     expect(wxml).toContain('分享');
+    // 分享按钮应使用微信原生分享能力（与 meal-list 一致）
+    expect(wxml).toContain('open-type="share"');
   });
 
   test('验证JS包含分享方法', () => {
     const fs = require('fs');
     const js = fs.readFileSync('pages/order-food/order-food.js', 'utf-8');
     
-    expect(js).toContain('shareMeal');
     expect(js).toContain('isInitiator');
+    // 需要提供分享卡片配置
+    expect(js).toContain('onShareAppMessage');
   });
 });

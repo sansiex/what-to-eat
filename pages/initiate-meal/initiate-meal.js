@@ -12,7 +12,8 @@ Page({
     selectedDishes: [],
     selectAll: true,
     isEditMode: false,
-    editingMealId: ''
+    editingMealId: '',
+    defaultDishImage: '/images/dish-placeholder.png'
   },
 
   onLoad(options) {
@@ -51,9 +52,13 @@ Page({
 
       // 构建菜品选择状态
       const mealDishIds = editingMeal.dishes.map(d => d.id)
+      const defaultDishImage = this.data.defaultDishImage
       const dishesWithSelected = allDishes.map(dish => ({
         ...dish,
-        selected: mealDishIds.includes(dish.id)
+        selected: mealDishIds.includes(dish.id),
+        imageUrl: dish.imageUrl || dish.image_url || '',
+        displayImage: (dish.imageUrl || dish.image_url) || defaultDishImage,
+        displayDescription: dish.description || '暂无描述'
       }))
 
       const selectedDishes = dishesWithSelected.filter(d => d.selected).map(d => d.id)
@@ -82,9 +87,13 @@ Page({
       console.log('默认选中的菜品ID:', selectedDishes)
 
       // 为每个菜品添加一个selected属性
+      const defaultDishImage = this.data.defaultDishImage
       const dishesWithSelected = dishes.map(dish => ({
         ...dish,
-        selected: true // 默认全选
+        selected: true, // 默认全选
+        imageUrl: dish.imageUrl || dish.image_url || '',
+        displayImage: (dish.imageUrl || dish.image_url) || defaultDishImage,
+        displayDescription: dish.description || '暂无描述'
       }))
 
       this.setData({

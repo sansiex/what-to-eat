@@ -22,13 +22,13 @@ const API = {
     },
 
     // 创建菜品
-    create(name, description = '') {
-      return callHttpFunction('dish', 'create', { name, description })
+    create(name, description = '', imageUrl = '') {
+      return callHttpFunction('dish', 'create', { name, description, imageUrl })
     },
 
     // 更新菜品
-    update(id, name, description = '') {
-      return callHttpFunction('dish', 'update', { id, name, description })
+    update(id, name, description = '', imageUrl = '') {
+      return callHttpFunction('dish', 'update', { id, name, description, imageUrl })
     },
 
     // 删除菜品

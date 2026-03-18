@@ -75,7 +75,7 @@ exports.main = async (event, context) => {
  * @returns {Object} 创建结果
  */
 async function createDish(data, context) {
-  const { name, description, kitchenId } = data || {};
+  const { name, description, imageUrl, kitchenId } = data || {};
 
   if (!name || name.trim() === '') {
     return paramError('菜品名称不能为空');
@@ -84,6 +84,7 @@ async function createDish(data, context) {
   const userId = await getUserId(data, context);
   const trimmedName = name.trim();
   const trimmedDesc = description ? description.trim() : null;
+  const trimmedImageUrl = imageUrl ? imageUrl.trim() : null;
 
   // 如果没有提供kitchenId，获取或创建用户的默认厨房
   let targetKitchenId = kitchenId;
@@ -120,12 +121,12 @@ async function createDish(data, context) {
 
   // 插入新菜品
   const result = await query(
-    'INSERT INTO wte_dishes (user_id, kitchen_id, name, description) VALUES (?, ?, ?, ?)',
-    [userId, targetKitchenId, trimmedName, trimmedDesc]
+    'INSERT INTO wte_dishes (user_id, kitchen_id, name, description, image_url) VALUES (?, ?, ?, ?, ?)',
+    [userId, targetKitchenId, trimmedName, trimmedDesc, trimmedImageUrl]
   );
 
   const newDish = await query(
-    'SELECT id, name, description, created_at FROM wte_dishes WHERE id = ?',
+    'SELECT id, name, description, image_url, created_at FROM wte_dishes WHERE id = ?',
     [result.insertId]
   );
 
@@ -139,7 +140,7 @@ async function createDish(data, context) {
  * @returns {Object} 更新结果
  */
 async function updateDish(data, context) {
-  const { id, name, description } = data || {};
+  const { id, name, description, imageUrl } = data || {};
 
   if (!id) {
     return paramError('菜品ID不能为空');
@@ -152,6 +153,7 @@ async function updateDish(data, context) {
   const userId = await getUserId(data, context);
   const trimmedName = name.trim();
   const trimmedDesc = description ? description.trim() : null;
+  const trimmedImageUrl = imageUrl ? imageUrl.trim() : null;
 
   // 检查菜品是否存在且属于当前用户
   const existingDish = await query(
@@ -185,12 +187,12 @@ async function updateDish(data, context) {
 
   // 更新菜品
   await query(
-    'UPDATE wte_dishes SET name = ?, description = ? WHERE id = ?',
-    [trimmedName, trimmedDesc, id]
+    'UPDATE wte_dishes SET name = ?, description = ?, image_url = ? WHERE id = ?',
+    [trimmedName, trimmedDesc, trimmedImageUrl, id]
   );
 
   const updatedDish = await query(
-    'SELECT id, name, description, created_at, updated_at FROM wte_dishes WHERE id = ?',
+    'SELECT id, name, description, image_url, created_at, updated_at FROM wte_dishes WHERE id = ?',
     [id]
   );
 
@@ -263,7 +265,7 @@ async function listDishes(data, context) {
   }
 
   // 查询指定厨房的菜品
-  let sql = 'SELECT id, name, description, created_at FROM wte_dishes WHERE kitchen_id = ? AND status = 1';
+  let sql = 'SELECT id, name, description, image_url, created_at FROM wte_dishes WHERE kitchen_id = ? AND status = 1';
   const params = [parseInt(targetKitchenId)];
 
   if (keyword && keyword.trim() !== '') {
@@ -318,7 +320,7 @@ async function getDish(data, context) {
   const userId = await getUserId(data, context);
 
   const dish = await query(
-    'SELECT id, name, description, created_at FROM wte_dishes WHERE id = ? AND user_id = ? AND status = 1',
+    'SELECT id, name, description, image_url, created_at FROM wte_dishes WHERE id = ? AND user_id = ? AND status = 1',
     [id, userId]
   );
 

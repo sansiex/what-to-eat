@@ -48,7 +48,8 @@
 
 .dish-content {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  gap: 14rpx;
 }
 
 .dish-checkbox {
@@ -60,17 +61,35 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .dish-name {
-  font-size: 30rpx;
+  font-size: 28rpx;
+  font-weight: 600;
   color: #333;
-  margin-bottom: 8rpx;
+  margin-bottom: 4rpx;
+}
+
+.dish-desc {
+  font-size: 22rpx;
+  color: #999;
+  margin-bottom: 6rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .dish-orderers {
   font-size: 24rpx;
   color: #999;
+}
+
+.dish-image {
+  width: 84rpx;
+  height: 84rpx;
+  border-radius: 10rpx;
+  background: #f2f4f7;
 }
 
 .loading, .empty {

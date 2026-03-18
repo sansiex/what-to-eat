@@ -68,6 +68,7 @@ function initSchema() {
       kitchen_id INTEGER NOT NULL,
       name TEXT NOT NULL,
       description TEXT,
+      image_url TEXT,
       status INTEGER DEFAULT 1,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -257,12 +258,12 @@ function createTestKitchen(userId, kitchenData = {}) {
  */
 function createTestDish(userId, kitchenId, dishData = {}) {
   const database = getTestDB();
-  const { name = '测试菜品' + Date.now(), description = '测试描述' } = dishData;
+  const { name = '测试菜品' + Date.now(), description = '测试描述', imageUrl = null } = dishData;
   
   const stmt = database.prepare(
-    'INSERT INTO wte_dishes (user_id, kitchen_id, name, description) VALUES (?, ?, ?, ?)'
+    'INSERT INTO wte_dishes (user_id, kitchen_id, name, description, image_url) VALUES (?, ?, ?, ?, ?)'
   );
-  const result = stmt.run(userId, kitchenId, name, description);
+  const result = stmt.run(userId, kitchenId, name, description, imageUrl);
   return result.lastInsertRowid;
 }
 

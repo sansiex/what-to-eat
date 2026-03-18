@@ -129,14 +129,23 @@ async function mealMain(event, context) {
         
         let sql = `
           SELECT m.id, m.name, m.status, m.created_at, m.closed_at,
+            m.user_id as creator_user_id,
+            u.nickname as creator_name,
             COUNT(DISTINCT md.dish_id) as dish_count,
             COUNT(DISTINCT o.user_id) as orderer_count
           FROM wte_meals m
+          LEFT JOIN wte_users u ON m.user_id = u.id
           LEFT JOIN wte_meal_dishes md ON m.id = md.meal_id AND md.status = 1
           LEFT JOIN wte_orders o ON m.id = o.meal_id AND o.status = 1
-          WHERE m.user_id = ? AND m.kitchen_id = ?
+          WHERE (
+            (m.user_id = ? AND m.kitchen_id = ?)
+            OR EXISTS (
+              SELECT 1 FROM wte_orders o2
+              WHERE o2.meal_id = m.id AND o2.user_id = ? AND o2.status = 1
+            )
+          )
         `;
-        const params = [userId, kitchenId];
+        const params = [userId, kitchenId, userId];
         
         if (status !== undefined && status !== null) {
           sql += ' AND m.status = ?';
@@ -152,12 +161,22 @@ async function mealMain(event, context) {
         
         const meals = testQuery(sql, params);
         
-        // 获取总数
-        let countSql = 'SELECT COUNT(*) as total FROM wte_meals WHERE user_id = ? AND kitchen_id = ?';
-        const countParams = [userId, kitchenId];
+        // 获取总数（包含我发起 + 我参与）
+        let countSql = `
+          SELECT COUNT(*) as total
+          FROM wte_meals m
+          WHERE (
+            (m.user_id = ? AND m.kitchen_id = ?)
+            OR EXISTS (
+              SELECT 1 FROM wte_orders o2
+              WHERE o2.meal_id = m.id AND o2.user_id = ? AND o2.status = 1
+            )
+          )
+        `;
+        const countParams = [userId, kitchenId, userId];
         
         if (status !== undefined && status !== null) {
-          countSql += ' AND status = ?';
+          countSql += ' AND m.status = ?';
           countParams.push(status);
         }
         
@@ -170,6 +189,9 @@ async function mealMain(event, context) {
             status: meal.status,
             createdAt: meal.createdAt,
             closedAt: meal.closedAt,
+            creatorUserId: meal.creatorUserId,
+            creatorName: meal.creatorName,
+            isCreator: meal.creatorUserId === userId,
             dishCount: meal.dishCount,
             ordererCount: meal.ordererCount
           })),
@@ -494,6 +516,33 @@ describe('点餐管理云函数测试 (SQLite)', () => {
       expect(result.success).toBe(true);
       expect(result.data.list.length).toBe(2);
       expect(result.data.total).toBe(2);
+    });
+
+    test('会包含我参与过的点餐（他人发起）', async () => {
+      const context = mockContext(testUserId);
+
+      // 创建另一个用户与其点餐（不同厨房）
+      const otherUserId = createTestUser({ openid: 'other_openid_' + Date.now(), nickname: '其他用户' });
+      const otherKitchens = testQuery(
+        'SELECT id FROM wte_kitchens WHERE user_id = ? AND is_default = 1',
+        [otherUserId]
+      );
+      const otherKitchenId = otherKitchens[0].id;
+      const otherDishId = createTestDish(otherUserId, otherKitchenId, { name: '他人菜品' });
+      const otherMealId = createTestMeal(otherUserId, otherKitchenId, { name: '他人点餐' });
+      linkDishToMeal(otherMealId, otherDishId);
+
+      // 我参与下单（只要在 wte_orders 有有效订单记录即可视为参与过）
+      testQuery(
+        'INSERT INTO wte_orders (meal_id, user_id, status) VALUES (?, ?, 1)',
+        [otherMealId, testUserId]
+      );
+
+      const result = await mealMain({ action: 'list', data: { page: 1, pageSize: 10 } }, context);
+
+      expect(result.success).toBe(true);
+      const ids = result.data.list.map(m => m.id);
+      expect(ids).toContain(otherMealId);
     });
 
     test('根据状态筛选点餐', async () => {

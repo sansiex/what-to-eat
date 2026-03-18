@@ -1,5 +1,6 @@
 // pages/menu-edit/menu-edit.js
 const { API } = require('../../utils/cloud-api.js')
+const { uploadDishImage } = require('../../utils/cos-upload.js')
 
 Page({
   data: {
@@ -10,7 +11,11 @@ Page({
     selectedDishIds: [],
     searchKeyword: '',
     showAddDishDialog: false,
-    newDishName: ''
+    newDishName: '',
+    newDishDescription: '',
+    newDishImageUrl: '',
+    isUploadingImage: false,
+    defaultDishImage: '/images/dish-placeholder.png'
   },
 
   onLoad(options) {
@@ -47,13 +52,21 @@ Page({
     try {
       const result = await API.dish.list()
       const dishes = result.data.list || []
+      console.log('[loadAllDishes] raw list from API:', JSON.stringify(dishes.map(d => ({ id: d.id, name: d.name, image_url: d.image_url, imageUrl: d.imageUrl }))))
       const { selectedDishIds } = this.data
+      const defaultDishImage = this.data.defaultDishImage
       
       // 为每个菜品添加 selected 属性
-      const dishesWithSelected = dishes.map(dish => ({
-        ...dish,
-        selected: selectedDishIds.includes(dish.id)
-      }))
+      const dishesWithSelected = dishes.map(dish => {
+        const imageUrl = dish.imageUrl || dish.image_url || ''
+        return {
+          ...dish,
+          selected: selectedDishIds.includes(dish.id),
+          imageUrl,
+          displayImage: imageUrl || defaultDishImage,
+          displayDescription: dish.description || '暂无描述'
+        }
+      })
       
       this.setData({
         allDishes: dishesWithSelected,
@@ -122,7 +135,9 @@ Page({
   showAddDishDialog() {
     this.setData({
       showAddDishDialog: true,
-      newDishName: ''
+      newDishName: '',
+      newDishDescription: '',
+      newDishImageUrl: ''
     })
   },
 
@@ -130,7 +145,9 @@ Page({
   hideAddDishDialog() {
     this.setData({
       showAddDishDialog: false,
-      newDishName: ''
+      newDishName: '',
+      newDishDescription: '',
+      newDishImageUrl: ''
     })
   },
 
@@ -139,12 +156,54 @@ Page({
     this.setData({ newDishName: e.detail.value })
   },
 
+  onNewDishDescriptionInput(e) {
+    this.setData({ newDishDescription: e.detail.value })
+  },
+
+  chooseNewDishImage() {
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      sizeType: ['compressed'],
+      sourceType: ['album', 'camera'],
+      success: async (res) => {
+        const file = res.tempFiles && res.tempFiles[0]
+        if (!file || !file.tempFilePath) return
+        if (file.size && file.size > 2 * 1024 * 1024) {
+          wx.showToast({ title: '图片不能超过2MB', icon: 'none' })
+          return
+        }
+
+        try {
+          this.setData({ isUploadingImage: true })
+          const uploadResult = await uploadDishImage(file.tempFilePath)
+          this.setData({ newDishImageUrl: uploadResult.fileID })
+          wx.showToast({ title: '上传成功', icon: 'success' })
+        } catch (err) {
+          console.error('上传图片失败:', err)
+          wx.showToast({ title: '上传失败', icon: 'none' })
+        } finally {
+          this.setData({ isUploadingImage: false })
+        }
+      }
+    })
+  },
+
+  removeNewDishImage() {
+    this.setData({ newDishImageUrl: '' })
+  },
+
   // 确认添加菜品
   async confirmAddDish() {
-    const { newDishName } = this.data
+    const { newDishName, newDishDescription, newDishImageUrl } = this.data
     
     if (!newDishName.trim()) {
       wx.showToast({ title: '请输入菜品名称', icon: 'none' })
+      return
+    }
+
+    if (newDishDescription.trim().length > 80) {
+      wx.showToast({ title: '描述最多80字', icon: 'none' })
       return
     }
 
@@ -152,21 +211,32 @@ Page({
       wx.showLoading({ title: '添加中...' })
       
       // 创建菜品
-      const result = await API.dish.create(newDishName.trim(), '')
+      const result = await API.dish.create(newDishName.trim(), newDishDescription.trim(), newDishImageUrl)
       const newDish = result.data
       
       wx.hideLoading()
       
-      // 添加到列表并选中
-      const { allDishes, filteredDishes, selectedDishIds } = this.data
-      const dishWithSelected = { ...newDish, selected: true }
+      // 添加到列表并选中（优先使用本地已知的图片URL，再回退到后端返回值）
+      const { allDishes, filteredDishes, selectedDishIds, defaultDishImage } = this.data
+      const imageUrl = newDishImageUrl || newDish.imageUrl || newDish.image_url || ''
+      console.log('[confirmAddDish] imageUrl resolved:', imageUrl, '| newDishImageUrl:', newDishImageUrl, '| backend:', newDish.image_url, newDish.imageUrl)
+      const dishWithSelected = {
+        ...newDish,
+        selected: true,
+        description: newDishDescription.trim() || newDish.description || '',
+        imageUrl,
+        displayImage: imageUrl || defaultDishImage,
+        displayDescription: newDishDescription.trim() || newDish.description || '暂无描述'
+      }
       
       this.setData({
         allDishes: [...allDishes, dishWithSelected],
         filteredDishes: [...filteredDishes, dishWithSelected],
         selectedDishIds: [...selectedDishIds, newDish.id],
         showAddDishDialog: false,
-        newDishName: ''
+        newDishName: '',
+        newDishDescription: '',
+        newDishImageUrl: ''
       })
       
       wx.showToast({ title: '添加成功', icon: 'success' })

@@ -19,48 +19,79 @@
 
     <view wx:else>
       <view wx:for="{{dishes}}" wx:key="id" class="dish-card">
+        <image class="dish-image" src="{{item.displayImage}}" mode="aspectFill" />
         <view class="dish-info">
           <text class="dish-name">{{item.name}}</text>
-          <text wx:if="{{item.description}}" class="dish-desc">{{item.description}}</text>
+          <text class="dish-desc">{{item.displayDescription}}</text>
+          <view class="dish-actions">
+            <button 
+              class="btn btn-small btn-edit" 
+              bindtap="showEditDialog" 
+              data-id="{{item.id}}"
+            >编辑</button>
+            <button 
+              class="btn btn-small btn-danger" 
+              bindtap="deleteDish" 
+              data-id="{{item.id}}"
+              data-name="{{item.name}}"
+            >删除</button>
+          </view>
         </view>
-        <button 
-          class="btn btn-small btn-danger" 
-          bindtap="deleteDish" 
-          data-id="{{item.id}}"
-          data-name="{{item.name}}"
-        >
-          删除
-        </button>
       </view>
     </view>
   </view>
 
-  <!-- 添加菜品弹窗 -->
-  <view wx:if="{{showAddDialog}}" class="dialog-overlay">
+  <!-- 新增/编辑菜品弹窗 -->
+  <view wx:if="{{showDishDialog}}" class="dialog-overlay">
     <view class="dialog">
       <view class="dialog-header">
-        <text class="dialog-title">添加菜品</text>
+        <text class="dialog-title">{{dialogMode === 'edit' ? '编辑菜品' : '添加菜品'}}</text>
       </view>
       
       <view class="dialog-content">
+        <view class="upload-section">
+          <image
+            class="upload-preview"
+            src="{{dishImageUrl || defaultDishImage}}"
+            mode="aspectFill"
+          />
+          <view class="upload-actions">
+            <button
+              class="btn btn-small"
+              bindtap="chooseDishImage"
+              loading="{{isUploadingImage}}"
+            >
+              {{dishImageUrl ? '更换图片' : '上传图片'}}
+            </button>
+            <button
+              wx:if="{{dishImageUrl}}"
+              class="btn btn-small btn-danger"
+              bindtap="removeDishImage"
+            >
+              移除图片
+            </button>
+          </view>
+        </view>
         <input 
           class="form-input" 
           placeholder="请输入菜品名称" 
           bindinput="onDishNameInput"
-          value="{{newDishName}}"
+          value="{{dishNameInput}}"
         />
-        <input 
+        <textarea
           class="form-input" 
-          placeholder="请输入菜品描述（可选）" 
+          placeholder="请输入菜品描述（可选，最多80字）" 
           bindinput="onDishDescInput"
-          value="{{newDishDescription}}"
+          value="{{dishDescriptionInput}}"
+          maxlength="80"
           style="margin-top: 20rpx;"
+          auto-height
         />
       </view>
 
       <view class="dialog-actions">
-        <view class="dialog-btn dialog-btn-cancel" bindtap="hideAddDialog">取消</view>
-        <view class="dialog-btn dialog-btn-confirm" bindtap="addDish">确定</view>
+        <view class="dialog-btn dialog-btn-cancel" bindtap="hideDishDialog">取消</view>
+        <view class="dialog-btn dialog-btn-confirm" bindtap="submitDish">确定</view>
       </view>
     </view>
   </view>

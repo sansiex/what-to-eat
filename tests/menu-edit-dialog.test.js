@@ -41,10 +41,12 @@ describe('菜单编辑页面 - 新增菜品弹窗测试', () => {
     test('验证 showAddDishDialog 方法显示弹窗', () => {
       pageInstance.showAddDishDialog();
       
-      expect(pageInstance.setData).toHaveBeenCalledWith({
-        showAddDishDialog: true,
-        newDishName: ''
-      });
+      expect(pageInstance.setData).toHaveBeenCalledWith(
+        expect.objectContaining({
+          showAddDishDialog: true,
+          newDishName: ''
+        })
+      );
     });
 
     test('验证 hideAddDishDialog 方法隐藏弹窗', () => {
@@ -55,10 +57,12 @@ describe('菜单编辑页面 - 新增菜品弹窗测试', () => {
       // 调用隐藏方法
       pageInstance.hideAddDishDialog();
       
-      expect(pageInstance.setData).toHaveBeenCalledWith({
-        showAddDishDialog: false,
-        newDishName: ''
-      });
+      expect(pageInstance.setData).toHaveBeenCalledWith(
+        expect.objectContaining({
+          showAddDishDialog: false,
+          newDishName: ''
+        })
+      );
     });
   });
 

@@ -44,7 +44,9 @@ Page({
         ...meal,
         formattedCreatedAt: this.formatBeijingTime(meal.createdAt),
         // 将数字状态转换为字符串状态
-        status: meal.status === 1 ? 'ordering' : 'closed'
+        status: meal.status === 1 ? 'ordering' : 'closed',
+        // 兼容旧接口：未返回 isCreator 时默认视为自己发起
+        isCreator: typeof meal.isCreator === 'boolean' ? meal.isCreator : true
       }))
 
       // 排序：点餐中排在最前面，每个状态内部按开始时间降序排列
@@ -257,7 +259,7 @@ Page({
     return {
       title: `【${mealName}】快来一起点餐吧！`,
       path: sharePath,
-      imageUrl: '/images/share-meal.png' // 可以设置分享图片
+      imageUrl: '/images/share_card.jpg'
     }
   }
 })

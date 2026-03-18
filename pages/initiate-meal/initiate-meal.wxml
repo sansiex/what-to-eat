@@ -57,7 +57,7 @@
           wx:key="{{item.id}}" 
           class="list-item"
         >
-          <view style="display: flex; align-items: center;">
+          <view style="display: flex; align-items: center; gap: 16rpx;">
             <checkbox 
               class="checkbox" 
               value="{{item.id}}"
@@ -65,7 +65,15 @@
               bindtap="toggleDishSelection"
               data-id="{{item.id}}"
             />
-            <text class="list-item__title">{{item.name}}</text>
+            <image
+              src="{{item.displayImage}}"
+              mode="aspectFill"
+              style="width: 84rpx; height: 84rpx; border-radius: 10rpx; background: #f2f4f7;"
+            />
+            <view style="display: flex; flex-direction: column; min-width: 0; flex: 1;">
+              <text class="list-item__title">{{item.name}}</text>
+              <text class="list-item__desc" style="margin-top: 6rpx;">{{item.displayDescription}}</text>
+            </view>
           </view>
         </view>
       </view>

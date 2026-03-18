@@ -20,7 +20,7 @@ async function dishMain(event, context) {
   try {
     switch (action) {
       case 'create': {
-        const { name, description } = data || {};
+        const { name, description, imageUrl } = data || {};
         
         if (!name || name.trim() === '') {
           return paramError('菜品名称不能为空');
@@ -28,6 +28,7 @@ async function dishMain(event, context) {
         
         const trimmedName = name.trim();
         const trimmedDesc = description ? description.trim() : null;
+        const trimmedImageUrl = imageUrl ? imageUrl.trim() : null;
         
         // 获取默认厨房
         const kitchens = testQuery(
@@ -53,12 +54,12 @@ async function dishMain(event, context) {
         
         // 插入新菜品
         const result = testQuery(
-          'INSERT INTO wte_dishes (user_id, kitchen_id, name, description) VALUES (?, ?, ?, ?)',
-          [userId, kitchenId, trimmedName, trimmedDesc]
+          'INSERT INTO wte_dishes (user_id, kitchen_id, name, description, image_url) VALUES (?, ?, ?, ?, ?)',
+          [userId, kitchenId, trimmedName, trimmedDesc, trimmedImageUrl]
         );
         
         const newDish = testQuery(
-          'SELECT id, name, description, created_at FROM wte_dishes WHERE id = ?',
+          'SELECT id, name, description, image_url, created_at FROM wte_dishes WHERE id = ?',
           [result.insertId]
         );
         
@@ -80,7 +81,7 @@ async function dishMain(event, context) {
         
         const kitchenId = kitchens[0].id;
         
-        let sql = 'SELECT id, name, description, created_at FROM wte_dishes WHERE user_id = ? AND kitchen_id = ? AND status = 1';
+        let sql = 'SELECT id, name, description, image_url, created_at FROM wte_dishes WHERE user_id = ? AND kitchen_id = ? AND status = 1';
         const params = [userId, kitchenId];
         
         if (keyword && keyword.trim() !== '') {
@@ -124,7 +125,7 @@ async function dishMain(event, context) {
         }
         
         const dish = testQuery(
-          'SELECT id, name, description, created_at, updated_at FROM wte_dishes WHERE id = ? AND user_id = ? AND status = 1',
+          'SELECT id, name, description, image_url, created_at, updated_at FROM wte_dishes WHERE id = ? AND user_id = ? AND status = 1',
           [id, userId]
         );
         
@@ -136,7 +137,7 @@ async function dishMain(event, context) {
       }
       
       case 'update': {
-        const { id, name, description } = data || {};
+        const { id, name, description, imageUrl } = data || {};
         
         if (!id) {
           return paramError('菜品ID不能为空');
@@ -148,6 +149,7 @@ async function dishMain(event, context) {
         
         const trimmedName = name.trim();
         const trimmedDesc = description ? description.trim() : null;
+        const trimmedImageUrl = imageUrl ? imageUrl.trim() : null;
         
         // 检查菜品是否存在
         const existingDish = testQuery(
@@ -171,12 +173,12 @@ async function dishMain(event, context) {
         
         // 更新菜品
         testQuery(
-          'UPDATE wte_dishes SET name = ?, description = ? WHERE id = ?',
-          [trimmedName, trimmedDesc, id]
+          'UPDATE wte_dishes SET name = ?, description = ?, image_url = ? WHERE id = ?',
+          [trimmedName, trimmedDesc, trimmedImageUrl, id]
         );
         
         const updatedDish = testQuery(
-          'SELECT id, name, description, created_at, updated_at FROM wte_dishes WHERE id = ?',
+          'SELECT id, name, description, image_url, created_at, updated_at FROM wte_dishes WHERE id = ?',
           [id]
         );
         
@@ -244,7 +246,8 @@ describe('菜品管理云函数测试 (SQLite)', () => {
         action: 'create',
         data: {
           name: '宫保鸡丁',
-          description: '经典川菜'
+          description: '经典川菜',
+          imageUrl: 'https://example.com/a.jpg'
         }
       };
       const context = mockContext(testUserId);
@@ -255,6 +258,7 @@ describe('菜品管理云函数测试 (SQLite)', () => {
       expect(result.code).toBe(0);
       expect(result.data.name).toBe('宫保鸡丁');
       expect(result.data.description).toBe('经典川菜');
+      expect(result.data.imageUrl).toBe('https://example.com/a.jpg');
       expect(result.data.id).toBeDefined();
     });
 
@@ -421,6 +425,7 @@ describe('菜品管理云函数测试 (SQLite)', () => {
       expect(result.success).toBe(true);
       expect(result.data.name).toBe('新名称');
       expect(result.data.description).toBe('新描述');
+      expect(result.data.imageUrl).toBeNull();
     });
 
     test('更新菜品失败-菜品不存在', async () => {

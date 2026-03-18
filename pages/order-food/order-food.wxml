@@ -48,8 +48,14 @@
             />
 
             <!-- 菜品信息 -->
-            <view style="margin-left: 16rpx; flex: 1; display: flex; flex-direction: column;">
-              <text class="list-item__title" style="margin-bottom: 8rpx;">{{item.name}}</text>
+            <image
+              src="{{item.displayImage || '/images/dish-placeholder.png'}}"
+              mode="aspectFill"
+              style="width: 84rpx; height: 84rpx; border-radius: 10rpx; background: #f2f4f7;"
+            />
+            <view style="margin-left: 16rpx; flex: 1; display: flex; flex-direction: column; min-width: 0;">
+              <text class="list-item__title" style="margin-bottom: 4rpx;">{{item.name}}</text>
+              <text class="list-item__desc" style="margin-bottom: 8rpx;">{{item.displayDescription || item.description || '暂无描述'}}</text>
               <text class="list-item__desc">{{dishOrderersMap[item.id] || '暂无点选'}}</text>
             </view>
           </view>
@@ -61,8 +67,14 @@
         <view wx:for="{{filteredDishes}}" wx:key="id" class="list-item">
           <view style="display: flex; align-items: center; padding: 16rpx 0;">
             <!-- 菜品信息 -->
-            <view style="flex: 1; display: flex; flex-direction: column;">
-              <text class="list-item__title" style="margin-bottom: 8rpx;">{{item.name}}</text>
+            <image
+              src="{{item.displayImage || '/images/dish-placeholder.png'}}"
+              mode="aspectFill"
+              style="width: 84rpx; height: 84rpx; border-radius: 10rpx; background: #f2f4f7;"
+            />
+            <view style="margin-left: 16rpx; flex: 1; display: flex; flex-direction: column; min-width: 0;">
+              <text class="list-item__title" style="margin-bottom: 4rpx;">{{item.name}}</text>
+              <text class="list-item__desc" style="margin-bottom: 8rpx;">{{item.displayDescription || item.description || '暂无描述'}}</text>
               <text class="list-item__desc">{{dishOrderersMap[item.id] || '暂无点选'}}</text>
             </view>
           </view>
@@ -82,9 +94,11 @@
     </button>
     <button
       class="btn btn-share"
-      bindtap="shareMeal"
       style="flex: 1;"
       wx:if="{{isInitiator}}"
+      open-type="share"
+      data-id="{{currentMeal.id}}"
+      data-name="{{currentMeal.name}}"
     >
       分享
     </button>

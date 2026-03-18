@@ -29,8 +29,10 @@
               checked="{{dishSelectionMap[item.id]}}"
               class="dish-checkbox"
             />
+            <image class="dish-image" src="{{item.displayImage}}" mode="aspectFill" />
             <view class="dish-info">
               <text class="dish-name">{{item.name}}</text>
+              <text class="dish-desc">{{item.displayDescription}}</text>
               <text class="dish-orderers" wx:if="{{item.orderersText}}">
                 已点：{{item.orderersText}}
               </text>

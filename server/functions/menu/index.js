@@ -79,7 +79,8 @@ async function listMenus(data, context) {
       `SELECT 
          d.id,
          d.name,
-         d.description
+         d.description,
+         d.image_url as imageUrl
        FROM wte_menu_dishes md
        INNER JOIN wte_dishes d ON md.dish_id = d.id
        WHERE md.menu_id = ? AND md.status = 1 AND d.status = 1
@@ -294,7 +295,8 @@ async function getMenu(data, context) {
     `SELECT 
        d.id,
        d.name,
-       d.description
+       d.description,
+       d.image_url as imageUrl
      FROM wte_menu_dishes md
      INNER JOIN wte_dishes d ON md.dish_id = d.id
      WHERE md.menu_id = ? AND md.status = 1 AND d.status = 1

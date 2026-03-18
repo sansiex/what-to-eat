@@ -54,7 +54,11 @@
           data-id="{{item.id}}"
         >
           <checkbox checked="{{item.selected}}" />
-          <text class="dish-name">{{item.name}}</text>
+          <image class="dish-thumb" src="{{item.displayImage}}" mode="aspectFill" />
+          <view class="dish-text">
+            <text class="dish-name">{{item.name}}</text>
+            <text class="dish-desc">{{item.displayDescription}}</text>
+          </view>
         </view>
       </view>
     </view>
@@ -76,12 +80,30 @@
       </view>
       
       <view class="dialog-content">
+        <view class="dish-upload">
+          <image class="dish-upload__preview" src="{{newDishImageUrl || defaultDishImage}}" mode="aspectFill" />
+          <view class="dish-upload__actions">
+            <button class="btn btn-small btn-primary" bindtap="chooseNewDishImage" loading="{{isUploadingImage}}">
+              {{newDishImageUrl ? '更换图片' : '上传图片'}}
+            </button>
+            <button wx:if="{{newDishImageUrl}}" class="btn btn-small btn-cancel" bindtap="removeNewDishImage">移除图片</button>
+          </view>
+        </view>
         <input 
           class="form-input" 
           placeholder="请输入菜品名称" 
           bindinput="onNewDishNameInput"
           value="{{newDishName}}"
           focus="{{showAddDishDialog}}"
+        />
+        <textarea
+          class="form-input"
+          placeholder="请输入菜品描述（可选，最多80字）"
+          bindinput="onNewDishDescriptionInput"
+          value="{{newDishDescription}}"
+          maxlength="80"
+          style="margin-top: 20rpx;"
+          auto-height
         />
       </view>
 

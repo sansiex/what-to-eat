@@ -324,14 +324,23 @@ async function listMeals(data, context) {
   
   let sql = `
     SELECT m.id, m.name, m.status, m.created_at, m.closed_at,
+      m.user_id as creator_user_id,
+      u.nickname as creator_name,
       COUNT(DISTINCT md.dish_id) as dish_count,
       COUNT(DISTINCT o.user_id) as orderer_count
     FROM wte_meals m
+    LEFT JOIN wte_users u ON m.user_id = u.id
     LEFT JOIN wte_meal_dishes md ON m.id = md.meal_id AND md.status = 1
     LEFT JOIN wte_orders o ON m.id = o.meal_id AND o.status = 1
-    WHERE m.user_id = ? AND m.kitchen_id = ?
+    WHERE (
+      (m.user_id = ? AND m.kitchen_id = ?)
+      OR EXISTS (
+        SELECT 1 FROM wte_orders o2
+        WHERE o2.meal_id = m.id AND o2.user_id = ? AND o2.status = 1
+      )
+    )
   `;
-  const params = [userId, targetKitchenId];
+  const params = [userId, targetKitchenId, userId];
   
   if (status !== undefined && status !== null) {
     sql += ' AND m.status = ?';
@@ -348,11 +357,21 @@ async function listMeals(data, context) {
   const meals = await query(sql, params);
   
   // 获取总数
-  let countSql = 'SELECT COUNT(*) as total FROM wte_meals WHERE user_id = ? AND kitchen_id = ?';
-  const countParams = [userId, targetKitchenId];
+  let countSql = `
+    SELECT COUNT(*) as total
+    FROM wte_meals m
+    WHERE (
+      (m.user_id = ? AND m.kitchen_id = ?)
+      OR EXISTS (
+        SELECT 1 FROM wte_orders o2
+        WHERE o2.meal_id = m.id AND o2.user_id = ? AND o2.status = 1
+      )
+    )
+  `;
+  const countParams = [userId, targetKitchenId, userId];
   
   if (status !== undefined && status !== null) {
-    countSql += ' AND status = ?';
+    countSql += ' AND m.status = ?';
     countParams.push(status);
   }
   
@@ -365,6 +384,9 @@ async function listMeals(data, context) {
       status: meal.status,
       createdAt: meal.created_at,
       closedAt: meal.closed_at,
+      creatorUserId: meal.creator_user_id,
+      creatorName: meal.creator_name,
+      isCreator: meal.creator_user_id === userId,
       dishCount: meal.dish_count,
       ordererCount: meal.orderer_count
     })),
@@ -401,7 +423,7 @@ async function getMeal(data, context) {
   
   // 获取关联的菜品
   const dishes = await query(
-    `SELECT d.id, d.name, d.description
+    `SELECT d.id, d.name, d.description, d.image_url
     FROM wte_dishes d
     INNER JOIN wte_meal_dishes md ON d.id = md.dish_id
     WHERE md.meal_id = ? AND md.status = 1 AND d.status = 1
@@ -437,6 +459,7 @@ async function getMeal(data, context) {
       id: dish.id,
       name: dish.name,
       description: dish.description,
+      imageUrl: dish.image_url,
       orderers: dishOrderMap[dish.id] || []
     }))
   });
@@ -613,7 +636,7 @@ async function getByShareToken(data, context) {
 
   // 获取关联的菜品
   const dishes = await query(
-    `SELECT d.id, d.name
+    `SELECT d.id, d.name, d.description, d.image_url
      FROM wte_meal_dishes md
      JOIN wte_dishes d ON md.dish_id = d.id
      WHERE md.meal_id = ? AND md.status = 1 AND d.status = 1`,
@@ -648,7 +671,10 @@ async function getByShareToken(data, context) {
   console.log('Dish orderers map:', dishOrderersMap);
 
   const dishesWithOrderers = dishes.map(dish => ({
-    ...dish,
+    id: dish.id,
+    name: dish.name,
+    description: dish.description,
+    imageUrl: dish.image_url,
     orderers: dishOrderersMap[dish.id] || [],
     orderCount: (dishOrderersMap[dish.id] || []).length
   }));

@@ -19,7 +19,7 @@ Page({
     // 获取分享参数
     const { token, mealId } = options
     
-    if (!token || !mealId) {
+    if (!mealId) {
       wx.showToast({
         title: '分享链接无效',
         icon: 'none'
@@ -28,7 +28,7 @@ Page({
     }
 
     this.setData({
-      shareToken: token,
+      shareToken: token || '',
       mealId: parseInt(mealId)
     })
 
@@ -45,6 +45,16 @@ Page({
   // 加载分享的点餐详情
   async loadSharedMeal() {
     try {
+      // 兼容：若仅带 mealId（发起人从列表/点餐页直接分享），先生成 shareToken 再加载详情
+      if (!this.data.shareToken) {
+        const gen = await API.share.generateShareLink(this.data.mealId)
+        const shareToken = gen?.data?.shareToken
+        if (!shareToken) {
+          throw new Error('生成分享令牌失败')
+        }
+        this.setData({ shareToken })
+      }
+
       const result = await API.share.getByShareToken(
         this.data.shareToken,
         this.data.mealId
@@ -63,6 +73,9 @@ Page({
       // 预处理菜品数据，将orderers数组转换为字符串
       const dishes = meal.dishes.map(dish => ({
         ...dish,
+        imageUrl: dish.imageUrl || dish.image_url || '',
+        displayImage: (dish.imageUrl || dish.image_url) || '/images/dish-placeholder.png',
+        displayDescription: dish.description || '暂无描述',
         orderersText: dish.orderers && dish.orderers.length > 0 
           ? dish.orderers.join('、') 
           : ''

@@ -25,14 +25,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/63</span>
+                <span class='fraction'>0/69</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/30</span>
+                <span class='fraction'>0/42</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/60</span>
+                <span class='fraction'>0/66</span>
             </div>
         
             
@@ -273,7 +273,20 @@
 <a name='L208'></a><a href='#L208'>208</a>
 <a name='L209'></a><a href='#L209'>209</a>
 <a name='L210'></a><a href='#L210'>210</a>
-<a name='L211'></a><a href='#L211'>211</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L211'></a><a href='#L211'>211</a>
+<a name='L212'></a><a href='#L212'>212</a>
+<a name='L213'></a><a href='#L213'>213</a>
+<a name='L214'></a><a href='#L214'>214</a>
+<a name='L215'></a><a href='#L215'>215</a>
+<a name='L216'></a><a href='#L216'>216</a>
+<a name='L217'></a><a href='#L217'>217</a>
+<a name='L218'></a><a href='#L218'>218</a>
+<a name='L219'></a><a href='#L219'>219</a>
+<a name='L220'></a><a href='#L220'>220</a>
+<a name='L221'></a><a href='#L221'>221</a>
+<a name='L222'></a><a href='#L222'>222</a>
+<a name='L223'></a><a href='#L223'>223</a>
+<a name='L224'></a><a href='#L224'>224</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -320,6 +333,16 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -337,6 +360,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -504,7 +530,7 @@ const { API } = <span class="cstat-no" title="statement not covered" >require('.
     // 获取分享参数
     const { token, mealId } = <span class="cstat-no" title="statement not covered" >options</span>
     
-<span class="cstat-no" title="statement not covered" >    if (!token || !mealId) {</span>
+<span class="cstat-no" title="statement not covered" >    if (!mealId) {</span>
 <span class="cstat-no" title="statement not covered" >      wx.showToast({</span>
         title: '分享链接无效',
         icon: 'none'
@@ -513,7 +539,7 @@ const { API } = <span class="cstat-no" title="statement not covered" >require('.
     }
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    this.setData({</span>
-      shareToken: token,
+      shareToken: token || '',
       mealId: parseInt(mealId)
     })
 &nbsp;
@@ -530,6 +556,16 @@ const { API } = <span class="cstat-no" title="statement not covered" >require('.
   // 加载分享的点餐详情
 <span class="fstat-no" title="function not covered" >  as</span>ync loadSharedMeal() {
 <span class="cstat-no" title="statement not covered" >    try {</span>
+      // 兼容：若仅带 mealId（发起人从列表/点餐页直接分享），先生成 shareToken 再加载详情
+<span class="cstat-no" title="statement not covered" >      if (!this.data.shareToken) {</span>
+        const gen = <span class="cstat-no" title="statement not covered" >await API.share.generateShareLink(this.data.mealId)</span>
+        const shareToken = <span class="cstat-no" title="statement not covered" >gen?.data?.shareToken</span>
+<span class="cstat-no" title="statement not covered" >        if (!shareToken) {</span>
+<span class="cstat-no" title="statement not covered" >          throw new Error('生成分享令牌失败')</span>
+        }
+<span class="cstat-no" title="statement not covered" >        this.setData({ shareToken })</span>
+      }
+&nbsp;
       const result = <span class="cstat-no" title="statement not covered" >await API.share.getByShareToken(</span>
         this.data.shareToken,
         this.data.mealId
@@ -548,6 +584,9 @@ const { API } = <span class="cstat-no" title="statement not covered" >require('.
       // 预处理菜品数据，将orderers数组转换为字符串
       const dishes = <span class="cstat-no" title="statement not covered" >meal.dishes.map(<span class="fstat-no" title="function not covered" >di</span>sh =&gt; (<span class="cstat-no" title="statement not covered" >{</span></span>
         ...dish,
+        imageUrl: dish.imageUrl || dish.image_url || '',
+        displayImage: (dish.imageUrl || dish.image_url) || '/images/dish-placeholder.svg',
+        displayDescription: dish.description || '暂无描述',
         orderersText: dish.orderers &amp;&amp; dish.orderers.length &gt; 0 
           ? dish.orderers.join('、') 
           : ''
@@ -700,7 +739,7 @@ const { API } = <span class="cstat-no" title="statement not covered" >require('.
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-18T05:48:49.050Z
+                at 2026-03-18T16:59:39.842Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

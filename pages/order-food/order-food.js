@@ -161,6 +161,13 @@ Page({
         dishOrderersMap[dish.id] = orderers.length > 0 ? '已点：' + orderers.join('、') : '暂无点选'
       })
 
+      const dishesWithDisplay = currentMeal.dishes.map(dish => ({
+        ...dish,
+        imageUrl: dish.imageUrl || dish.image_url || '',
+        displayImage: (dish.imageUrl || dish.image_url) || '/images/dish-placeholder.png',
+        displayDescription: dish.description || '暂无描述'
+      }))
+
       // 格式化创建时间
       const formattedCreatedAt = this.formatBeijingTime(currentMeal.createdAt)
       console.log('格式化后的创建时间:', formattedCreatedAt)
@@ -177,7 +184,7 @@ Page({
 
       this.setData({
         currentMeal: currentMealWithFormattedTime,
-        filteredDishes: currentMeal.dishes,
+        filteredDishes: dishesWithDisplay,
         userSelectedDishes,
         dishSelectionMap,
         dishOrderersMap,
@@ -266,7 +273,12 @@ Page({
     const dishes = this.data.currentMeal.dishes
     const filteredDishes = dishes.filter(dish =>
       dish.name.toLowerCase().includes(keyword.toLowerCase())
-    )
+    ).map(dish => ({
+      ...dish,
+      imageUrl: dish.imageUrl || dish.image_url || '',
+      displayImage: (dish.imageUrl || dish.image_url) || '/images/dish-placeholder.png',
+      displayDescription: dish.description || '暂无描述'
+    }))
     this.setData({ filteredDishes })
   },
 
@@ -372,47 +384,23 @@ Page({
   },
 
   // 分享点餐
-  async shareMeal() {
-    const { currentMeal } = this.data
+  onShareAppMessage(e) {
+    const mealId = e?.target?.dataset?.id || this.data.currentMeal?.id
+    const mealName = e?.target?.dataset?.name || this.data.currentMeal?.name
 
-    if (!currentMeal) {
-      wx.showToast({ title: '暂无发起的餐食', icon: 'none' })
-      return
+    if (!mealId) {
+      return {
+        title: '今天吃什么？一起来点餐吧！',
+        path: '/pages/meal-list/meal-list'
+      }
     }
 
-    // 检查是否已收单
-    if (currentMeal.status === 'closed') {
-      wx.showToast({ title: '已收单的点餐不能分享', icon: 'none' })
-      return
-    }
+    const sharePath = `/pages/share-meal/share-meal?mealId=${mealId}`
 
-    try {
-      // 调用云函数生成分享链接
-      const result = await API.share.generateShareLink(currentMeal.id)
-      const { shareUrl } = result.data
-
-      // 显示分享菜单
-      wx.showActionSheet({
-        itemList: ['复制链接', '分享给好友'],
-        success: (res) => {
-          if (res.tapIndex === 0) {
-            // 复制链接
-            wx.setClipboardData({
-              data: shareUrl,
-              success: () => {
-                wx.showToast({ title: '链接已复制', icon: 'success' })
-              }
-            })
-          } else if (res.tapIndex === 1) {
-            // 调用微信分享
-            // 这里可以调用 wx.shareAppMessage
-            wx.showToast({ title: '请使用右上角分享按钮', icon: 'none' })
-          }
-        }
-      })
-    } catch (err) {
-      console.error('生成分享链接失败:', err)
-      wx.showToast({ title: '分享失败', icon: 'none' })
+    return {
+      title: `【${mealName || '点餐'}】快来一起点餐吧！`,
+      path: sharePath,
+      imageUrl: '/images/share_card.jpg'
     }
   }
 })

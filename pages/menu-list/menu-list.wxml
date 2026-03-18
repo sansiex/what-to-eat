@@ -60,7 +60,17 @@
               <view class="checkbox {{item.selected ? 'checked' : ''}}">
                 <view wx:if="{{item.selected}}" class="checkmark">✓</view>
               </view>
-              <text class="dish-name {{item.selected ? '' : 'disabled'}}">{{item.name}}</text>
+              <image
+                src="{{item.imageUrl || '/images/dish-placeholder.png'}}"
+                mode="aspectFill"
+                style="width: 72rpx; height: 72rpx; border-radius: 8rpx; margin-right: 12rpx; background: #f2f4f7;"
+              />
+              <view style="flex: 1; display: flex; flex-direction: column; min-width: 0;">
+                <text class="dish-name {{item.selected ? '' : 'disabled'}}">{{item.name}}</text>
+                <text style="font-size: 20rpx; color: #999; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                  {{item.description || '暂无描述'}}
+                </text>
+              </view>
             </view>
           </scroll-view>
         </view>
