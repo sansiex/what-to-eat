@@ -29,7 +29,7 @@
               checked="{{dishSelectionMap[item.id]}}"
               class="dish-checkbox"
             />
-            <image class="dish-image" src="{{item.displayImage}}" mode="aspectFill" />
+            <image class="dish-image" src="{{item.displayImage}}" mode="aspectFill" catchtap="previewDishImage" data-url="{{item.displayImage}}" />
             <view class="dish-info">
               <text class="dish-name">{{item.name}}</text>
               <text class="dish-desc">{{item.displayDescription}}</text>

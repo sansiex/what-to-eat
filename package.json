@@ -10,6 +10,7 @@
     "test:app-config": "jest tests/app-config.test.js"
   },
   "dependencies": {
+    "@babel/runtime": "^7.29.2",
     "mysql2": "^3.18.2"
   },
   "devDependencies": {

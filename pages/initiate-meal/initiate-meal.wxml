@@ -69,6 +69,8 @@
               src="{{item.displayImage}}"
               mode="aspectFill"
               style="width: 84rpx; height: 84rpx; border-radius: 10rpx; background: #f2f4f7;"
+              catchtap="previewDishImage"
+              data-url="{{item.displayImage}}"
             />
             <view style="display: flex; flex-direction: column; min-width: 0; flex: 1;">
               <text class="list-item__title">{{item.name}}</text>

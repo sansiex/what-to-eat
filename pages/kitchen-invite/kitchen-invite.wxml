@@ -1,0 +1,35 @@
+<!-- pages/kitchen-invite/kitchen-invite.wxml -->
+<view class="container">
+  <!-- 加载中 -->
+  <view wx:if="{{loading}}" class="center-box">
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 邀请失效 -->
+  <view wx:elif="{{expired}}" class="center-box">
+    <text class="icon-large">⚠️</text>
+    <text class="error-text">{{errorMessage || '邀请链接已失效'}}</text>
+    <button class="btn-primary" bindtap="goHome">返回首页</button>
+  </view>
+
+  <!-- 邀请信息 -->
+  <view wx:else class="invite-card">
+    <text class="invite-icon">🍳</text>
+    <text class="invite-title">{{inviteInfo.ownerName}} 邀请你一起管理</text>
+    <text class="invite-kitchen">「{{inviteInfo.kitchenName}}」</text>
+
+    <view class="invite-meta">
+      <text class="meta-item">厨房主人：{{inviteInfo.ownerName}}</text>
+      <text class="meta-item">现有管理员：{{inviteInfo.adminCount}} 人</text>
+    </view>
+
+    <block wx:if="{{inviteInfo.isAlreadyMember}}">
+      <text class="already-member">你已经是该厨房的{{inviteInfo.memberRole === 'owner' ? '主人' : '管理员'}}</text>
+      <button class="btn-primary" bindtap="enterKitchen">直接进入厨房</button>
+    </block>
+
+    <block wx:else>
+      <button class="btn-primary" bindtap="acceptInvite" loading="{{joining}}">加入厨房</button>
+    </block>
+  </view>
+</view>

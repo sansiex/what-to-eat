@@ -59,7 +59,7 @@ async function createOrder(data, context) {
 
   return await transaction(async (connection) => {
     // 检查点餐活动是否存在且处于点餐中状态
-    const [meal] = await connection.execute(
+    const [meal] = await connection.query(
       'SELECT id, status, user_id as creator_id FROM wte_meals WHERE id = ?',
       [mealId]
     );
@@ -74,7 +74,7 @@ async function createOrder(data, context) {
     
     // 检查菜品是否都在该点餐活动中
     const placeholders = dishIds.map(() => '?').join(',');
-    const [validDishes] = await connection.execute(
+    const [validDishes] = await connection.query(
       `SELECT dish_id FROM wte_meal_dishes 
        WHERE meal_id = ? AND dish_id IN (${placeholders}) AND status = 1`,
       [mealId, ...dishIds]
@@ -85,7 +85,7 @@ async function createOrder(data, context) {
     }
     
     // 取消用户之前在该点餐活动中的所有订单
-    await connection.execute(
+    await connection.query(
       'UPDATE wte_orders SET status = 0, canceled_at = NOW() WHERE meal_id = ? AND user_id = ? AND status = 1',
       [mealId, userId]
     );
@@ -93,7 +93,7 @@ async function createOrder(data, context) {
     // 创建新订单
     const orderIds = [];
     for (const dishId of dishIds) {
-      const [result] = await connection.execute(
+      const [result] = await connection.query(
         'INSERT INTO wte_orders (meal_id, user_id, dish_id) VALUES (?, ?, ?)',
         [mealId, userId, dishId]
       );
@@ -101,7 +101,7 @@ async function createOrder(data, context) {
     }
     
     // 返回订单信息
-    const [orders] = await connection.execute(
+    const [orders] = await connection.query(
       `SELECT o.id, o.dish_id, d.name as dish_name, o.created_at
        FROM wte_orders o
        INNER JOIN wte_dishes d ON o.dish_id = d.id
@@ -357,7 +357,7 @@ async function createAnonymousOrder(data, context) {
 
   return await transaction(async (connection) => {
     // 验证分享令牌是否有效
-    const [shareRecord] = await connection.execute(
+    const [shareRecord] = await connection.query(
       'SELECT id FROM wte_meal_shares WHERE share_token = ? AND meal_id = ? AND status = 1',
       [shareToken, mealId]
     );
@@ -367,7 +367,7 @@ async function createAnonymousOrder(data, context) {
     }
 
     // 验证点餐是否处于进行中状态
-    const [meal] = await connection.execute(
+    const [meal] = await connection.query(
       'SELECT id, status FROM wte_meals WHERE id = ? AND status = 1',
       [mealId]
     );
@@ -378,7 +378,7 @@ async function createAnonymousOrder(data, context) {
 
     // 检查菜品是否都在该点餐活动中
     const placeholders = dishIds.map(() => '?').join(',');
-    const [validDishes] = await connection.execute(
+    const [validDishes] = await connection.query(
       `SELECT dish_id FROM wte_meal_dishes 
        WHERE meal_id = ? AND dish_id IN (${placeholders}) AND status = 1`,
       [mealId, ...dishIds]
@@ -390,14 +390,14 @@ async function createAnonymousOrder(data, context) {
 
     // 创建或查找匿名用户
     const trimmedName = userName.trim();
-    const [existingUser] = await connection.execute(
+    const [existingUser] = await connection.query(
       'SELECT id FROM wte_users WHERE nickname = ? AND openid LIKE "anonymous_%"',
       [trimmedName]
     );
 
     let userId;
     if (existingUser.length === 0) {
-      const [result] = await connection.execute(
+      const [result] = await connection.query(
         'INSERT INTO wte_users (openid, nickname) VALUES (?, ?)',
         [`anonymous_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, trimmedName]
       );
@@ -407,7 +407,7 @@ async function createAnonymousOrder(data, context) {
     }
 
     // 取消该用户之前在该点餐活动中的所有订单
-    await connection.execute(
+    await connection.query(
       'UPDATE wte_orders SET status = 0, canceled_at = NOW() WHERE meal_id = ? AND user_id = ? AND status = 1',
       [mealId, userId]
     );
@@ -415,7 +415,7 @@ async function createAnonymousOrder(data, context) {
     // 创建新订单
     const orderIds = [];
     for (const dishId of dishIds) {
-      const [result] = await connection.execute(
+      const [result] = await connection.query(
         'INSERT INTO wte_orders (meal_id, user_id, dish_id) VALUES (?, ?, ?)',
         [mealId, userId, dishId]
       );

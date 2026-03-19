@@ -178,9 +178,8 @@ Page({
         formattedCreatedAt
       }
 
-      // 判断当前用户是否是发起人
-      const currentUser = wx.getStorageSync('currentUser') || ''
-      const isInitiator = currentMeal.initiator === currentUser
+      // 判断当前用户是否是发起人（使用后端返回的 isCreator）
+      const isInitiator = !!currentMeal.isCreator
 
       this.setData({
         currentMeal: currentMealWithFormattedTime,
@@ -190,6 +189,11 @@ Page({
         dishOrderersMap,
         isInitiator
       })
+
+      // 为发起人预生成分享令牌
+      if (isInitiator) {
+        this.preGenerateShareToken(currentMeal.id)
+      }
 
       // 加载订单统计
       this.loadOrderStats(currentMeal.id)
@@ -364,29 +368,48 @@ Page({
       // 调用云函数下单
       await API.order.create(this.data.currentMeal.id, this.data.userSelectedDishes)
 
-      // 显示成功提示
-      wx.showToast({ title: '下单成功', icon: 'success' })
+      // 准备跳转到下单完成页面所需的数据
+      getApp().globalData.orderCompleteData = {
+        meal: this.data.currentMeal,
+        allDishes: this.data.filteredDishes,
+        orderedDishIds: [...this.data.userSelectedDishes],
+        isCreator: this.data.isInitiator,
+        shareToken: this.data.shareToken || ''
+      }
 
-      // 刷新订单数据和统计（使用 await 确保顺序执行）
-      await this.loadOrders()
-
-      // 刷新点选信息映射（显示已点用户）
-      this.refreshDishOrderersMap()
-
-      // 清空用户选择（下单成功后清除勾选）
-      this.setData({
-        userSelectedDishes: [],
-        dishSelectionMap: {}
-      })
+      wx.navigateTo({ url: '/pages/order-complete/order-complete' })
     } catch (err) {
       console.error('下单失败:', err)
     }
   },
 
-  // 分享点餐
+  async preGenerateShareToken(mealId) {
+    try {
+      const result = await API.share.generateShareLink(mealId)
+      const token = result && result.data && result.data.shareToken
+      if (token) {
+        this.setData({ shareToken: token })
+      }
+    } catch (e) {
+      console.warn('预生成分享令牌失败:', e)
+    }
+  },
+
+  previewDishImage(e) {
+    const url = e.currentTarget.dataset.url
+    if (!url || url === '/images/dish-placeholder.png') return
+    const urls = (this.data.filteredDishes || [])
+      .map(function(d) { return d.displayImage || '' })
+      .filter(function(u) { return u && u !== '/images/dish-placeholder.png' })
+    wx.previewImage({
+      current: url,
+      urls: urls.length > 0 ? urls : [url]
+    })
+  },
+
   onShareAppMessage(e) {
-    const mealId = e?.target?.dataset?.id || this.data.currentMeal?.id
-    const mealName = e?.target?.dataset?.name || this.data.currentMeal?.name
+    const mealId = (e && e.target && e.target.dataset && e.target.dataset.id) || (this.data.currentMeal && this.data.currentMeal.id)
+    const mealName = (e && e.target && e.target.dataset && e.target.dataset.name) || (this.data.currentMeal && this.data.currentMeal.name)
 
     if (!mealId) {
       return {
@@ -395,7 +418,10 @@ Page({
       }
     }
 
-    const sharePath = `/pages/share-meal/share-meal?mealId=${mealId}`
+    const token = this.data.shareToken || ''
+    const sharePath = token
+      ? `/pages/share-meal/share-meal?token=${token}&mealId=${mealId}`
+      : `/pages/share-meal/share-meal?mealId=${mealId}`
 
     return {
       title: `【${mealName || '点餐'}】快来一起点餐吧！`,

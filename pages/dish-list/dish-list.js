@@ -24,6 +24,10 @@ Page({
     this.loadDishes()
   },
 
+  onKitchenChange(e) {
+    this.loadDishes()
+  },
+
   // 搜索菜品
   onSearch(e) {
     this.setData({ keyword: e.detail.value }, () => {
@@ -141,6 +145,14 @@ Page({
       return
     }
 
+    const duplicate = this.data.dishes.find(d =>
+      d.name === trimmedName && d.id !== editingDishId
+    )
+    if (duplicate) {
+      wx.showToast({ title: '该菜品名称已存在', icon: 'none' })
+      return
+    }
+
     try {
       if (dialogMode === 'edit' && editingDishId) {
         await API.dish.update(editingDishId, trimmedName, trimmedDescription, dishImageUrl)
@@ -157,19 +169,19 @@ Page({
     }
   },
 
-  // 删除菜品
-  deleteDish(e) {
-    const dishId = e.currentTarget.dataset.id
-    const dishName = e.currentTarget.dataset.name
+  deleteDish() {
+    const { editingDishId, dishNameInput } = this.data
+    if (!editingDishId) return
 
     wx.showModal({
       title: '确认删除',
-      content: `确定要删除"${dishName}"吗？`,
+      content: `确定要删除"${dishNameInput}"吗？`,
       success: async (res) => {
         if (res.confirm) {
           try {
-            await API.dish.delete(dishId)
+            await API.dish.delete(editingDishId)
             wx.showToast({ title: '删除成功', icon: 'success' })
+            this.hideDishDialog()
             this.loadDishes()
           } catch (err) {
             console.error('删除菜品失败:', err)
@@ -178,6 +190,12 @@ Page({
         }
       }
     })
+  },
+
+  previewDishImage(e) {
+    var url = e.currentTarget.dataset.url
+    if (!url) return
+    wx.previewImage({ current: url, urls: [url] })
   },
 
   // 统一补全展示字段
@@ -195,7 +213,9 @@ Page({
   async loadDishes() {
     try {
       const { keyword } = this.data
-      const result = await API.dish.list(null, keyword)
+      const currentKitchen = getApp().globalData.currentKitchen
+      const kitchenId = currentKitchen ? currentKitchen.id : null
+      const result = await API.dish.list(kitchenId, keyword)
       const rawList = result.data.list || []
       console.log('[loadDishes] raw list from API:', JSON.stringify(rawList.map(d => ({ id: d.id, name: d.name, image_url: d.image_url, imageUrl: d.imageUrl }))))
       const dishes = rawList.map(d => this.normalizeDish(d))

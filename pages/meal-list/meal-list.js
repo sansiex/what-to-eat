@@ -14,6 +14,10 @@ Page({
     this.loadMeals()
   },
 
+  onKitchenChange(e) {
+    this.loadMeals()
+  },
+
   // 格式化时间为北京时间
   formatBeijingTime(isoString) {
     if (!isoString) return ''
@@ -36,7 +40,9 @@ Page({
   async loadMeals() {
     try {
       // 从云函数获取所有点餐数据
-      const result = await API.meal.list()
+      const currentKitchen = getApp().globalData.currentKitchen
+      const kitchenId = currentKitchen ? currentKitchen.id : null
+      const result = await API.meal.list(null, kitchenId)
       const meals = result.data.list || []
 
       // 格式化时间和状态
@@ -53,6 +59,9 @@ Page({
       const sortedMeals = this.sortMeals(mealsWithFormattedTime)
 
       this.setData({ meals: sortedMeals })
+
+      // 为自己发起的活跃 meal 预生成分享令牌
+      this.preGenerateShareTokens(sortedMeals)
     } catch (err) {
       console.error('加载点餐列表失败:', err)
     }
@@ -241,7 +250,25 @@ Page({
     }
   },
 
-  // 用户点击分享按钮时触发
+  async preGenerateShareTokens(meals) {
+    const myActiveMeals = meals.filter(m => m.isCreator && m.status === 'ordering')
+    const tokenMap = this.data.shareTokenMap || {}
+    for (var i = 0; i < myActiveMeals.length; i++) {
+      var meal = myActiveMeals[i]
+      if (tokenMap[meal.id]) continue
+      try {
+        const result = await API.share.generateShareLink(meal.id)
+        const token = result && result.data && result.data.shareToken
+        if (token) {
+          tokenMap[meal.id] = token
+        }
+      } catch (e) {
+        console.warn('预生成分享令牌失败 mealId=' + meal.id, e)
+      }
+    }
+    this.setData({ shareTokenMap: tokenMap })
+  },
+
   onShareAppMessage(e) {
     const mealId = e.target.dataset.id
     const mealName = e.target.dataset.name
@@ -253,8 +280,11 @@ Page({
       }
     }
 
-    // 生成分享路径
-    const sharePath = `/pages/share-meal/share-meal?mealId=${mealId}`
+    const tokenMap = this.data.shareTokenMap || {}
+    const token = tokenMap[mealId] || ''
+    const sharePath = token
+      ? `/pages/share-meal/share-meal?token=${token}&mealId=${mealId}`
+      : `/pages/share-meal/share-meal?mealId=${mealId}`
 
     return {
       title: `【${mealName}】快来一起点餐吧！`,

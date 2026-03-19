@@ -285,6 +285,7 @@ App({
   globalData: {
     currentMeal: null,
     editingMeal: null,
-    currentKitchen: null
+    currentKitchen: null,
+    orderCompleteData: null
   }
 })

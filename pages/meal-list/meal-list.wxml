@@ -1,5 +1,7 @@
 <!-- pages/meal-list/meal-list.wxml -->
 <view class="container">
+  <kitchen-switcher id="kitchenSwitcher" bind:kitchenchange="onKitchenChange" />
+
   <!-- 空状态 -->
   <view wx:if="{{meals.length === 0}}" class="empty-state">
     <text class="empty-text">暂无点餐记录</text>
@@ -18,7 +20,7 @@
           </view>
         </view>
         <text wx:if="{{!item.isCreator}}" class="meal-time">发起人：{{item.creatorName || '未知'}}</text>
-        <text class="meal-time">开始时间：{{item.formattedCreatedAt}}</text>
+        <text class="meal-time">发起时间：{{item.formattedCreatedAt}}</text>
         <text class="meal-dishes">菜品数：{{item.dishCount || 0}} 道</text>
       </view>
 

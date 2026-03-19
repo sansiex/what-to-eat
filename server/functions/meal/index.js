@@ -7,6 +7,23 @@ const { query, transaction, getUserId } = require('./utils/db');
 const { success, error, paramError, notFound } = require('./utils/response');
 
 /**
+ * 检查用户是否为厨房成员（owner 或 admin），返回角色或 null
+ */
+async function checkKitchenMembership(kitchenId, userId) {
+  const members = await query(
+    'SELECT role FROM wte_kitchen_members WHERE kitchen_id = ? AND user_id = ? AND status = 1',
+    [kitchenId, userId]
+  );
+  if (members.length > 0) return members[0].role;
+
+  const owned = await query(
+    'SELECT id FROM wte_kitchens WHERE id = ? AND user_id = ? AND status = 1',
+    [kitchenId, userId]
+  );
+  return owned.length > 0 ? 'owner' : null;
+}
+
+/**
  * 主入口函数
  * @param {Object} event - 请求参数
  * @param {Object} context - 云函数上下文
@@ -109,12 +126,9 @@ async function createMeal(data, context) {
   if (!targetKitchenId) {
     targetKitchenId = await getOrCreateDefaultKitchen(userId);
   } else {
-    // 验证提供的厨房属于当前用户
-    const kitchen = await query(
-      'SELECT id FROM wte_kitchens WHERE id = ? AND user_id = ? AND status = 1',
-      [kitchenId, userId]
-    );
-    if (kitchen.length === 0) {
+    // 验证用户有权限操作该厨房（owner 或 admin）
+    const role = await checkKitchenMembership(kitchenId, userId);
+    if (!role) {
       return notFound('厨房不存在或无权限访问');
     }
     targetKitchenId = kitchenId;
@@ -122,7 +136,7 @@ async function createMeal(data, context) {
   
   return await transaction(async (connection) => {
     // 创建点餐活动
-    const [mealResult] = await connection.execute(
+    const [mealResult] = await connection.query(
       'INSERT INTO wte_meals (user_id, kitchen_id, name) VALUES (?, ?, ?)',
       [userId, targetKitchenId, trimmedName]
     );
@@ -131,7 +145,7 @@ async function createMeal(data, context) {
 
     // 验证菜品是否都存在且状态正常
     const placeholders = dishIds.map(() => '?').join(',');
-    const [validDishes] = await connection.execute(
+    const [validDishes] = await connection.query(
       `SELECT id FROM wte_dishes WHERE id IN (${placeholders}) AND status = 1`,
       [...dishIds]
     );
@@ -142,14 +156,14 @@ async function createMeal(data, context) {
     
     // 关联菜品
     for (const dishId of dishIds) {
-      await connection.execute(
+      await connection.query(
         'INSERT INTO wte_meal_dishes (meal_id, dish_id) VALUES (?, ?)',
         [mealId, dishId]
       );
     }
     
     // 返回完整的点餐信息
-    const [newMeal] = await connection.execute(
+    const [newMeal] = await connection.query(
       `SELECT m.id, m.name, m.status, m.created_at,
         GROUP_CONCAT(d.id) as dish_ids,
         GROUP_CONCAT(d.name) as dish_names
@@ -195,32 +209,33 @@ async function updateMeal(data, context) {
   const userId = await getUserId(data, context);
   const trimmedName = name.trim();
   
-  // 检查点餐是否存在且属于当前用户
+  // 检查点餐是否存在
   const existingMeal = await query(
-    'SELECT id, status FROM wte_meals WHERE id = ? AND user_id = ?',
-    [id, userId]
+    'SELECT id, status, kitchen_id FROM wte_meals WHERE id = ?',
+    [id]
   );
   
   if (existingMeal.length === 0) {
     return notFound('点餐活动不存在');
   }
+
+  const role = await checkKitchenMembership(existingMeal[0].kitchen_id, userId);
+  if (!role) return error('无权限操作该点餐活动');
   
   if (existingMeal[0].status === 2) {
     return error('已收单的点餐活动不能修改');
   }
   
   return await transaction(async (connection) => {
-    // 更新点餐名称
-    await connection.execute(
+    await connection.query(
       'UPDATE wte_meals SET name = ? WHERE id = ?',
       [trimmedName, id]
     );
     
-    // 验证菜品
     const placeholders = dishIds.map(() => '?').join(',');
-    const [validDishes] = await connection.execute(
-      `SELECT id FROM wte_dishes WHERE id IN (${placeholders}) AND user_id = ? AND status = 1`,
-      [...dishIds, userId]
+    const [validDishes] = await connection.query(
+      `SELECT id FROM wte_dishes WHERE id IN (${placeholders}) AND status = 1`,
+      [...dishIds]
     );
     
     if (validDishes.length !== dishIds.length) {
@@ -228,21 +243,21 @@ async function updateMeal(data, context) {
     }
     
     // 删除旧的菜品关联
-    await connection.execute(
+    await connection.query(
       'UPDATE wte_meal_dishes SET status = 0 WHERE meal_id = ?',
       [id]
     );
     
     // 添加新的菜品关联
     for (const dishId of dishIds) {
-      await connection.execute(
+      await connection.query(
         'INSERT INTO wte_meal_dishes (meal_id, dish_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE status = 1',
         [id, dishId]
       );
     }
     
     // 返回更新后的点餐信息
-    const [updatedMeal] = await connection.execute(
+    const [updatedMeal] = await connection.query(
       `SELECT m.id, m.name, m.status, m.created_at,
         GROUP_CONCAT(d.id) as dish_ids,
         GROUP_CONCAT(d.name) as dish_names
@@ -279,25 +294,26 @@ async function deleteMeal(data, context) {
   
   const userId = await getUserId(data, context);
   
-  // 检查点餐是否存在且属于当前用户
   const existingMeal = await query(
-    'SELECT id FROM wte_meals WHERE id = ? AND user_id = ?',
-    [id, userId]
+    'SELECT id, kitchen_id FROM wte_meals WHERE id = ?',
+    [id]
   );
   
   if (existingMeal.length === 0) {
     return notFound('点餐活动不存在');
   }
+
+  const role = await checkKitchenMembership(existingMeal[0].kitchen_id, userId);
+  if (!role) return error('无权限操作该点餐活动');
   
   return await transaction(async (connection) => {
-    // 删除菜品关联
-    await connection.execute(
+    await connection.query(
       'UPDATE wte_meal_dishes SET status = 0 WHERE meal_id = ?',
       [id]
     );
     
     // 删除点餐
-    await connection.execute(
+    await connection.query(
       'DELETE FROM wte_meals WHERE id = ?',
       [id]
     );
@@ -333,14 +349,14 @@ async function listMeals(data, context) {
     LEFT JOIN wte_meal_dishes md ON m.id = md.meal_id AND md.status = 1
     LEFT JOIN wte_orders o ON m.id = o.meal_id AND o.status = 1
     WHERE (
-      (m.user_id = ? AND m.kitchen_id = ?)
+      m.kitchen_id = ?
       OR EXISTS (
         SELECT 1 FROM wte_orders o2
         WHERE o2.meal_id = m.id AND o2.user_id = ? AND o2.status = 1
       )
     )
   `;
-  const params = [userId, targetKitchenId, userId];
+  const params = [targetKitchenId, userId];
   
   if (status !== undefined && status !== null) {
     sql += ' AND m.status = ?';
@@ -361,14 +377,14 @@ async function listMeals(data, context) {
     SELECT COUNT(*) as total
     FROM wte_meals m
     WHERE (
-      (m.user_id = ? AND m.kitchen_id = ?)
+      m.kitchen_id = ?
       OR EXISTS (
         SELECT 1 FROM wte_orders o2
         WHERE o2.meal_id = m.id AND o2.user_id = ? AND o2.status = 1
       )
     )
   `;
-  const countParams = [userId, targetKitchenId, userId];
+  const countParams = [targetKitchenId, userId];
   
   if (status !== undefined && status !== null) {
     countSql += ' AND m.status = ?';
@@ -413,7 +429,7 @@ async function getMeal(data, context) {
   
   // 获取点餐基本信息（不限制用户，允许查看他人创建的点餐）
   const meal = await query(
-    'SELECT id, name, status, created_at, closed_at FROM wte_meals WHERE id = ?',
+    'SELECT id, user_id, name, status, created_at, closed_at FROM wte_meals WHERE id = ?',
     [id]
   );
   
@@ -449,10 +465,18 @@ async function getMeal(data, context) {
     dishOrderMap[order.dish_id].push(order.nickname);
   });
   
+  // Check if user is a kitchen member (for showing admin controls)
+  const kitchenRole = meal[0].kitchen_id
+    ? await checkKitchenMembership(meal[0].kitchen_id, userId)
+    : null;
+
   return success({
     id: meal[0].id,
     name: meal[0].name,
     status: meal[0].status,
+    isCreator: meal[0].user_id === userId,
+    isKitchenMember: !!kitchenRole,
+    kitchenRole: kitchenRole,
     createdAt: meal[0].created_at,
     closedAt: meal[0].closed_at,
     dishes: dishes.map(dish => ({
@@ -480,61 +504,45 @@ async function closeMeal(data, context) {
 
   const userId = await getUserId(data, context);
 
-  // 检查点餐是否存在且属于当前用户
   const existingMeal = await query(
-    'SELECT id, status FROM wte_meals WHERE id = ? AND user_id = ?',
-    [id, userId]
-  );
-
-  if (existingMeal.length === 0) {
-    return notFound('点餐活动不存在');
-  }
-
-  if (existingMeal[0].status === 2) {
-    return error('该点餐活动已经收单');
-  }
-
-  await query(
-    'UPDATE wte_meals SET status = 2, closed_at = NOW() WHERE id = ?',
+    'SELECT id, status, kitchen_id FROM wte_meals WHERE id = ?',
     [id]
   );
+
+  if (existingMeal.length === 0) return notFound('点餐活动不存在');
+
+  const role = await checkKitchenMembership(existingMeal[0].kitchen_id, userId);
+  if (!role) return error('无权限操作该点餐活动');
+
+  if (existingMeal[0].status === 2) return error('该点餐活动已经收单');
+
+  await query('UPDATE wte_meals SET status = 2, closed_at = NOW() WHERE id = ?', [id]);
 
   return success(null, '收单成功');
 }
 
 /**
  * 恢复点餐（将已收单的点餐恢复为点餐中状态）
- * @param {Object} data - 恢复数据
- * @param {Object} context - 上下文
- * @returns {Object} 恢复结果
  */
 async function reopenMeal(data, context) {
   const { id } = data || {};
-
-  if (!id) {
-    return paramError('点餐ID不能为空');
-  }
+  if (!id) return paramError('点餐ID不能为空');
 
   const userId = await getUserId(data, context);
 
-  // 检查点餐是否存在且属于当前用户
   const existingMeal = await query(
-    'SELECT id, status FROM wte_meals WHERE id = ? AND user_id = ?',
-    [id, userId]
-  );
-
-  if (existingMeal.length === 0) {
-    return notFound('点餐活动不存在');
-  }
-
-  if (existingMeal[0].status === 1) {
-    return error('该点餐活动正在点餐中');
-  }
-
-  await query(
-    'UPDATE wte_meals SET status = 1, closed_at = NULL WHERE id = ?',
+    'SELECT id, status, kitchen_id FROM wte_meals WHERE id = ?',
     [id]
   );
+
+  if (existingMeal.length === 0) return notFound('点餐活动不存在');
+
+  const role = await checkKitchenMembership(existingMeal[0].kitchen_id, userId);
+  if (!role) return error('无权限操作该点餐活动');
+
+  if (existingMeal[0].status === 1) return error('该点餐活动正在点餐中');
+
+  await query('UPDATE wte_meals SET status = 1, closed_at = NULL WHERE id = ?', [id]);
 
   return success(null, '恢复点餐成功');
 }
@@ -572,24 +580,37 @@ async function generateShareLink(data, context) {
 
   const userId = await getUserId(data, context);
 
-  // 验证点餐是否存在且属于当前用户
+  // 验证点餐是否存在且用户有权限（owner 或 admin）
   const meal = await query(
-    'SELECT id, name, status FROM wte_meals WHERE id = ? AND user_id = ? AND status = 1',
-    [mealId, userId]
+    'SELECT id, name, status, kitchen_id FROM wte_meals WHERE id = ? AND status = 1',
+    [mealId]
   );
 
   if (meal.length === 0) {
     return notFound('点餐活动不存在或已关闭');
   }
 
-  // 生成分享令牌
-  const shareToken = `share_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  const role = await checkKitchenMembership(meal[0].kitchen_id, userId);
+  if (!role) {
+    return error('无权限分享该点餐活动');
+  }
 
-  // 保存分享记录
-  await query(
-    'INSERT INTO wte_meal_shares (meal_id, share_token, created_by) VALUES (?, ?, ?)',
-    [mealId, shareToken, userId]
+  // 复用已有的分享令牌（避免重复创建）
+  const existing = await query(
+    'SELECT share_token FROM wte_meal_shares WHERE meal_id = ? AND created_by = ? AND status = 1 ORDER BY id DESC LIMIT 1',
+    [mealId, userId]
   );
+
+  let shareToken;
+  if (existing.length > 0) {
+    shareToken = existing[0].share_token;
+  } else {
+    shareToken = `share_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    await query(
+      'INSERT INTO wte_meal_shares (meal_id, share_token, created_by) VALUES (?, ?, ?)',
+      [mealId, shareToken, userId]
+    );
+  }
 
   return success({
     shareToken,

@@ -13,33 +13,43 @@ const dbConfig = {
   user: process.env.DB_USER || 'mpfunctions',
   password: process.env.DB_PASSWORD || 'Func8675309',
   database: process.env.DB_NAME || 'dev-0gtpuq9p785f5498',
-  // 连接池配置
   waitForConnections: true,
-  connectionLimit: 10,
+  connectionLimit: 3,
   queueLimit: 0,
-  // 时区配置
   timezone: '+08:00',
-  // 字符集
-  charset: 'utf8mb4'
+  charset: 'utf8mb4',
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 10000
 };
 
 // 创建连接池
 const pool = mysql.createPool(dbConfig);
 
+const RETRYABLE_CODES = ['ECONNRESET', 'ECONNREFUSED', 'ETIMEDOUT', 'PROTOCOL_CONNECTION_LOST'];
+
 /**
- * 执行SQL查询
+ * 执行SQL查询（带自动重试）
  * @param {string} sql - SQL语句
  * @param {Array} params - 查询参数
  * @returns {Promise} 查询结果
  */
 async function query(sql, params = []) {
-  try {
-    // 使用 query 而不是 execute，避免 prepared statement 问题
-    const [results] = await pool.query(sql, params);
-    return results;
-  } catch (error) {
-    console.error('Database query error:', error);
-    throw error;
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const [results] = await pool.query(sql, params);
+      return results;
+    } catch (error) {
+      const shouldRetry = attempt < 2 && (
+        RETRYABLE_CODES.includes(error.code) ||
+        (error.message && error.message.includes('ECONNRESET'))
+      );
+      if (shouldRetry) {
+        console.warn(`Database query failed (${error.code || error.message}), retrying...`);
+        continue;
+      }
+      console.error('Database query error:', error);
+      throw error;
+    }
   }
 }
 

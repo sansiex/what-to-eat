@@ -18,20 +18,30 @@ try {
 
 const { query, getUserId } = db || {};
 
-// 使用函数包装，确保在测试时能获取到 mock 的 response 函数
 const success = (data, message) => response?.success(data, message) || { code: 0, message, data, success: true };
 const error = (message, code) => response?.error(message, code) || { code: code || -1, message, data: null, success: false };
 const paramError = (message) => response?.paramError(message) || { code: 400, message, data: null, success: false };
 const notFound = (message) => response?.notFound(message) || { code: 404, message, data: null, success: false };
 
 /**
- * 主入口函数
- * @param {Object} event - 请求参数
- * @param {Object} context - 云函数上下文
- * @returns {Object} 响应结果
+ * 检查用户是否为厨房成员（owner 或 admin），返回角色或 null
  */
+async function checkKitchenMembership(kitchenId, userId) {
+  const members = await query(
+    'SELECT role FROM wte_kitchen_members WHERE kitchen_id = ? AND user_id = ? AND status = 1',
+    [kitchenId, userId]
+  );
+  if (members.length > 0) return members[0].role;
+
+  // Fallback: check direct ownership (pre-migration compatibility)
+  const owned = await query(
+    'SELECT id FROM wte_kitchens WHERE id = ? AND user_id = ? AND status = 1',
+    [kitchenId, userId]
+  );
+  return owned.length > 0 ? 'owner' : null;
+}
+
 exports.main = async (event, context) => {
-  // 检查依赖加载是否失败
   if (loadError) {
     return {
       success: false,
@@ -42,9 +52,7 @@ exports.main = async (event, context) => {
   }
 
   const { action, data } = event;
-
   console.log('Dish function called:', { action, data });
-  console.log('Context:', context);
 
   try {
     switch (action) {
@@ -63,17 +71,10 @@ exports.main = async (event, context) => {
     }
   } catch (err) {
     console.error('Dish function error:', err);
-    console.error('Error stack:', err.stack);
     return error(err.message || '操作失败');
   }
 };
 
-/**
- * 创建菜品
- * @param {Object} data - 菜品数据
- * @param {Object} context - 上下文
- * @returns {Object} 创建结果
- */
 async function createDish(data, context) {
   const { name, description, imageUrl, kitchenId } = data || {};
 
@@ -86,7 +87,6 @@ async function createDish(data, context) {
   const trimmedDesc = description ? description.trim() : null;
   const trimmedImageUrl = imageUrl ? imageUrl.trim() : null;
 
-  // 如果没有提供kitchenId，获取或创建用户的默认厨房
   let targetKitchenId = kitchenId;
   if (!targetKitchenId) {
     const defaultKitchen = await query(
@@ -94,32 +94,33 @@ async function createDish(data, context) {
       [userId]
     );
     if (defaultKitchen.length === 0) {
-      // 自动创建默认厨房
       const kitchenResult = await query(
         'INSERT INTO wte_kitchens (user_id, name, is_default, status) VALUES (?, ?, 1, 1)',
         [userId, '我的厨房']
       );
       targetKitchenId = parseInt(kitchenResult.insertId);
-      console.log('Created default kitchen:', targetKitchenId, 'Result:', kitchenResult);
     } else {
       targetKitchenId = parseInt(defaultKitchen[0].id);
     }
   } else {
     targetKitchenId = parseInt(targetKitchenId);
   }
-  console.log('Using kitchenId:', targetKitchenId, 'Type:', typeof targetKitchenId);
 
-  // 检查是否已存在同名菜品
+  // Check membership
+  const role = await checkKitchenMembership(targetKitchenId, userId);
+  if (!role) {
+    return error('无权限操作该厨房');
+  }
+
   const existingDishes = await query(
-    'SELECT id FROM wte_dishes WHERE user_id = ? AND kitchen_id = ? AND name = ? AND status = 1',
-    [userId, targetKitchenId, trimmedName]
+    'SELECT id FROM wte_dishes WHERE kitchen_id = ? AND name = ? AND status = 1',
+    [targetKitchenId, trimmedName]
   );
 
   if (existingDishes.length > 0) {
     return error('该菜品名称已存在');
   }
 
-  // 插入新菜品
   const result = await query(
     'INSERT INTO wte_dishes (user_id, kitchen_id, name, description, image_url) VALUES (?, ?, ?, ?, ?)',
     [userId, targetKitchenId, trimmedName, trimmedDesc, trimmedImageUrl]
@@ -133,59 +134,35 @@ async function createDish(data, context) {
   return success(newDish[0], '菜品创建成功');
 }
 
-/**
- * 更新菜品
- * @param {Object} data - 更新数据
- * @param {Object} context - 上下文
- * @returns {Object} 更新结果
- */
 async function updateDish(data, context) {
   const { id, name, description, imageUrl } = data || {};
 
-  if (!id) {
-    return paramError('菜品ID不能为空');
-  }
-
-  if (!name || name.trim() === '') {
-    return paramError('菜品名称不能为空');
-  }
+  if (!id) return paramError('菜品ID不能为空');
+  if (!name || name.trim() === '') return paramError('菜品名称不能为空');
 
   const userId = await getUserId(data, context);
   const trimmedName = name.trim();
   const trimmedDesc = description ? description.trim() : null;
   const trimmedImageUrl = imageUrl ? imageUrl.trim() : null;
 
-  // 检查菜品是否存在且属于当前用户
   const existingDish = await query(
-    'SELECT id FROM wte_dishes WHERE id = ? AND user_id = ? AND status = 1',
-    [id, userId]
+    'SELECT id, kitchen_id FROM wte_dishes WHERE id = ? AND status = 1',
+    [id]
   );
+  if (existingDish.length === 0) return notFound('菜品不存在');
 
-  if (existingDish.length === 0) {
-    return notFound('菜品不存在');
-  }
+  const role = await checkKitchenMembership(existingDish[0].kitchen_id, userId);
+  if (!role) return error('无权限操作该菜品');
 
-  // 获取菜品的kitchen_id
-  const dishInfo = await query(
-    'SELECT kitchen_id FROM wte_dishes WHERE id = ? AND user_id = ? AND status = 1',
-    [id, userId]
-  );
-
-  if (dishInfo.length === 0) {
-    return notFound('菜品不存在');
-  }
-
-  // 检查新名称是否与其他菜品重复
   const duplicateCheck = await query(
-    'SELECT id FROM wte_dishes WHERE user_id = ? AND kitchen_id = ? AND name = ? AND status = 1 AND id != ?',
-    [userId, dishInfo[0].kitchen_id, trimmedName, id]
+    'SELECT id FROM wte_dishes WHERE kitchen_id = ? AND name = ? AND status = 1 AND id != ?',
+    [existingDish[0].kitchen_id, trimmedName, id]
   );
 
   if (duplicateCheck.length > 0) {
     return error('该菜品名称已存在');
   }
 
-  // 更新菜品
   await query(
     'UPDATE wte_dishes SET name = ?, description = ?, image_url = ? WHERE id = ?',
     [trimmedName, trimmedDesc, trimmedImageUrl, id]
@@ -199,54 +176,32 @@ async function updateDish(data, context) {
   return success(updatedDish[0], '菜品更新成功');
 }
 
-/**
- * 删除菜品（软删除）
- * @param {Object} data - 删除数据
- * @param {Object} context - 上下文
- * @returns {Object} 删除结果
- */
 async function deleteDish(data, context) {
   const { id } = data || {};
-
-  if (!id) {
-    return paramError('菜品ID不能为空');
-  }
+  if (!id) return paramError('菜品ID不能为空');
 
   const userId = await getUserId(data, context);
 
-  // 检查菜品是否存在且属于当前用户
   const existingDish = await query(
-    'SELECT id FROM wte_dishes WHERE id = ? AND user_id = ? AND status = 1',
-    [id, userId]
-  );
-
-  if (existingDish.length === 0) {
-    return notFound('菜品不存在');
-  }
-
-  // 软删除
-  await query(
-    'UPDATE wte_dishes SET status = 0 WHERE id = ?',
+    'SELECT id, kitchen_id FROM wte_dishes WHERE id = ? AND status = 1',
     [id]
   );
+  if (existingDish.length === 0) return notFound('菜品不存在');
+
+  const role = await checkKitchenMembership(existingDish[0].kitchen_id, userId);
+  if (!role) return error('无权限操作该菜品');
+
+  await query('UPDATE wte_dishes SET status = 0 WHERE id = ?', [id]);
 
   return success(null, '菜品删除成功');
 }
 
-/**
- * 获取菜品列表
- * @param {Object} data - 查询参数
- * @param {Object} context - 上下文
- * @returns {Object} 菜品列表
- */
 async function listDishes(data, context) {
   const { keyword, kitchenId, page = 1, pageSize = 100 } = data || {};
   const userId = await getUserId(data, context);
 
-  // 确定要查询的厨房ID
   let targetKitchenId = kitchenId;
   if (!targetKitchenId) {
-    // 获取用户的默认厨房
     const defaultKitchen = await query(
       'SELECT id FROM wte_kitchens WHERE user_id = ? AND is_default = 1 AND status = 1',
       [userId]
@@ -254,17 +209,10 @@ async function listDishes(data, context) {
     if (defaultKitchen.length > 0) {
       targetKitchenId = defaultKitchen[0].id;
     } else {
-      // 用户没有默认厨房，返回空列表
-      return success({
-        list: [],
-        total: 0,
-        page: parseInt(page),
-        pageSize: parseInt(pageSize)
-      });
+      return success({ list: [], total: 0, page: parseInt(page), pageSize: parseInt(pageSize) });
     }
   }
 
-  // 查询指定厨房的菜品
   let sql = 'SELECT id, name, description, image_url, created_at FROM wte_dishes WHERE kitchen_id = ? AND status = 1';
   const params = [parseInt(targetKitchenId)];
 
@@ -274,18 +222,12 @@ async function listDishes(data, context) {
   }
 
   sql += ' ORDER BY created_at DESC';
-
-  // 分页
   const offset = (parseInt(page) - 1) * parseInt(pageSize);
   sql += ' LIMIT ? OFFSET ?';
   params.push(parseInt(pageSize), offset);
 
-  console.log('SQL:', sql);
-  console.log('Params:', params);
-
   const dishes = await query(sql, params);
 
-  // 获取总数
   let countSql = 'SELECT COUNT(*) as total FROM wte_dishes WHERE kitchen_id = ? AND status = 1';
   const countParams = [parseInt(targetKitchenId)];
 
@@ -304,29 +246,16 @@ async function listDishes(data, context) {
   });
 }
 
-/**
- * 获取单个菜品详情
- * @param {Object} data - 查询参数
- * @param {Object} context - 上下文
- * @returns {Object} 菜品详情
- */
 async function getDish(data, context) {
   const { id } = data || {};
-
-  if (!id) {
-    return paramError('菜品ID不能为空');
-  }
-
-  const userId = await getUserId(data, context);
+  if (!id) return paramError('菜品ID不能为空');
 
   const dish = await query(
-    'SELECT id, name, description, image_url, created_at FROM wte_dishes WHERE id = ? AND user_id = ? AND status = 1',
-    [id, userId]
+    'SELECT id, name, description, image_url, kitchen_id, created_at FROM wte_dishes WHERE id = ? AND status = 1',
+    [id]
   );
 
-  if (dish.length === 0) {
-    return notFound('菜品不存在');
-  }
+  if (dish.length === 0) return notFound('菜品不存在');
 
   return success(dish[0]);
 }

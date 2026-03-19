@@ -45,14 +45,22 @@ Page({
   // 加载分享的点餐详情
   async loadSharedMeal() {
     try {
-      // 兼容：若仅带 mealId（发起人从列表/点餐页直接分享），先生成 shareToken 再加载详情
       if (!this.data.shareToken) {
-        const gen = await API.share.generateShareLink(this.data.mealId)
-        const shareToken = gen?.data?.shareToken
-        if (!shareToken) {
-          throw new Error('生成分享令牌失败')
+        // 没有 token 时，尝试以当前用户身份生成（仅发起人能成功）
+        try {
+          const gen = await API.share.generateShareLink(this.data.mealId)
+          const shareToken = gen && gen.data && gen.data.shareToken
+          if (shareToken) {
+            this.setData({ shareToken })
+          }
+        } catch (e) {
+          console.warn('生成分享令牌失败（非发起人属正常）:', e)
         }
-        this.setData({ shareToken })
+      }
+
+      if (!this.data.shareToken) {
+        wx.showToast({ title: '分享链接无效', icon: 'none' })
+        return
       }
 
       const result = await API.share.getByShareToken(
@@ -152,7 +160,11 @@ Page({
     })
   },
 
-
+  previewDishImage(e) {
+    var url = e.currentTarget.dataset.url
+    if (!url) return
+    wx.previewImage({ current: url, urls: [url] })
+  },
 
   // 提交订单
   async submitOrder() {

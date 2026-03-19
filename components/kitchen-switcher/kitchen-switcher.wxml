@@ -1,0 +1,49 @@
+<!-- components/kitchen-switcher/kitchen-switcher.wxml -->
+<view class="kitchen-bar" bindtap="togglePanel">
+  <view class="kitchen-bar__left">
+    <text class="kitchen-bar__name">{{currentKitchen.name || '加载中...'}}</text>
+    <text class="kitchen-bar__role">{{currentKitchen.role === 'owner' ? '主人' : '管理员'}}</text>
+    <text class="kitchen-bar__arrow {{showPanel ? 'arrow-up' : ''}}">▾</text>
+  </view>
+  <view
+    wx:if="{{currentKitchen.role === 'owner'}}"
+    class="kitchen-bar__manage"
+    catchtap="goManage"
+  >
+    <text class="manage-icon">⚙</text>
+    <text class="manage-text">管理</text>
+  </view>
+</view>
+
+<!-- 厨房切换面板 -->
+<view wx:if="{{showPanel}}" class="panel-mask" bindtap="togglePanel">
+  <view class="panel" catchtap="">
+    <view class="panel__header">
+      <text class="panel__title">选择厨房</text>
+    </view>
+    <scroll-view class="panel__list" scroll-y>
+      <view
+        wx:for="{{kitchenList}}"
+        wx:key="id"
+        class="panel__item {{item.id === currentKitchen.id ? 'panel__item--active' : ''}}"
+        bindtap="selectKitchen"
+        data-kitchen="{{item}}"
+      >
+        <text class="panel__check">{{item.id === currentKitchen.id ? '✓' : ''}}</text>
+        <view class="panel__info">
+          <text class="panel__name">{{item.name}}</text>
+          <text wx:if="{{item.role !== 'owner'}}" class="panel__owner">{{item.ownerName}} 的厨房</text>
+        </view>
+        <text class="panel__badge {{item.role === 'owner' ? 'badge-owner' : 'badge-admin'}}">
+          {{item.role === 'owner' ? '主人' : '管理员'}}
+        </text>
+      </view>
+    </scroll-view>
+
+    <view wx:if="{{currentKitchen.role === 'admin'}}" class="panel__footer">
+      <view class="panel__leave" bindtap="leaveCurrentKitchen">
+        退出「{{currentKitchen.name}}」
+      </view>
+    </view>
+  </view>
+</view>

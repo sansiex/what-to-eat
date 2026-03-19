@@ -1,3 +1,5 @@
 {
-  "usingComponents": {}
+  "usingComponents": {
+    "kitchen-switcher": "/components/kitchen-switcher/kitchen-switcher"
+  }
 }

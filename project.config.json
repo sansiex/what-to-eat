@@ -1,7 +1,23 @@
 {
   "description": "吃什么小程序",
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      { "type": "folder", "value": "server" },
+      { "type": "folder", "value": "scripts" },
+      { "type": "folder", "value": "tests" },
+      { "type": "folder", "value": "coverage" },
+      { "type": "folder", "value": "node_modules" },
+      { "type": "folder", "value": "handoff" },
+      { "type": "folder", "value": "sources" },
+      { "type": "folder", "value": "images/svg" },
+      { "type": "file", "value": "images/svg-icons.md" },
+      { "type": "file", "value": "images/dish-placeholder.svg" },
+      { "type": "file", "value": "AGENTS.md" },
+      { "type": "file", "value": "package.json" },
+      { "type": "file", "value": "package-lock.json" },
+      { "type": "file", "value": "run-tests.js" },
+      { "type": "file", "value": "jest.config.js" }
+    ],
     "include": []
   },
   "setting": {

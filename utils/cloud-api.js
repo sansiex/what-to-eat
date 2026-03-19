@@ -44,9 +44,10 @@ const API = {
 
   // 点餐管理
   meal: {
-    // 获取点餐列表
-    list(status = null) {
-      const data = status ? { status } : {}
+    list(status = null, kitchenId = null) {
+      const data = {}
+      if (status) data.status = status
+      if (kitchenId) data.kitchenId = kitchenId
       return callHttpFunction('meal', 'list', data)
     },
 
@@ -163,34 +164,60 @@ const API = {
 
   // 厨房管理
   kitchen: {
-    // 获取厨房列表
     list() {
       return callLocalFunction('kitchen', 'list')
     },
 
-    // 创建厨房
     create(name) {
       return callLocalFunction('kitchen', 'create', { name })
     },
 
-    // 更新厨房
     update(id, name) {
       return callLocalFunction('kitchen', 'update', { id, name })
     },
 
-    // 删除厨房
     delete(id) {
       return callLocalFunction('kitchen', 'delete', { id })
     },
 
-    // 设置默认厨房
     setDefault(id) {
       return callLocalFunction('kitchen', 'setDefault', { id })
     },
 
-    // 获取或创建默认厨房
+    get(id) {
+      return callLocalFunction('kitchen', 'get', { id })
+    },
+
     getOrCreateDefault() {
       return callLocalFunction('kitchen', 'getOrCreateDefault')
+    },
+
+    listAccessible() {
+      return callLocalFunction('kitchen', 'listAccessible')
+    },
+
+    listMembers(kitchenId) {
+      return callLocalFunction('kitchen', 'listMembers', { kitchenId })
+    },
+
+    removeMember(kitchenId, memberId) {
+      return callLocalFunction('kitchen', 'removeMember', { kitchenId, memberId })
+    },
+
+    leaveKitchen(kitchenId) {
+      return callLocalFunction('kitchen', 'leaveKitchen', { kitchenId })
+    },
+
+    generateInvite(kitchenId) {
+      return callLocalFunction('kitchen', 'generateInvite', { kitchenId })
+    },
+
+    getInviteInfo(token) {
+      return callLocalFunction('kitchen', 'getInviteInfo', { token })
+    },
+
+    acceptInvite(token) {
+      return callLocalFunction('kitchen', 'acceptInvite', { token })
     }
   },
 

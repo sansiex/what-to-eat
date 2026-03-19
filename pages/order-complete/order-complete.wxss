@@ -1,0 +1,145 @@
+/* pages/order-complete/order-complete.wxss */
+
+.container {
+  padding: 20rpx 20rpx 180rpx;
+  background: #f5f5f5;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* 成功横幅 */
+.success-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48rpx 0 36rpx;
+}
+
+.success-text {
+  font-size: 48rpx;
+  font-weight: 700;
+  color: #333;
+}
+
+.success-sub {
+  margin-top: 12rpx;
+  font-size: 28rpx;
+  color: #999;
+}
+
+/* 区块 */
+.section {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.section-title {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16rpx;
+}
+
+.section-title--muted {
+  color: #bbb;
+}
+
+/* 菜品行 */
+.dish-row {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #f5f5f5;
+  gap: 16rpx;
+}
+
+.dish-row:last-child {
+  border-bottom: none;
+}
+
+.dish-row--muted {
+  opacity: 0.45;
+}
+
+.dish-thumb {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 10rpx;
+  background: #f2f4f7;
+  flex-shrink: 0;
+}
+
+.dish-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.dish-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.dish-name--muted {
+  color: #bbb;
+}
+
+.dish-desc {
+  font-size: 22rpx;
+  color: #999;
+  margin-top: 4rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dish-badge {
+  font-size: 28rpx;
+  color: #667eea;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* 操作按钮栏 */
+.action-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 16rpx;
+  padding: 20rpx 30rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  background: #fff;
+  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.06);
+}
+
+.btn {
+  flex: 1;
+  height: 88rpx;
+  line-height: 88rpx;
+  border-radius: 12rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  text-align: center;
+  border: none;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+}
+
+.btn-secondary {
+  background: #f0f0f0;
+  color: #666;
+}

@@ -6,7 +6,10 @@
     "pages/meal-list/meal-list",
     "pages/menu-edit/menu-edit",
     "pages/order-food/order-food",
-    "pages/share-meal/share-meal"
+    "pages/share-meal/share-meal",
+    "pages/order-complete/order-complete",
+    "pages/kitchen-manage/kitchen-manage",
+    "pages/kitchen-invite/kitchen-invite"
   ],
   "window": {
     "backgroundTextStyle": "light",

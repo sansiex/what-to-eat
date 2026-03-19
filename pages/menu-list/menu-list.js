@@ -19,6 +19,10 @@ Page({
     this.loadMenus()
   },
 
+  onKitchenChange(e) {
+    this.loadMenus()
+  },
+
   // 加载菜单列表
   async loadMenus() {
     try {
@@ -69,6 +73,7 @@ Page({
       }))
 
       this.setData({ menus: menusWithCount })
+      getApp().globalData._menuListCache = menusWithCount
       wx.hideLoading()
     } catch (err) {
       wx.hideLoading()
@@ -86,11 +91,9 @@ Page({
     })
   },
 
-  // 编辑菜单
   editMenu(e) {
     const menuId = e.currentTarget.dataset.id
-    const datasetMenu = e.currentTarget.dataset.menu
-    const menu = datasetMenu || this.data.menus.find(m => m.id === menuId)
+    const menu = this.data.menus.find(m => m.id === menuId)
     
     if (!menu) {
       wx.showToast({ title: '菜单不存在', icon: 'none' })
@@ -100,30 +103,6 @@ Page({
     getApp().globalData.currentMenu = menu
     wx.navigateTo({
       url: '/pages/menu-edit/menu-edit?mode=edit'
-    })
-  },
-
-  // 删除菜单（软删除）
-  deleteMenu(e) {
-    const menuId = e.currentTarget.dataset.id
-    const datasetMenu = e.currentTarget.dataset.menu
-    const menu = datasetMenu || this.data.menus.find(m => m.id === menuId) || { id: menuId, name: '' }
-    
-    wx.showModal({
-      title: '确认删除',
-      content: `确定要删除"${menu.name}"吗？`,
-      success: async (res) => {
-        if (res.confirm) {
-          try {
-            await API.menu.delete(menuId)
-            wx.showToast({ title: '删除成功', icon: 'success' })
-            this.loadMenus()
-          } catch (err) {
-            console.error('删除菜单失败:', err)
-            wx.showToast({ title: '删除失败', icon: 'none' })
-          }
-        }
-      }
     })
   },
 
@@ -183,7 +162,12 @@ Page({
     })
   },
 
-  // 切换菜品选择状态
+  previewDishImage(e) {
+    var url = e.currentTarget.dataset.url
+    if (!url) return
+    wx.previewImage({ current: url, urls: [url] })
+  },
+
   toggleDishSelection(e) {
     const dishId = e.currentTarget.dataset.id
     const { filteredDishes } = this.data

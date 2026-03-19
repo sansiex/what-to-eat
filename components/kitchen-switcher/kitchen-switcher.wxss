@@ -1,0 +1,174 @@
+/* components/kitchen-switcher/kitchen-switcher.wxss */
+
+.kitchen-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  padding: 16rpx 24rpx;
+  border-radius: 12rpx;
+  margin-bottom: 16rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.kitchen-bar__left {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex: 1;
+  min-width: 0;
+}
+
+.kitchen-bar__name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kitchen-bar__role {
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 6rpx;
+  background: #f0f0ff;
+  color: #667eea;
+  flex-shrink: 0;
+}
+
+.kitchen-bar__arrow {
+  font-size: 24rpx;
+  color: #999;
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.arrow-up {
+  transform: rotate(180deg);
+}
+
+.kitchen-bar__manage {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+  background: #f8f8f8;
+  flex-shrink: 0;
+}
+
+.manage-icon {
+  font-size: 28rpx;
+}
+
+.manage-text {
+  font-size: 24rpx;
+  color: #666;
+}
+
+/* Panel overlay */
+.panel-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 900;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel {
+  background: #fff;
+  border-radius: 0 0 24rpx 24rpx;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.12);
+}
+
+.panel__header {
+  padding: 24rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.panel__title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.panel__list {
+  max-height: 50vh;
+  padding: 8rpx 0;
+}
+
+.panel__item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx;
+  gap: 16rpx;
+}
+
+.panel__item--active {
+  background: #f8f8ff;
+}
+
+.panel__check {
+  width: 40rpx;
+  font-size: 28rpx;
+  color: #667eea;
+  font-weight: 700;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.panel__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel__name {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #333;
+}
+
+.panel__owner {
+  font-size: 22rpx;
+  color: #999;
+  margin-top: 4rpx;
+}
+
+.panel__badge {
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 6rpx;
+  flex-shrink: 0;
+}
+
+.badge-owner {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.badge-admin {
+  background: #f0f0ff;
+  color: #667eea;
+}
+
+.panel__footer {
+  padding: 16rpx 24rpx;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.panel__leave {
+  font-size: 26rpx;
+  color: #ff4d4f;
+  text-align: center;
+  padding: 12rpx;
+}

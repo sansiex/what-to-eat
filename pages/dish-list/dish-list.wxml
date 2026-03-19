@@ -1,5 +1,7 @@
 <!-- pages/dish-list/dish-list.wxml -->
 <view class="container">
+  <kitchen-switcher id="kitchenSwitcher" bind:kitchenchange="onKitchenChange" />
+
   <!-- 搜索和添加 -->
   <view class="header-actions">
     <input 
@@ -18,24 +20,11 @@
     </view>
 
     <view wx:else>
-      <view wx:for="{{dishes}}" wx:key="id" class="dish-card">
-        <image class="dish-image" src="{{item.displayImage}}" mode="aspectFill" />
+      <view wx:for="{{dishes}}" wx:key="id" class="dish-card" bindtap="showEditDialog" data-id="{{item.id}}">
+        <image class="dish-image" src="{{item.displayImage}}" mode="aspectFill" catchtap="previewDishImage" data-url="{{item.displayImage}}" />
         <view class="dish-info">
           <text class="dish-name">{{item.name}}</text>
           <text class="dish-desc">{{item.displayDescription}}</text>
-          <view class="dish-actions">
-            <button 
-              class="btn btn-small btn-edit" 
-              bindtap="showEditDialog" 
-              data-id="{{item.id}}"
-            >编辑</button>
-            <button 
-              class="btn btn-small btn-danger" 
-              bindtap="deleteDish" 
-              data-id="{{item.id}}"
-              data-name="{{item.name}}"
-            >删除</button>
-          </view>
         </view>
       </view>
     </view>
@@ -44,50 +33,55 @@
   <!-- 新增/编辑菜品弹窗 -->
   <view wx:if="{{showDishDialog}}" class="dialog-overlay">
     <view class="dialog">
-      <view class="dialog-header">
-        <text class="dialog-title">{{dialogMode === 'edit' ? '编辑菜品' : '添加菜品'}}</text>
-      </view>
-      
-      <view class="dialog-content">
-        <view class="upload-section">
-          <image
-            class="upload-preview"
-            src="{{dishImageUrl || defaultDishImage}}"
-            mode="aspectFill"
-          />
-          <view class="upload-actions">
-            <button
-              class="btn btn-small"
-              bindtap="chooseDishImage"
-              loading="{{isUploadingImage}}"
-            >
-              {{dishImageUrl ? '更换图片' : '上传图片'}}
-            </button>
-            <button
-              wx:if="{{dishImageUrl}}"
-              class="btn btn-small btn-danger"
-              bindtap="removeDishImage"
-            >
-              移除图片
-            </button>
-          </view>
+      <image
+        wx:if="{{dialogMode === 'edit'}}"
+        class="dialog-delete-icon"
+        src="/images/icon-delete.png"
+        mode="aspectFit"
+        catchtap="deleteDish"
+      />
+      <text class="dialog-title">{{dialogMode === 'edit' ? '编辑菜品' : '添加菜品'}}</text>
+
+      <view class="upload-section">
+        <image
+          class="upload-preview"
+          src="{{dishImageUrl || defaultDishImage}}"
+          mode="aspectFill"
+          catchtap="previewDishImage"
+          data-url="{{dishImageUrl}}"
+        />
+        <view class="upload-actions">
+          <button
+            class="btn btn-small"
+            bindtap="chooseDishImage"
+            loading="{{isUploadingImage}}"
+          >
+            {{dishImageUrl ? '更换图片' : '上传图片'}}
+          </button>
+          <button
+            wx:if="{{dishImageUrl}}"
+            class="btn btn-small btn-danger"
+            bindtap="removeDishImage"
+          >
+            移除图片
+          </button>
         </view>
-        <input 
-          class="form-input" 
-          placeholder="请输入菜品名称" 
-          bindinput="onDishNameInput"
-          value="{{dishNameInput}}"
-        />
-        <textarea
-          class="form-input" 
-          placeholder="请输入菜品描述（可选，最多80字）" 
-          bindinput="onDishDescInput"
-          value="{{dishDescriptionInput}}"
-          maxlength="80"
-          style="margin-top: 20rpx;"
-          auto-height
-        />
       </view>
+
+      <input 
+        class="form-input" 
+        placeholder="请输入菜品名称" 
+        bindinput="onDishNameInput"
+        value="{{dishNameInput}}"
+      />
+      <textarea
+        class="form-input" 
+        placeholder="请输入菜品描述（可选，最多80字）" 
+        bindinput="onDishDescInput"
+        value="{{dishDescriptionInput}}"
+        maxlength="80"
+        auto-height
+      />
 
       <view class="dialog-actions">
         <view class="dialog-btn dialog-btn-cancel" bindtap="hideDishDialog">取消</view>

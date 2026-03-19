@@ -1,0 +1,147 @@
+/* pages/kitchen-manage/kitchen-manage.wxss */
+
+.container {
+  padding: 20rpx;
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+.section {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.section-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+  display: block;
+  margin-bottom: 16rpx;
+}
+
+.name-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.name-input {
+  flex: 1;
+  height: 80rpx;
+  padding: 0 20rpx;
+  border: 1rpx solid #e0e0e0;
+  border-radius: 10rpx;
+  font-size: 28rpx;
+  background: #fafafa;
+}
+
+.btn-save {
+  padding: 0 28rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  font-size: 26rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border-radius: 10rpx;
+  border: none;
+  flex-shrink: 0;
+}
+
+.empty-state {
+  padding: 40rpx 0;
+  text-align: center;
+  color: #999;
+  font-size: 26rpx;
+}
+
+.member-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f5f5f5;
+  gap: 16rpx;
+}
+
+.member-item:last-child {
+  border-bottom: none;
+}
+
+.member-avatar {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+}
+
+.avatar-placeholder {
+  font-size: 36rpx;
+}
+
+.member-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.member-name {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #333;
+}
+
+.member-time {
+  font-size: 22rpx;
+  color: #999;
+  margin-top: 4rpx;
+}
+
+.btn-remove {
+  padding: 10rpx 24rpx;
+  font-size: 24rpx;
+  color: #ff4d4f;
+  background: #fff0f0;
+  border: 1rpx solid #ffccc7;
+  border-radius: 8rpx;
+  flex-shrink: 0;
+  line-height: 1.5;
+}
+
+.btn-remove::after {
+  border: none;
+}
+
+.btn-invite {
+  display: block;
+  margin: 24rpx 0;
+  padding: 24rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12rpx;
+  border: none;
+  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.3);
+}
+
+.btn-invite::after {
+  border: none;
+}

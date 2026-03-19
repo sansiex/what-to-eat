@@ -207,6 +207,12 @@ Page({
       return
     }
 
+    const duplicate = this.data.allDishes.find(d => d.name === newDishName.trim())
+    if (duplicate) {
+      wx.showToast({ title: '该菜品名称已存在', icon: 'none' })
+      return
+    }
+
     try {
       wx.showLoading({ title: '添加中...' })
       
@@ -247,7 +253,34 @@ Page({
     }
   },
 
-  // 保存菜单
+  previewDishImage(e) {
+    var url = e.currentTarget.dataset.url
+    if (!url) return
+    wx.previewImage({ current: url, urls: [url] })
+  },
+
+  deleteMenu() {
+    const menu = getApp().globalData.currentMenu
+    if (!menu) return
+
+    wx.showModal({
+      title: '确认删除',
+      content: `确定要删除"${menu.name}"吗？`,
+      success: async (res) => {
+        if (res.confirm) {
+          try {
+            await API.menu.delete(menu.id)
+            wx.showToast({ title: '删除成功', icon: 'success' })
+            wx.navigateBack()
+          } catch (err) {
+            console.error('删除菜单失败:', err)
+            wx.showToast({ title: '删除失败', icon: 'none' })
+          }
+        }
+      }
+    })
+  },
+
   async saveMenu() {
     const { isEditMode, menuName, selectedDishIds } = this.data
 
@@ -258,6 +291,16 @@ Page({
 
     if (selectedDishIds.length === 0) {
       wx.showToast({ title: '请至少选择一个菜品', icon: 'none' })
+      return
+    }
+
+    const currentMenu = getApp().globalData.currentMenu
+    const existingMenus = getApp().globalData._menuListCache || []
+    const duplicate = existingMenus.find(m =>
+      m.name === menuName.trim() && (!isEditMode || m.id !== (currentMenu && currentMenu.id))
+    )
+    if (duplicate) {
+      wx.showToast({ title: '该菜单名称已存在', icon: 'none' })
       return
     }
 

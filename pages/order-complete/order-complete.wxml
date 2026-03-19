@@ -1,0 +1,48 @@
+<!-- pages/order-complete/order-complete.wxml -->
+<view class="container">
+  <!-- 成功提示 -->
+  <view class="success-banner">
+    <text class="success-text">点餐成功！🎉</text>
+    <text class="success-sub">{{meal.name}}</text>
+  </view>
+
+  <!-- 已点菜品 -->
+  <view class="section" wx:if="{{orderedDishes.length > 0}}">
+    <text class="section-title">已点菜品</text>
+    <view wx:for="{{orderedDishes}}" wx:key="id" class="dish-row">
+      <image class="dish-thumb" src="{{item.displayImage || '/images/dish-placeholder.png'}}" mode="aspectFill" bindtap="previewDishImage" data-url="{{item.displayImage}}" />
+      <view class="dish-text">
+        <text class="dish-name">{{item.name}}</text>
+        <text class="dish-desc">{{item.displayDescription || '暂无描述'}}</text>
+      </view>
+      <text class="dish-badge">✓</text>
+    </view>
+  </view>
+
+  <!-- 未点菜品 -->
+  <view class="section" wx:if="{{unorderedDishes.length > 0}}">
+    <text class="section-title section-title--muted">未点菜品</text>
+    <view wx:for="{{unorderedDishes}}" wx:key="id" class="dish-row dish-row--muted">
+      <image class="dish-thumb dish-thumb--muted" src="{{item.displayImage || '/images/dish-placeholder.png'}}" mode="aspectFill" bindtap="previewDishImage" data-url="{{item.displayImage}}" />
+      <view class="dish-text">
+        <text class="dish-name dish-name--muted">{{item.name}}</text>
+        <text class="dish-desc">{{item.displayDescription || '暂无描述'}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-bar">
+    <button class="btn btn-secondary" bindtap="reOrder">重新点餐</button>
+    <button
+      wx:if="{{!isCreator}}"
+      class="btn btn-primary"
+      bindtap="enterMyKitchen"
+    >进入我的厨房</button>
+    <button
+      wx:if="{{isCreator}}"
+      class="btn btn-primary"
+      open-type="share"
+    >分享</button>
+  </view>
+</view>

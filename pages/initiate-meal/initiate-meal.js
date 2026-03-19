@@ -245,6 +245,12 @@ Page({
     wx.navigateBack()
   },
 
+  previewDishImage(e) {
+    var url = e.currentTarget.dataset.url
+    if (!url) return
+    wx.previewImage({ current: url, urls: [url] })
+  },
+
   async initiateMeal() {
     console.log('initiateMeal函数被调用')
     const { selectedMealName } = this.data

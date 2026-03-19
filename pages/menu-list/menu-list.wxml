@@ -1,5 +1,7 @@
 <!-- pages/menu-list/menu-list.wxml -->
 <view class="container">
+  <kitchen-switcher id="kitchenSwitcher" bind:kitchenchange="onKitchenChange" />
+
   <!-- 头部操作区 -->
   <view class="header-actions">
     <button class="btn btn-primary" bindtap="createMenu">创建菜单</button>
@@ -12,17 +14,18 @@
     </view>
 
     <view wx:else>
-      <view wx:for="{{menus}}" wx:key="id" class="menu-card">
+      <view wx:for="{{menus}}" wx:key="id" class="menu-card" bindtap="editMenu" data-id="{{item.id}}">
         <view class="menu-info">
           <text class="menu-name">{{item.name}}</text>
           <text class="menu-count">{{item.dishCount}} 道菜</text>
         </view>
-        
-        <view class="menu-actions">
-          <button class="btn btn-small" bindtap="editMenu" data-id="{{item.id}}">编辑</button>
-          <button class="btn btn-small btn-danger" bindtap="deleteMenu" data-id="{{item.id}}">删除</button>
-          <button class="btn btn-small btn-primary" bindtap="showInitiateMealDialog" data-id="{{item.id}}">发起点餐</button>
-        </view>
+        <image
+          class="menu-action-icon"
+          src="/images/icon-start-meal.png"
+          mode="aspectFit"
+          catchtap="showInitiateMealDialog"
+          data-id="{{item.id}}"
+        />
       </view>
     </view>
   </view>
@@ -64,6 +67,8 @@
                 src="{{item.imageUrl || '/images/dish-placeholder.png'}}"
                 mode="aspectFill"
                 style="width: 72rpx; height: 72rpx; border-radius: 8rpx; margin-right: 12rpx; background: #f2f4f7;"
+                catchtap="previewDishImage"
+                data-url="{{item.imageUrl}}"
               />
               <view style="flex: 1; display: flex; flex-direction: column; min-width: 0;">
                 <text class="dish-name {{item.selected ? '' : 'disabled'}}">{{item.name}}</text>
