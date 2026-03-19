@@ -23,12 +23,13 @@ const ICON_SIZE = 48; // 微信小程序 tabBar 图标推荐尺寸
 
 // SVG 文件列表
 const SVG_FILES = [
-  ['tab-menu.svg', 'tab-menu.png'],
-  ['tab-menu-active.svg', 'tab-menu-active.png'],
-  ['tab-dish.svg', 'tab-dish.png'],
-  ['tab-dish-active.svg', 'tab-dish-active.png'],
-  ['tab-meal.svg', 'tab-meal.png'],
-  ['tab-meal-active.svg', 'tab-meal-active.png'],
+  ['tab-menu.svg', 'tab-menu.png', ICON_SIZE],
+  ['tab-menu-active.svg', 'tab-menu-active.png', ICON_SIZE],
+  ['tab-dish.svg', 'tab-dish.png', ICON_SIZE],
+  ['tab-dish-active.svg', 'tab-dish-active.png', ICON_SIZE],
+  ['tab-meal.svg', 'tab-meal.png', ICON_SIZE],
+  ['tab-meal-active.svg', 'tab-meal-active.png', ICON_SIZE],
+  ['icon-start-meal.svg', 'icon-start-meal.png', 200],
 ];
 
 async function convertSvgToPng(svgPath, pngPath, size = ICON_SIZE) {
@@ -68,7 +69,8 @@ async function main() {
   let successCount = 0;
   let failCount = 0;
   
-  for (const [svgName, pngName] of SVG_FILES) {
+  for (const item of SVG_FILES) {
+    const [svgName, pngName, size = ICON_SIZE] = item;
     const svgPath = path.join(SVG_DIR, svgName);
     const pngPath = path.join(OUTPUT_DIR, pngName);
     
@@ -78,7 +80,7 @@ async function main() {
       continue;
     }
     
-    if (await convertSvgToPng(svgPath, pngPath)) {
+    if (await convertSvgToPng(svgPath, pngPath, size)) {
       successCount++;
     } else {
       failCount++;

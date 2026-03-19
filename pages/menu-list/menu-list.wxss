@@ -2,27 +2,32 @@
 
 .container {
   padding: 20rpx;
-  background-color: #f5f5f5;
   min-height: 100vh;
 }
 
-/* 头部操作区 */
-.header-actions {
-  display: flex;
-  gap: 16rpx;
-  margin-bottom: 20rpx;
+/* 创建新菜单卡片 */
+.create-menu-card {
+  background: radial-gradient(ellipse at center, #fff 50%, #C8E6C9 100%) !important;
+  justify-content: center !important;
+  border: 2rpx dashed #81C784;
+}
+
+.create-menu-text {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #666;
 }
 
 /* 按钮样式 */
 .btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #66BB6A 0%, #81C784 100%);
   color: #fff;
   text-align: center;
   padding: 24rpx;
   border-radius: 12rpx;
   font-size: 32rpx;
   font-weight: 600;
-  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.25);
 }
 
 .btn-small {
@@ -38,16 +43,16 @@
 }
 
 .btn-danger {
-  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+  background: linear-gradient(135deg, #E53935 0%, #FF8A65 100%);
 }
 
 .btn-cancel {
-  background: #f0f0f0;
+  background: #C8E6C9;
   color: #666;
 }
 
 .btn-confirm {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #66BB6A 0%, #81C784 100%);
   color: #fff;
 }
 
@@ -70,7 +75,7 @@
   background: #fff;
   border-radius: 16rpx;
   padding: 24rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
 }
 
 .menu-card {
@@ -88,7 +93,7 @@
 .menu-name {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: #1A1A1A;
 }
 
 .menu-count {
@@ -111,7 +116,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -132,14 +137,14 @@
 .dialog-header {
   position: relative;
   padding: 30rpx;
-  border-bottom: 1rpx solid #eee;
+  border-bottom: 1rpx solid #C8E6C9;
   text-align: center;
 }
 
 .dialog-title {
   font-size: 36rpx;
   font-weight: 600;
-  color: #333;
+  color: #1A1A1A;
 }
 
 .dialog-close {
@@ -164,7 +169,7 @@
   flex-direction: row;
   justify-content: center;
   padding: 20rpx 30rpx 30rpx;
-  border-top: 1rpx solid #eee;
+  border-top: 1rpx solid #C8E6C9;
   gap: 20rpx;
 }
 
@@ -191,7 +196,7 @@
 .menu-name-section .value {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: #1A1A1A;
   margin-left: 12rpx;
 }
 
@@ -205,9 +210,9 @@
   line-height: 80rpx;
   padding: 0 24rpx;
   font-size: 28rpx;
-  border: 1rpx solid #e0e0e0;
+  border: 1rpx solid #C8E6C9;
   border-radius: 12rpx;
-  background-color: #fafafa;
+  background-color: #fff;
 }
 
 .dishes-section {
@@ -233,13 +238,13 @@
   display: flex;
   align-items: center;
   padding: 24rpx 0;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid #C8E6C9;
 }
 
 .checkbox {
   width: 40rpx;
   height: 40rpx;
-  border: 2rpx solid #ddd;
+  border: 2rpx solid #C8E6C9;
   border-radius: 8rpx;
   margin-right: 20rpx;
   display: flex;
@@ -249,7 +254,7 @@
 }
 
 .checkbox.checked {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #66BB6A 0%, #81C784 100%);
   border-color: transparent;
 }
 
@@ -261,7 +266,7 @@
 
 .dish-name {
   font-size: 30rpx;
-  color: #333;
+  color: #1A1A1A;
   flex: 1;
 }
 

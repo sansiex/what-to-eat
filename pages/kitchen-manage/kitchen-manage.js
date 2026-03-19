@@ -121,7 +121,7 @@ Page({
     return {
       title: `${ownerName}邀请你一起管理「${kitchenName}」`,
       path,
-      imageUrl: '/images/share_card.jpg'
+      imageUrl: '/images/join_my_kitchen.jpg'
     }
   }
 })

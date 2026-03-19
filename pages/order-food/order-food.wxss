@@ -14,12 +14,12 @@
 .meal-name {
   font-size: 36rpx;
   font-weight: bold;
-  color: #333;
+  color: #1A1A1A;
 }
 
 .meal-status {
   font-size: 24rpx;
-  color: #07c160;
+  color: #2E7D32;
   margin-top: 10rpx;
 }
 
@@ -33,7 +33,7 @@
   display: flex;
   align-items: center;
   padding: 20rpx;
-  border-bottom: 1rpx solid #eee;
+  border-bottom: 1rpx solid #C8E6C9;
 }
 
 .dish-item:last-child {
@@ -47,7 +47,7 @@
 .dish-name {
   flex: 1;
   font-size: 32rpx;
-  color: #333;
+  color: #1A1A1A;
 }
 
 .dish-count {
@@ -64,7 +64,7 @@
   padding: 20rpx 30rpx;
   display: flex;
   gap: 20rpx;
-  box-shadow: 0 -2rpx 10rpx rgba(0,0,0,0.1);
+  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.06);
 }
 
 .btn-share {
@@ -88,5 +88,5 @@
 }
 
 .btn-disabled {
-  background: #ccc;
+  background: #C8E6C9;
 }

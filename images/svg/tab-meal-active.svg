@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
   <!-- 点餐图标激活状态 -->
-  <rect x="8" y="12" width="32" height="24" rx="3" fill="#667eea" stroke="#667eea" stroke-width="3"/>
-  <circle cx="18" cy="36" r="3" fill="#667eea" stroke="#667eea" stroke-width="2"/>
-  <circle cx="30" cy="36" r="3" fill="#667eea" stroke="#667eea" stroke-width="2"/>
+  <rect x="8" y="12" width="32" height="24" rx="3" fill="#4CAF50" stroke="#4CAF50" stroke-width="3"/>
+  <circle cx="18" cy="36" r="3" fill="#4CAF50" stroke="#4CAF50" stroke-width="2"/>
+  <circle cx="30" cy="36" r="3" fill="#4CAF50" stroke="#4CAF50" stroke-width="2"/>
   <path d="M14 18 L34 18" stroke="#ffffff" stroke-width="2"/>
-  <path d="M12 12 L14 6" stroke="#667eea" stroke-width="2" stroke-linecap="round"/>
-  <path d="M36 12 L34 6" stroke="#667eea" stroke-width="2" stroke-linecap="round"/>
+  <path d="M12 12 L14 6" stroke="#4CAF50" stroke-width="2" stroke-linecap="round"/>
+  <path d="M36 12 L34 6" stroke="#4CAF50" stroke-width="2" stroke-linecap="round"/>
 </svg>

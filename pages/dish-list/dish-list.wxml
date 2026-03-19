@@ -10,7 +10,7 @@
       bindinput="onSearch"
       value="{{keyword}}"
     />
-    <button class="btn btn-primary" bindtap="showAddDialog">添加菜品</button>
+    <view class="btn-add-dish" bindtap="showAddDialog">添加菜品</view>
   </view>
 
   <!-- 菜品列表 -->

@@ -2,31 +2,24 @@
 <view class="container">
   <kitchen-switcher id="kitchenSwitcher" bind:kitchenchange="onKitchenChange" />
 
-  <!-- 头部操作区 -->
-  <view class="header-actions">
-    <button class="btn btn-primary" bindtap="createMenu">创建菜单</button>
-  </view>
-
   <!-- 菜单列表 -->
   <view class="menu-list">
-    <view wx:if="{{menus.length === 0}}" class="empty-state">
-      <text>暂无菜单，点击上方按钮创建</text>
+    <view class="menu-card create-menu-card" bindtap="createMenu">
+      <text class="create-menu-text">创建新菜单</text>
     </view>
 
-    <view wx:else>
-      <view wx:for="{{menus}}" wx:key="id" class="menu-card" bindtap="editMenu" data-id="{{item.id}}">
-        <view class="menu-info">
-          <text class="menu-name">{{item.name}}</text>
-          <text class="menu-count">{{item.dishCount}} 道菜</text>
-        </view>
-        <image
-          class="menu-action-icon"
-          src="/images/icon-start-meal.png"
-          mode="aspectFit"
-          catchtap="showInitiateMealDialog"
-          data-id="{{item.id}}"
-        />
+    <view wx:for="{{menus}}" wx:key="id" class="menu-card" bindtap="editMenu" data-id="{{item.id}}">
+      <view class="menu-info">
+        <text class="menu-name">{{item.name}}</text>
+        <text class="menu-count">{{item.dishCount}} 道菜</text>
       </view>
+      <image
+        class="menu-action-icon"
+        src="/images/icon-start-meal.png"
+        mode="aspectFit"
+        catchtap="showInitiateMealDialog"
+        data-id="{{item.id}}"
+      />
     </view>
   </view>
 

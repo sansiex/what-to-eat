@@ -1,7 +1,7 @@
 /* pages/initiate-meal/initiate-meal.wxss */
 
 .btn {
-  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+  background: linear-gradient(135deg, #66BB6A 0%, #81C784 100%);
   color: #fff;
   text-align: center;
   padding: 24rpx;
@@ -9,22 +9,22 @@
   font-size: 36rpx;
   font-weight: 700;
   margin-top: 24rpx;
-  box-shadow: 0 6rpx 16rpx rgba(255, 107, 107, 0.4);
+  box-shadow: 0 6rpx 16rpx rgba(91, 108, 240, 0.3);
 }
 
 .btn:active {
-  background: linear-gradient(135deg, #FF5252 0%, #FF7043 100%);
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
 }
 
 .btn[disabled] {
-  background: #d0d0d0;
+  background: #C8E6C9;
   color: #999;
   box-shadow: none;
 }
 
 button {
-  background-color: #f0f0f0;
-  color: #333;
+  background-color: #C8E6C9;
+  color: #1A1A1A;
   font-size: 28rpx;
   padding: 12rpx 24rpx;
   border-radius: 8rpx;
@@ -32,7 +32,7 @@ button {
 }
 
 button:active {
-  background-color: #e0e0e0;
+  background-color: #C8E6C9;
 }
 
 /* 餐名选择按钮样式 */
@@ -41,17 +41,17 @@ button:active {
   font-size: 28rpx;
   padding: 12rpx 24rpx;
   text-align: center;
-  background-color: #f0f0f0;
-  color: #333;
+  background-color: #C8E6C9;
+  color: #1A1A1A;
   border-radius: 8rpx;
   font-weight: 500;
   border: none;
 }
 
 .meal-type-btn--active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #66BB6A 0%, #81C784 100%);
   color: #fff;
-  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.25);
 }
 
 .dialog-content .input {
@@ -60,7 +60,7 @@ button:active {
   line-height: 80rpx;
   padding: 0 24rpx;
   font-size: 32rpx;
-  border: 1rpx solid #e0e0e0;
+  border: 1rpx solid #C8E6C9;
   border-radius: 8rpx;
-  background-color: #fafafa;
+  background-color: #fff;
 }

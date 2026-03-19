@@ -2,7 +2,6 @@
 
 .container {
   padding: 20rpx 20rpx 180rpx;
-  background: #f5f5f5;
   min-height: 100vh;
   box-sizing: border-box;
 }
@@ -18,7 +17,7 @@
 .success-text {
   font-size: 48rpx;
   font-weight: 700;
-  color: #333;
+  color: #1A1A1A;
 }
 
 .success-sub {
@@ -33,19 +32,19 @@
   border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 20rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
 }
 
 .section-title {
   display: block;
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: #1A1A1A;
   margin-bottom: 16rpx;
 }
 
 .section-title--muted {
-  color: #bbb;
+  color: #999;
 }
 
 /* 菜品行 */
@@ -53,7 +52,7 @@
   display: flex;
   align-items: center;
   padding: 16rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid #C8E6C9;
   gap: 16rpx;
 }
 
@@ -69,7 +68,7 @@
   width: 80rpx;
   height: 80rpx;
   border-radius: 10rpx;
-  background: #f2f4f7;
+  background: #C8E6C9;
   flex-shrink: 0;
 }
 
@@ -83,11 +82,11 @@
 .dish-name {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: #1A1A1A;
 }
 
 .dish-name--muted {
-  color: #bbb;
+  color: #999;
 }
 
 .dish-desc {
@@ -101,7 +100,7 @@
 
 .dish-badge {
   font-size: 28rpx;
-  color: #667eea;
+  color: #2E7D32;
   font-weight: 700;
   flex-shrink: 0;
 }
@@ -117,7 +116,7 @@
   padding: 20rpx 30rpx;
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
   background: #fff;
-  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.06);
+  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.04);
 }
 
 .btn {
@@ -135,11 +134,11 @@
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #66BB6A 0%, #81C784 100%);
   color: #fff;
 }
 
 .btn-secondary {
-  background: #f0f0f0;
+  background: #C8E6C9;
   color: #666;
 }
