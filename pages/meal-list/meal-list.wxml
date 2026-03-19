@@ -19,24 +19,24 @@
             {{item.status === 'ordering' ? '点餐中' : '已收单'}}
           </view>
         </view>
-        <text wx:if="{{!item.isCreator}}" class="meal-time">发起人：{{item.creatorName || '未知'}}</text>
+        <text class="meal-time">发起人：{{item.isCreator ? '我' : (item.creatorName || '未知')}}</text>
         <text class="meal-time">发起时间：{{item.formattedCreatedAt}}</text>
         <text class="meal-dishes">菜品数：{{item.dishCount || 0}} 道</text>
       </view>
 
       <!-- 操作按钮 -->
       <view class="meal-actions">
-        <!-- 点餐中状态：显示编辑、收单、点餐、分享按钮 -->
+        <!-- 点餐中状态：主人/管理员显示编辑、收单、分享，所有人可点餐 -->
         <block wx:if="{{item.status === 'ordering'}}">
-          <button wx:if="{{item.isCreator}}" class="action-btn btn-edit" bindtap="editMeal" data-id="{{item.id}}">编辑</button>
-          <button wx:if="{{item.isCreator}}" class="action-btn btn-close" bindtap="closeMeal" data-id="{{item.id}}">收单</button>
+          <button wx:if="{{item.canManageMeals}}" class="action-btn btn-edit" bindtap="editMeal" data-id="{{item.id}}">编辑</button>
+          <button wx:if="{{item.canManageMeals}}" class="action-btn btn-close" bindtap="closeMeal" data-id="{{item.id}}">收单</button>
           <button class="action-btn btn-order" bindtap="goOrder" data-id="{{item.id}}">点餐</button>
-          <button wx:if="{{item.isCreator}}" class="action-btn btn-share" open-type="share" data-id="{{item.id}}" data-name="{{item.name}}">分享</button>
+          <button wx:if="{{item.canManageMeals}}" class="action-btn btn-share" open-type="share" data-id="{{item.id}}" data-name="{{item.name}}">分享</button>
         </block>
-        <!-- 已收单状态：显示查看、恢复点餐按钮 -->
+        <!-- 已收单状态：主人/管理员可恢复点餐 -->
         <block wx:else>
           <button class="action-btn btn-view" bindtap="viewMeal" data-id="{{item.id}}">查看</button>
-          <button wx:if="{{item.isCreator}}" class="action-btn btn-reopen" bindtap="reopenMeal" data-id="{{item.id}}">恢复点餐</button>
+          <button wx:if="{{item.canManageMeals}}" class="action-btn btn-reopen" bindtap="reopenMeal" data-id="{{item.id}}">恢复点餐</button>
         </block>
       </view>
     </view>

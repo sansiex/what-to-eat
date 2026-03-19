@@ -45,6 +45,10 @@ Page({
       const result = await API.meal.list(null, kitchenId)
       const meals = result.data.list || []
 
+      // 主人或管理员可管理点餐（编辑、收单、分享、恢复）
+      const role = currentKitchen && currentKitchen.role
+      const canManageMeals = role === 'owner' || role === 'admin'
+
       // 格式化时间和状态
       const mealsWithFormattedTime = meals.map(meal => ({
         ...meal,
@@ -52,7 +56,9 @@ Page({
         // 将数字状态转换为字符串状态
         status: meal.status === 1 ? 'ordering' : 'closed',
         // 兼容旧接口：未返回 isCreator 时默认视为自己发起
-        isCreator: typeof meal.isCreator === 'boolean' ? meal.isCreator : true
+        isCreator: typeof meal.isCreator === 'boolean' ? meal.isCreator : true,
+        // 主人或管理员可管理任意点餐
+        canManageMeals
       }))
 
       // 排序：点餐中排在最前面，每个状态内部按开始时间降序排列
@@ -251,7 +257,7 @@ Page({
   },
 
   async preGenerateShareTokens(meals) {
-    const myActiveMeals = meals.filter(m => m.isCreator && m.status === 'ordering')
+    const myActiveMeals = meals.filter(m => m.canManageMeals && m.status === 'ordering')
     const tokenMap = this.data.shareTokenMap || {}
     for (var i = 0; i < myActiveMeals.length; i++) {
       var meal = myActiveMeals[i]

@@ -336,8 +336,15 @@ async function listMeals(data, context) {
   let targetKitchenId = kitchenId;
   if (!targetKitchenId) {
     targetKitchenId = await getOrCreateDefaultKitchen(userId);
+  } else {
+    // 校验用户对该厨房的访问权限
+    const role = await checkKitchenMembership(targetKitchenId, userId);
+    if (!role) {
+      return error('无权限访问该厨房');
+    }
   }
   
+  // 只返回当前厨房的 meal，不混入用户在其他厨房下过单的 meal
   let sql = `
     SELECT m.id, m.name, m.status, m.created_at, m.closed_at,
       m.user_id as creator_user_id,
@@ -348,15 +355,9 @@ async function listMeals(data, context) {
     LEFT JOIN wte_users u ON m.user_id = u.id
     LEFT JOIN wte_meal_dishes md ON m.id = md.meal_id AND md.status = 1
     LEFT JOIN wte_orders o ON m.id = o.meal_id AND o.status = 1
-    WHERE (
-      m.kitchen_id = ?
-      OR EXISTS (
-        SELECT 1 FROM wte_orders o2
-        WHERE o2.meal_id = m.id AND o2.user_id = ? AND o2.status = 1
-      )
-    )
+    WHERE m.kitchen_id = ?
   `;
-  const params = [targetKitchenId, userId];
+  const params = [targetKitchenId];
   
   if (status !== undefined && status !== null) {
     sql += ' AND m.status = ?';
@@ -376,15 +377,9 @@ async function listMeals(data, context) {
   let countSql = `
     SELECT COUNT(*) as total
     FROM wte_meals m
-    WHERE (
-      m.kitchen_id = ?
-      OR EXISTS (
-        SELECT 1 FROM wte_orders o2
-        WHERE o2.meal_id = m.id AND o2.user_id = ? AND o2.status = 1
-      )
-    )
+    WHERE m.kitchen_id = ?
   `;
-  const countParams = [targetKitchenId, userId];
+  const countParams = [targetKitchenId];
   
   if (status !== undefined && status !== null) {
     countSql += ' AND m.status = ?';
