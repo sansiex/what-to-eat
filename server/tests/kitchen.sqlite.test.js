@@ -297,6 +297,40 @@ describe('厨房管理云函数测试', () => {
     });
   });
 
+  describe('getKitchen', () => {
+    it('主人应能 get 自己的厨房', async () => {
+      const kitchen = await kitchenModule.main({ action: 'create', data: { name: '主人厨房' } }, {});
+      const result = await kitchenModule.main(
+        { action: 'get', data: { id: kitchen.data.id } }, {}
+      );
+      expect(result.success).toBe(true);
+      expect(result.data.name).toBe('主人厨房');
+    });
+
+    it('管理员应能 get 所加入的厨房（不因非主人而 404）', async () => {
+      const kitchen = await kitchenModule.main({ action: 'create', data: { name: '用户A的厨房' } }, {});
+      mockDb.prepare(
+        "INSERT INTO wte_kitchen_members (kitchen_id, user_id, role, status) VALUES (?, ?, 'admin', 1)"
+      ).run(kitchen.data.id, TEST_USER_ID_2);
+      mockGetUserId.mockReturnValue(TEST_USER_ID_2);
+      const result = await kitchenModule.main(
+        { action: 'get', data: { id: kitchen.data.id } }, {}
+      );
+      expect(result.success).toBe(true);
+      expect(result.data.name).toBe('用户A的厨房');
+    });
+
+    it('非成员不应能 get 他人厨房', async () => {
+      const kitchen = await kitchenModule.main({ action: 'create', data: { name: '私密厨房' } }, {});
+      mockGetUserId.mockReturnValue(TEST_USER_ID_2);
+      const result = await kitchenModule.main(
+        { action: 'get', data: { id: kitchen.data.id } }, {}
+      );
+      expect(result.success).toBe(false);
+      expect(result.message).toBe('厨房不存在');
+    });
+  });
+
   describe('listMembers', () => {
     it('owner 应该能查看成员列表', async () => {
       const kitchen = await kitchenModule.main({ action: 'create', data: { name: '测试厨房' } }, {});
@@ -314,7 +348,22 @@ describe('厨房管理云函数测试', () => {
       expect(result.data.list[0].nickname).toBe('测试用户B');
     });
 
-    it('非 owner 不能查看成员列表', async () => {
+    it('管理员应能查看成员列表', async () => {
+      const kitchen = await kitchenModule.main({ action: 'create', data: { name: '测试厨房' } }, {});
+      mockDb.prepare(
+        "INSERT INTO wte_kitchen_members (kitchen_id, user_id, role, status, invited_by) VALUES (?, ?, 'admin', 1, ?)"
+      ).run(kitchen.data.id, TEST_USER_ID_2, TEST_USER_ID);
+      mockGetUserId.mockReturnValue(TEST_USER_ID_2);
+
+      const result = await kitchenModule.main(
+        { action: 'listMembers', data: { kitchenId: kitchen.data.id } }, {}
+      );
+      expect(result.success).toBe(true);
+      expect(result.data.list.length).toBe(1);
+      expect(result.data.list[0].nickname).toBe('测试用户B');
+    });
+
+    it('非成员不能查看成员列表', async () => {
       const kitchen = await kitchenModule.main({ action: 'create', data: { name: '测试厨房' } }, {});
       mockGetUserId.mockReturnValue(TEST_USER_ID_2);
 
@@ -322,6 +371,7 @@ describe('厨房管理云函数测试', () => {
         { action: 'listMembers', data: { kitchenId: kitchen.data.id } }, {}
       );
       expect(result.success).toBe(false);
+      expect(result.message).toBe('无权查看该厨房成员列表');
     });
   });
 

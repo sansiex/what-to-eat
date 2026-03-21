@@ -1,7 +1,5 @@
 <!-- pages/menu-list/menu-list.wxml -->
 <view class="container">
-  <kitchen-switcher id="kitchenSwitcher" bind:kitchenchange="onKitchenChange" />
-
   <!-- 菜单列表 -->
   <view class="menu-list">
     <view class="menu-card create-menu-card" bindtap="createMenu">

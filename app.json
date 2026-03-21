@@ -38,6 +38,12 @@
         "text": "点餐",
         "iconPath": "images/tab-meal.png",
         "selectedIconPath": "images/tab-meal-active.png"
+      },
+      {
+        "pagePath": "pages/kitchen-manage/kitchen-manage",
+        "text": "厨房",
+        "iconPath": "images/tab-kitchen.png",
+        "selectedIconPath": "images/tab-kitchen-active.png"
       }
     ],
     "color": "#999",

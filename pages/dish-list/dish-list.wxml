@@ -1,6 +1,5 @@
 <!-- pages/dish-list/dish-list.wxml -->
 <view class="container">
-  <kitchen-switcher id="kitchenSwitcher" bind:kitchenchange="onKitchenChange" />
 
   <!-- 菜品总数 -->
   <view wx:if="{{dishes.length > 0}}" class="dish-count-bar">

@@ -14,10 +14,6 @@ Page({
     this.loadMenus()
   },
 
-  onKitchenChange(e) {
-    this.loadMenus()
-  },
-
   // 加载菜单列表
   async loadMenus() {
     try {

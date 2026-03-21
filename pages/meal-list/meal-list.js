@@ -14,10 +14,6 @@ Page({
     this.loadMeals()
   },
 
-  onKitchenChange(e) {
-    this.loadMeals()
-  },
-
   // 格式化时间为北京时间
   formatBeijingTime(isoString) {
     if (!isoString) return ''

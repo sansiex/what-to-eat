@@ -1,5 +1,5 @@
 <!-- components/kitchen-switcher/kitchen-switcher.wxml -->
-<view class="kitchen-bar" bindtap="togglePanel">
+<view wx:if="{{showBar}}" class="kitchen-bar" bindtap="togglePanel">
   <view class="kitchen-bar__left">
     <text class="kitchen-bar__name">{{currentKitchen.name || '加载中...'}}</text>
     <text class="kitchen-bar__role">{{currentKitchen.role === 'owner' ? '主人' : '管理员'}}</text>
@@ -39,11 +39,5 @@
         </text>
       </view>
     </scroll-view>
-
-    <view wx:if="{{currentKitchen.role === 'admin'}}" class="panel__footer">
-      <view class="panel__leave" bindtap="leaveCurrentKitchen">
-        退出「{{currentKitchen.name}}」
-      </view>
-    </view>
   </view>
 </view>

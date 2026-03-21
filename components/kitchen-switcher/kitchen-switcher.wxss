@@ -160,15 +160,3 @@
   background: #C8E6C9;
   color: #2E7D32;
 }
-
-.panel__footer {
-  padding: 16rpx 24rpx;
-  border-top: 1rpx solid #C8E6C9;
-}
-
-.panel__leave {
-  font-size: 26rpx;
-  color: #E53935;
-  text-align: center;
-  padding: 12rpx;
-}

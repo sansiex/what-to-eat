@@ -25,10 +25,6 @@ Page({
     this.loadDishes()
   },
 
-  onKitchenChange(e) {
-    this.loadDishes()
-  },
-
   // 搜索菜品
   onSearch(e) {
     this.setData({ keyword: e.detail.value }, () => {

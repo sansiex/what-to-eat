@@ -2,6 +2,14 @@
 const { API } = require('../../utils/cloud-api.js')
 
 Component({
+  properties: {
+    /** 为 false 时隐藏顶部条，仅保留下拉面板，由页面调用 openPanel() 打开 */
+    showBar: {
+      type: Boolean,
+      value: true
+    }
+  },
+
   data: {
     showPanel: false,
     kitchenList: [],
@@ -89,6 +97,17 @@ Component({
       this.setData({ showPanel: !this.data.showPanel })
     },
 
+    /** 仅面板模式：加载列表并展开（与顶部「选择厨房」下拉一致） */
+    openPanel() {
+      this.loadKitchens()
+        .then(() => {
+          this.setData({ showPanel: true })
+        })
+        .catch(() => {
+          this.setData({ showPanel: true })
+        })
+    },
+
     selectKitchen(e) {
       const kitchen = e.currentTarget.dataset.kitchen
       if (kitchen.id === this.data.currentKitchen.id) {
@@ -102,34 +121,8 @@ Component({
     goManage() {
       const { currentKitchen } = this.data
       if (currentKitchen.role !== 'owner') return
-      wx.navigateTo({
-        url: `/pages/kitchen-manage/kitchen-manage?kitchenId=${currentKitchen.id}`
-      })
-    },
-
-    leaveCurrentKitchen() {
-      const { currentKitchen, kitchenList } = this.data
-      wx.showModal({
-        title: '确认退出',
-        content: `确定退出「${currentKitchen.name}」的厨房？退出后将无法管理该厨房的菜品和菜单。`,
-        success: async (res) => {
-          if (!res.confirm) return
-          try {
-            await API.kitchen.leaveKitchen(currentKitchen.id)
-            wx.showToast({ title: '已退出', icon: 'success' })
-
-            // Remove from list and switch to first owned kitchen
-            const newList = kitchenList.filter(k => k.id !== currentKitchen.id)
-            this.setData({ kitchenList: newList, showPanel: false })
-
-            const ownedKitchen = newList.find(k => k.role === 'owner') || newList[0]
-            if (ownedKitchen) {
-              this.setCurrentKitchen(ownedKitchen, true)
-            }
-          } catch (err) {
-            console.error('退出厨房失败:', err)
-          }
-        }
+      wx.switchTab({
+        url: '/pages/kitchen-manage/kitchen-manage'
       })
     },
 

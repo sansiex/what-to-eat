@@ -1,6 +1,4 @@
 {
-  "usingComponents": {
-    "kitchen-switcher": "/components/kitchen-switcher/kitchen-switcher"
-  },
+  "usingComponents": {},
   "navigationBarTitleText": "点餐列表"
 }

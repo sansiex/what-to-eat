@@ -227,10 +227,22 @@ async function getKitchen(data, context) {
 
   const userId = await getUserId(data, context);
 
-  const kitchen = await query(
+  // 主人：直接拥有厨房
+  let kitchen = await query(
     'SELECT id, name, is_default, created_at FROM wte_kitchens WHERE id = ? AND user_id = ? AND status = 1',
     [id, userId]
   );
+
+  // 管理员等成员：通过成员表访问（与 listAccessible 一致）
+  if (kitchen.length === 0) {
+    kitchen = await query(
+      `SELECT k.id, k.name, k.is_default, k.created_at
+       FROM wte_kitchens k
+       INNER JOIN wte_kitchen_members km ON km.kitchen_id = k.id AND km.status = 1
+       WHERE k.id = ? AND k.status = 1 AND km.user_id = ?`,
+      [id, userId]
+    );
+  }
 
   if (kitchen.length === 0) return notFound('厨房不存在');
 
@@ -375,7 +387,7 @@ async function listAccessibleKitchens(data, context) {
 }
 
 /**
- * 获取厨房成员列表（仅 owner 可调用）
+ * 获取厨房成员列表（主人与管理员均可查看；邀请/移除仍仅主人可操作）
  */
 async function listMembers(data, context) {
   const { kitchenId } = data || {};
@@ -383,12 +395,17 @@ async function listMembers(data, context) {
 
   const userId = await getUserId(data, context);
 
-  // Verify caller is the owner
   const ownership = await query(
     'SELECT id FROM wte_kitchens WHERE id = ? AND user_id = ? AND status = 1',
     [kitchenId, userId]
   );
-  if (ownership.length === 0) return error('只有厨房主人可以查看成员列表');
+  const membership = await query(
+    'SELECT id FROM wte_kitchen_members WHERE kitchen_id = ? AND user_id = ? AND status = 1',
+    [kitchenId, userId]
+  );
+  if (ownership.length === 0 && membership.length === 0) {
+    return error('无权查看该厨房成员列表');
+  }
 
   const members = await query(
     `SELECT km.id, km.user_id, km.role, km.created_at,

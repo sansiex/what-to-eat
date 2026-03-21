@@ -1,6 +1,5 @@
 <!-- pages/meal-list/meal-list.wxml -->
 <view class="container">
-  <kitchen-switcher id="kitchenSwitcher" bind:kitchenchange="onKitchenChange" />
 
   <!-- 空状态 -->
   <view wx:if="{{meals.length === 0}}" class="empty-state">

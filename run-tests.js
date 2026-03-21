@@ -172,8 +172,8 @@ describe('App配置测试 - Tab页重构', () => {
     expect(appConfig.tabBar.list).toBeDefined();
   });
 
-  test('验证tabBar包含3个tab项', () => {
-    expect(appConfig.tabBar.list).toHaveLength(3);
+  test('验证tabBar包含4个tab项', () => {
+    expect(appConfig.tabBar.list).toHaveLength(4);
   });
 
   test('验证第一个tab是【菜单】', () => {
@@ -189,6 +189,11 @@ describe('App配置测试 - Tab页重构', () => {
   test('验证第三个tab是【点餐】', () => {
     expect(appConfig.tabBar.list[2].text).toBe('点餐');
     expect(appConfig.tabBar.list[2].pagePath).toBe('pages/meal-list/meal-list');
+  });
+
+  test('验证第四个tab是【厨房】', () => {
+    expect(appConfig.tabBar.list[3].text).toBe('厨房');
+    expect(appConfig.tabBar.list[3].pagePath).toBe('pages/kitchen-manage/kitchen-manage');
   });
 
   test('验证pages配置包含所有必要页面', () => {

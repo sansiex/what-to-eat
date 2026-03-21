@@ -6,54 +6,129 @@ Page({
     kitchenId: null,
     kitchenName: '',
     originalName: '',
+    /** 是否为当前厨房主人（非主人不可改名称、不可邀请/移除管理员） */
+    isOwner: false,
+    /** 与选择厨房面板一致：主人 / 管理员 */
+    roleLabel: '',
+    /** 管理员时展示：「主人昵称 的厨房」，与 panel__owner 一致 */
+    kitchenMetaSubtitle: '',
     members: [],
     inviteToken: ''
   },
 
-  onLoad(options) {
-    const kitchenId = parseInt(options.kitchenId)
-    if (!kitchenId) {
-      wx.showToast({ title: '参数错误', icon: 'none' })
+  onShow() {
+    this.bootstrapPage()
+  },
+
+  bootstrapPage() {
+    const current = getApp().globalData.currentKitchen
+    if (!current || !current.id) {
+      wx.showToast({ title: '暂无厨房，请稍后重试', icon: 'none' })
       return
     }
 
-    // Immediately populate from globalData to avoid blank input
-    const currentKitchen = getApp().globalData.currentKitchen
-    const initialName = (currentKitchen && currentKitchen.id === kitchenId)
-      ? currentKitchen.name
-      : ''
+    const isOwner = current.role === 'owner'
+    const kitchenId = current.id
+    const changedKitchen = this.data.kitchenId !== kitchenId
+
+    const roleLabel = current.role === 'admin' ? '管理员' : '主人'
+    let kitchenMetaSubtitle = ''
+    if (current.role === 'admin') {
+      const on = current.ownerName
+      kitchenMetaSubtitle = on ? `${on} 的厨房` : ''
+    }
 
     this.setData({
       kitchenId,
-      kitchenName: initialName,
-      originalName: initialName
+      isOwner,
+      roleLabel,
+      kitchenMetaSubtitle
     })
+
+    if (current.role === 'admin' && !current.ownerName) {
+      this.ensureAdminOwnerSubtitle()
+    }
+
+    if (changedKitchen || !this.data.originalName) {
+      this.setData({
+        kitchenName: current.name || '',
+        originalName: current.name || ''
+      })
+    }
 
     this.loadKitchenInfo()
     this.loadMembers()
-    this.preGenerateInviteToken()
+    if (isOwner) {
+      this.preGenerateInviteToken()
+    }
+  },
+
+  /** 管理员且 globalData 缺少 ownerName 时，从 listAccessible 补全副标题 */
+  async ensureAdminOwnerSubtitle() {
+    const { kitchenId } = this.data
+    const app = getApp()
+    const current = app.globalData.currentKitchen
+    if (!kitchenId || !current || current.role !== 'admin') return
+    if (current.ownerName) {
+      this.setData({
+        kitchenMetaSubtitle: `${current.ownerName} 的厨房`
+      })
+      return
+    }
+    try {
+      const result = await API.kitchen.listAccessible()
+      const list = (result.data && result.data.list) || []
+      const found = list.find(k => k.id === kitchenId)
+      if (found && found.ownerName) {
+        app.globalData.currentKitchen = { ...current, ownerName: found.ownerName }
+        wx.setStorageSync('currentKitchen', app.globalData.currentKitchen)
+        this.setData({
+          kitchenMetaSubtitle: `${found.ownerName} 的厨房`
+        })
+      }
+    } catch (e) {
+      console.warn('补全厨房主人昵称失败:', e)
+    }
+  },
+
+  openKitchenPicker() {
+    const comp = this.selectComponent('#kitchenSwitcher')
+    if (comp && typeof comp.openPanel === 'function') {
+      comp.openPanel()
+    }
+  },
+
+  onKitchenChange() {
+    this.bootstrapPage()
   },
 
   async loadKitchenInfo() {
+    const { kitchenId } = this.data
+    const current = getApp().globalData.currentKitchen
     try {
-      const result = await API.kitchen.get(this.data.kitchenId)
-      if (result.success) {
+      const result = await API.kitchen.get(kitchenId)
+      if (result.success && result.data) {
         this.setData({
           kitchenName: result.data.name,
           originalName: result.data.name
         })
+        return
       }
     } catch (err) {
-      console.error('加载厨房信息失败:', err)
+      console.warn('加载厨房信息（可能非主人无 get 权限）:', err)
+    }
+    if (current && current.id === kitchenId) {
+      this.setData({
+        kitchenName: current.name,
+        originalName: current.name
+      })
     }
   },
 
-  // 格式化时间为北京时间 (UTC+8)
   formatBeijingTime(isoString) {
     if (!isoString) return ''
     try {
       const date = new Date(isoString)
-      // 转换为北京时间：UTC 时间 + 8 小时
       const beijingTime = new Date(date.getTime() + 8 * 60 * 60 * 1000)
       const year = beijingTime.getUTCFullYear()
       const month = String(beijingTime.getUTCMonth() + 1).padStart(2, '0')
@@ -93,11 +168,13 @@ Page({
   },
 
   onNameInput(e) {
+    if (!this.data.isOwner) return
     this.setData({ kitchenName: e.detail.value })
   },
 
   async saveName() {
-    const { kitchenId, kitchenName } = this.data
+    const { kitchenId, kitchenName, isOwner } = this.data
+    if (!isOwner) return
     if (!kitchenName.trim()) {
       wx.showToast({ title: '名称不能为空', icon: 'none' })
       return
@@ -105,6 +182,11 @@ Page({
     try {
       await API.kitchen.update(kitchenId, kitchenName.trim())
       this.setData({ originalName: kitchenName.trim() })
+      const app = getApp()
+      if (app.globalData.currentKitchen && app.globalData.currentKitchen.id === kitchenId) {
+        app.globalData.currentKitchen.name = kitchenName.trim()
+        wx.setStorageSync('currentKitchen', app.globalData.currentKitchen)
+      }
       wx.showToast({ title: '已保存', icon: 'success' })
     } catch (err) {
       console.error('保存名称失败:', err)
@@ -112,6 +194,7 @@ Page({
   },
 
   removeMember(e) {
+    if (!this.data.isOwner) return
     const memberId = e.currentTarget.dataset.id
     const memberName = e.currentTarget.dataset.name || '该成员'
 
@@ -132,7 +215,13 @@ Page({
   },
 
   onShareAppMessage() {
-    const { kitchenId, kitchenName, inviteToken } = this.data
+    const { kitchenId, kitchenName, inviteToken, isOwner } = this.data
+    if (!isOwner) {
+      return {
+        title: '今天吃什么？一起来点餐吧！',
+        path: '/pages/meal-list/meal-list'
+      }
+    }
     const userInfo = wx.getStorageSync('userInfo') || {}
     const ownerName = userInfo.nickName || '你的好友'
 

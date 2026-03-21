@@ -1,4 +1,6 @@
 {
   "navigationBarTitleText": "厨房管理",
-  "usingComponents": {}
+  "usingComponents": {
+    "kitchen-switcher": "/components/kitchen-switcher/kitchen-switcher"
+  }
 }

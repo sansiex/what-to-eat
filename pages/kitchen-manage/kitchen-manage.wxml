@@ -1,29 +1,55 @@
 <!-- pages/kitchen-manage/kitchen-manage.wxml -->
 <view class="container">
-  <!-- 厨房名称 -->
+  <!-- 与「选择厨房」下拉一致，由页面按钮打开 -->
+  <kitchen-switcher
+    id="kitchenSwitcher"
+    showBar="{{false}}"
+    bind:kitchenchange="onKitchenChange"
+  />
+
+  <!-- 厨房名称：标题行右侧「切换厨房」；输入与保存单独一行 -->
   <view class="section">
-    <text class="section-title">厨房名称</text>
+    <view class="section-title-row section-title-row--kitchen-name">
+      <text class="section-title section-title--inline">厨房名称</text>
+      <view class="switch-kitchen-link" bindtap="openKitchenPicker">切换厨房</view>
+    </view>
     <view class="name-row">
       <input
-        class="name-input"
+        class="name-input {{!isOwner ? 'name-input--readonly' : ''}}"
         value="{{kitchenName}}"
         bindinput="onNameInput"
         placeholder="输入厨房名称"
+        disabled="{{!isOwner}}"
       />
       <button
-        wx:if="{{kitchenName !== originalName}}"
+        wx:if="{{isOwner && kitchenName !== originalName}}"
         class="btn-save"
         bindtap="saveName"
       >保存</button>
+    </view>
+    <!-- 与选择厨房列表项一致：管理员左侧副标题「XX 的厨房」，右侧角色角标 -->
+    <view class="kitchen-meta-row">
+      <view class="kitchen-meta-main">
+        <text wx:if="{{kitchenMetaSubtitle}}" class="kitchen-meta-subtitle">{{kitchenMetaSubtitle}}</text>
+      </view>
+      <text class="kitchen-meta-badge {{isOwner ? 'kitchen-meta-badge--owner' : 'kitchen-meta-badge--admin'}}">{{roleLabel}}</text>
     </view>
   </view>
 
   <!-- 管理员列表 -->
   <view class="section">
-    <text class="section-title">管理员（{{members.length}}人）</text>
+    <view class="section-title-row">
+      <text class="section-title section-title--inline">管理员（{{members.length}}人）</text>
+      <button
+        wx:if="{{isOwner}}"
+        class="btn-invite-inline"
+        open-type="share"
+      >+ 邀请管理员</button>
+    </view>
 
     <view wx:if="{{members.length === 0}}" class="empty-state">
-      <text>暂无管理员，点击下方按钮邀请</text>
+      <text wx:if="{{isOwner}}">暂无管理员，点击右上方邀请</text>
+      <text wx:else>暂无管理员</text>
     </view>
 
     <view wx:else class="member-list">
@@ -41,13 +67,16 @@
           <text class="member-name">{{item.nickname || '未知用户'}}</text>
           <text class="member-time">加入时间：{{item.joinedAt}}</text>
         </view>
-        <button class="btn-remove" bindtap="removeMember" data-id="{{item.id}}" data-name="{{item.nickname}}">
+        <button
+          wx:if="{{isOwner}}"
+          class="btn-remove"
+          bindtap="removeMember"
+          data-id="{{item.id}}"
+          data-name="{{item.nickname}}"
+        >
           移除
         </button>
       </view>
     </view>
   </view>
-
-  <!-- 邀请按钮 -->
-  <button class="btn-invite" open-type="share">+ 邀请管理员</button>
 </view>
