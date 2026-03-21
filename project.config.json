@@ -2,6 +2,7 @@
   "description": "吃什么小程序",
   "packOptions": {
     "ignore": [
+      { "type": "folder", "value": ".git" },
       { "type": "folder", "value": "server" },
       { "type": "folder", "value": "scripts" },
       { "type": "folder", "value": "tests" },
