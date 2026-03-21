@@ -195,12 +195,22 @@ describe('菜单编辑页面测试', () => {
     test('验证WXML包含必要元素', () => {
       const fs = require('fs');
       const wxml = fs.readFileSync('pages/menu-edit/menu-edit.wxml', 'utf-8');
-      
+
       expect(wxml).toContain('菜单名称');
       expect(wxml).toContain('选择菜品');
       expect(wxml).toContain('新增菜品');
       expect(wxml).toContain('checkbox');
       expect(wxml).toContain('搜索菜品');
+      expect(wxml).toContain('dish-tabs');
+      expect(wxml).toContain('switchDishTab');
+      expect(wxml).toContain('在菜单中');
+      expect(wxml).toContain('不在菜单中');
+      expect(wxml).toContain('dishTab === \'in\'');
+      expect(wxml).toContain('dishTab === \'out\'');
+      expect(wxml).toContain('toggleSelectAllInMenu');
+      expect(wxml).toContain('toggleSelectAllNotInMenu');
+      expect(wxml).toContain('inMenuAllSelected');
+      expect(wxml).toContain('notInMenuAllSelected');
     });
 
     test('验证JS包含必要方法', () => {
@@ -209,9 +219,13 @@ describe('菜单编辑页面测试', () => {
       
       expect(js).toContain('loadAllDishes');
       expect(js).toContain('toggleDishSelection');
+      expect(js).toContain('toggleSelectAllInMenu');
+      expect(js).toContain('toggleSelectAllNotInMenu');
       expect(js).toContain('showAddDishDialog');
       expect(js).toContain('confirmAddDish');
       expect(js).toContain('saveMenu');
+      expect(js).toContain('switchDishTab');
+      expect(js).toContain("dishTab: 'in'");
     });
   });
 });

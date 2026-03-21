@@ -345,12 +345,14 @@ async function listMeals(data, context) {
   }
   
   // 只返回当前厨房的 meal，不混入用户在其他厨房下过单的 meal
+  // ordered_dish_count: 至少有一个人点过的菜品数量
   let sql = `
     SELECT m.id, m.name, m.status, m.created_at, m.closed_at,
       m.user_id as creator_user_id,
       u.nickname as creator_name,
       COUNT(DISTINCT md.dish_id) as dish_count,
-      COUNT(DISTINCT o.user_id) as orderer_count
+      COUNT(DISTINCT o.user_id) as orderer_count,
+      (SELECT COUNT(DISTINCT o2.dish_id) FROM wte_orders o2 WHERE o2.meal_id = m.id AND o2.status = 1) as ordered_dish_count
     FROM wte_meals m
     LEFT JOIN wte_users u ON m.user_id = u.id
     LEFT JOIN wte_meal_dishes md ON m.id = md.meal_id AND md.status = 1
@@ -399,6 +401,7 @@ async function listMeals(data, context) {
       creatorName: meal.creator_name,
       isCreator: meal.creator_user_id === userId,
       dishCount: meal.dish_count,
+      orderedDishCount: parseInt(meal.ordered_dish_count) || 0,
       ordererCount: meal.orderer_count
     })),
     total: countResult[0].total,
@@ -424,7 +427,11 @@ async function getMeal(data, context) {
   
   // 获取点餐基本信息（不限制用户，允许查看他人创建的点餐）
   const meal = await query(
-    'SELECT id, user_id, name, status, created_at, closed_at FROM wte_meals WHERE id = ?',
+    `SELECT m.id, m.user_id, m.kitchen_id, m.name, m.status, m.created_at, m.closed_at,
+            u.nickname as creator_name
+     FROM wte_meals m
+     LEFT JOIN wte_users u ON m.user_id = u.id
+     WHERE m.id = ?`,
     [id]
   );
   
@@ -470,6 +477,7 @@ async function getMeal(data, context) {
     name: meal[0].name,
     status: meal[0].status,
     isCreator: meal[0].user_id === userId,
+    creatorName: meal[0].creator_name,
     isKitchenMember: !!kitchenRole,
     kitchenRole: kitchenRole,
     createdAt: meal[0].created_at,

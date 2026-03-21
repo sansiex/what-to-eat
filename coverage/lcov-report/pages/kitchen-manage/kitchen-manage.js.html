@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/52</span>
+                <span class='fraction'>0/66</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/26</span>
+                <span class='fraction'>0/28</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/9</span>
+                <span class='fraction'>0/11</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/51</span>
+                <span class='fraction'>0/63</span>
             </div>
         
             
@@ -190,7 +190,29 @@
 <a name='L125'></a><a href='#L125'>125</a>
 <a name='L126'></a><a href='#L126'>126</a>
 <a name='L127'></a><a href='#L127'>127</a>
-<a name='L128'></a><a href='#L128'>128</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L128'></a><a href='#L128'>128</a>
+<a name='L129'></a><a href='#L129'>129</a>
+<a name='L130'></a><a href='#L130'>130</a>
+<a name='L131'></a><a href='#L131'>131</a>
+<a name='L132'></a><a href='#L132'>132</a>
+<a name='L133'></a><a href='#L133'>133</a>
+<a name='L134'></a><a href='#L134'>134</a>
+<a name='L135'></a><a href='#L135'>135</a>
+<a name='L136'></a><a href='#L136'>136</a>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a>
+<a name='L140'></a><a href='#L140'>140</a>
+<a name='L141'></a><a href='#L141'>141</a>
+<a name='L142'></a><a href='#L142'>142</a>
+<a name='L143'></a><a href='#L143'>143</a>
+<a name='L144'></a><a href='#L144'>144</a>
+<a name='L145'></a><a href='#L145'>145</a>
+<a name='L146'></a><a href='#L146'>146</a>
+<a name='L147'></a><a href='#L147'>147</a>
+<a name='L148'></a><a href='#L148'>148</a>
+<a name='L149'></a><a href='#L149'>149</a>
+<a name='L150'></a><a href='#L150'>150</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -241,9 +263,31 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -367,11 +411,33 @@ const { API } = <span class="cstat-no" title="statement not covered" >require('.
     }
   },
 &nbsp;
+  // 格式化时间为北京时间 (UTC+8)
+<span class="fstat-no" title="function not covered" >  fo</span>rmatBeijingTime(isoString) {
+<span class="cstat-no" title="statement not covered" >    if (!isoString) <span class="cstat-no" title="statement not covered" >return ''</span></span>
+<span class="cstat-no" title="statement not covered" >    try {</span>
+      const date = <span class="cstat-no" title="statement not covered" >new Date(isoString)</span>
+      // 转换为北京时间：UTC 时间 + 8 小时
+      const beijingTime = <span class="cstat-no" title="statement not covered" >new Date(date.getTime() + 8 * 60 * 60 * 1000)</span>
+      const year = <span class="cstat-no" title="statement not covered" >beijingTime.getUTCFullYear()</span>
+      const month = <span class="cstat-no" title="statement not covered" >String(beijingTime.getUTCMonth() + 1).padStart(2, '0')</span>
+      const day = <span class="cstat-no" title="statement not covered" >String(beijingTime.getUTCDate()).padStart(2, '0')</span>
+      const hours = <span class="cstat-no" title="statement not covered" >String(beijingTime.getUTCHours()).padStart(2, '0')</span>
+      const minutes = <span class="cstat-no" title="statement not covered" >String(beijingTime.getUTCMinutes()).padStart(2, '0')</span>
+<span class="cstat-no" title="statement not covered" >      return `${year}-${month}-${day} ${hours}:${minutes}`</span>
+    } catch (e) {
+<span class="cstat-no" title="statement not covered" >      return ''</span>
+    }
+  },
+&nbsp;
 <span class="fstat-no" title="function not covered" >  as</span>ync loadMembers() {
 <span class="cstat-no" title="statement not covered" >    try {</span>
       const result = <span class="cstat-no" title="statement not covered" >await API.kitchen.listMembers(this.data.kitchenId)</span>
 <span class="cstat-no" title="statement not covered" >      if (result.success) {</span>
-<span class="cstat-no" title="statement not covered" >        this.setData({ members: result.data.list || [] })</span>
+        const list = <span class="cstat-no" title="statement not covered" >(result.data.list || []).map(<span class="fstat-no" title="function not covered" >m </span>=&gt; (<span class="cstat-no" title="statement not covered" >{</span></span>
+          ...m,
+          joinedAt: this.formatBeijingTime(m.joinedAt)
+        }))
+<span class="cstat-no" title="statement not covered" >        this.setData({ members: list })</span>
       }
     } catch (err) {
 <span class="cstat-no" title="statement not covered" >      console.error('加载成员列表失败:', err)</span>
@@ -451,7 +517,7 @@ const { API } = <span class="cstat-no" title="statement not covered" >require('.
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-19T12:15:55.454Z
+                at 2026-03-21T08:03:10.665Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

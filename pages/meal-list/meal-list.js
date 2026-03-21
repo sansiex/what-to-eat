@@ -50,16 +50,21 @@ Page({
       const canManageMeals = role === 'owner' || role === 'admin'
 
       // 格式化时间和状态
-      const mealsWithFormattedTime = meals.map(meal => ({
-        ...meal,
-        formattedCreatedAt: this.formatBeijingTime(meal.createdAt),
-        // 将数字状态转换为字符串状态
-        status: meal.status === 1 ? 'ordering' : 'closed',
-        // 兼容旧接口：未返回 isCreator 时默认视为自己发起
-        isCreator: typeof meal.isCreator === 'boolean' ? meal.isCreator : true,
-        // 主人或管理员可管理任意点餐
-        canManageMeals
-      }))
+      const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+      const mealsWithFormattedTime = meals.map(meal => {
+        const beijingDate = new Date(new Date(meal.createdAt).getTime() + 8 * 60 * 60 * 1000)
+        const weekday = weekdays[beijingDate.getUTCDay()]
+        const formattedCreatedAt = this.formatBeijingTime(meal.createdAt)
+        const createdAtDisplay = formattedCreatedAt ? `${weekday} ${formattedCreatedAt}` : ''
+        return {
+          ...meal,
+          createdAtDisplay,
+          // 将数字状态转换为字符串状态
+          status: meal.status === 1 ? 'ordering' : 'closed',
+          isCreator: typeof meal.isCreator === 'boolean' ? meal.isCreator : true,
+          canManageMeals
+        }
+      })
 
       // 排序：点餐中排在最前面，每个状态内部按开始时间降序排列
       const sortedMeals = this.sortMeals(mealsWithFormattedTime)
@@ -133,7 +138,15 @@ Page({
     })
   },
 
-  // 进入点餐页面
+  // 进入点餐详情页
+  goMealDetail(e) {
+    const mealId = e.currentTarget.dataset.id
+    wx.navigateTo({
+      url: `/pages/meal-detail/meal-detail?mealId=${mealId}`
+    })
+  },
+
+  // 进入点餐页面（从详情页调用）
   async goOrder(e) {
     const mealId = e.currentTarget.dataset.id
     const meal = this.data.meals.find(m => m.id === mealId)

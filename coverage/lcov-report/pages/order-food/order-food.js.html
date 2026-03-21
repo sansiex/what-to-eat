@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/199</span>
+                <span class='fraction'>0/210</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/128</span>
+                <span class='fraction'>0/129</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/40</span>
+                <span class='fraction'>0/42</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/183</span>
+                <span class='fraction'>0/194</span>
             </div>
         
             
@@ -495,8 +495,24 @@
 <a name='L430'></a><a href='#L430'>430</a>
 <a name='L431'></a><a href='#L431'>431</a>
 <a name='L432'></a><a href='#L432'>432</a>
-<a name='L433'></a><a href='#L433'>433</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L433'></a><a href='#L433'>433</a>
+<a name='L434'></a><a href='#L434'>434</a>
+<a name='L435'></a><a href='#L435'>435</a>
+<a name='L436'></a><a href='#L436'>436</a>
+<a name='L437'></a><a href='#L437'>437</a>
+<a name='L438'></a><a href='#L438'>438</a>
+<a name='L439'></a><a href='#L439'>439</a>
+<a name='L440'></a><a href='#L440'>440</a>
+<a name='L441'></a><a href='#L441'>441</a>
+<a name='L442'></a><a href='#L442'>442</a>
+<a name='L443'></a><a href='#L443'>443</a>
+<a name='L444'></a><a href='#L444'>444</a>
+<a name='L445'></a><a href='#L445'>445</a>
+<a name='L446'></a><a href='#L446'>446</a>
+<a name='L447'></a><a href='#L447'>447</a>
+<a name='L448'></a><a href='#L448'>448</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -631,15 +647,29 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -929,6 +959,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// pages/order-food/order-food.js
 const { API } = <span class="cstat-no" title="statement not covered" >require('../../utils/cloud-api.js')</span>
+const { isDishPlaceholderUrl } = <span class="cstat-no" title="statement not covered" >require('../../utils/dish-preview.js')</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >Page({</span>
   data: {
@@ -1065,15 +1096,29 @@ const { API } = <span class="cstat-no" title="statement not covered" >require('.
 <span class="cstat-no" title="statement not covered" >        return</span>
       }
 &nbsp;
-      // 检查是否餐食发生变化，如果是则重置为默认选中所有
+      // 检查是否餐食发生变化
       const mealChanged = <span class="cstat-no" title="statement not covered" >!this.data.currentMeal || this.data.currentMeal.id !== currentMeal.id</span>
       let userSelectedDishes
 &nbsp;
 <span class="cstat-no" title="statement not covered" >      if (mealChanged) {</span>
-        // 如果餐食变化，则默认勾选所有菜品
-<span class="cstat-no" title="statement not covered" >        userSelectedDishes = currentMeal.dishes.map(<span class="fstat-no" title="function not covered" >di</span>sh =&gt; <span class="cstat-no" title="statement not covered" >dish.id)</span></span>
+        // 餐食变化时：若用户已下单过，按历史订单勾选；否则默认全不勾选
+<span class="cstat-no" title="statement not covered" >        try {</span>
+          const orderResult = <span class="cstat-no" title="statement not covered" >await API.order.getMyOrder(currentMeal.id)</span>
+          const myOrder = <span class="cstat-no" title="statement not covered" >orderResult.data</span>
+<span class="cstat-no" title="statement not covered" >          if (myOrder.hasOrdered &amp;&amp; myOrder.orders &amp;&amp; myOrder.orders.length &gt; 0) {</span>
+            const validDishIds = <span class="cstat-no" title="statement not covered" >new Set(currentMeal.dishes.map(<span class="fstat-no" title="function not covered" >d </span>=&gt; <span class="cstat-no" title="statement not covered" >d.id)</span>)</span>
+<span class="cstat-no" title="statement not covered" >            userSelectedDishes = myOrder.orders</span>
+              .map(<span class="fstat-no" title="function not covered" >o </span>=&gt; <span class="cstat-no" title="statement not covered" >o.dishId)</span>
+              .filter(<span class="fstat-no" title="function not covered" >id</span> =&gt; <span class="cstat-no" title="statement not covered" >validDishIds.has(id))</span>
+          } else {
+<span class="cstat-no" title="statement not covered" >            userSelectedDishes = []</span>
+          }
+        } catch (err) {
+<span class="cstat-no" title="statement not covered" >          console.error('获取用户订单失败，默认全不勾选:', err)</span>
+<span class="cstat-no" title="statement not covered" >          userSelectedDishes = []</span>
+        }
       } else {
-        // 如果餐食未变，则保持原有的选择状态
+        // 餐食未变，保持原有选择状态
 <span class="cstat-no" title="statement not covered" >        userSelectedDishes = this.data.userSelectedDishes</span>
       }
 &nbsp;
@@ -1326,10 +1371,10 @@ const { API } = <span class="cstat-no" title="statement not covered" >require('.
 &nbsp;
 <span class="fstat-no" title="function not covered" >  pr</span>eviewDishImage(e) {
     const url = <span class="cstat-no" title="statement not covered" >e.currentTarget.dataset.url</span>
-<span class="cstat-no" title="statement not covered" >    if (!url || url === '/images/dish-placeholder.png') <span class="cstat-no" title="statement not covered" >return</span></span>
+<span class="cstat-no" title="statement not covered" >    if (isDishPlaceholderUrl(url)) <span class="cstat-no" title="statement not covered" >return</span></span>
     const urls = <span class="cstat-no" title="statement not covered" >(this.data.filteredDishes || [])</span>
       .map(<span class="fstat-no" title="function not covered" >fu</span>nction(d) { <span class="cstat-no" title="statement not covered" >return d.displayImage || '' </span>})
-      .filter(<span class="fstat-no" title="function not covered" >fu</span>nction(u) { <span class="cstat-no" title="statement not covered" >return u &amp;&amp; u !== '/images/dish-placeholder.png' </span>})
+      .filter(<span class="fstat-no" title="function not covered" >fu</span>nction(u) { <span class="cstat-no" title="statement not covered" >return !isDishPlaceholderUrl(u) </span>})
 <span class="cstat-no" title="statement not covered" >    wx.previewImage({</span>
       current: url,
       urls: urls.length &gt; 0 ? urls : [url]
@@ -1366,7 +1411,7 @@ const { API } = <span class="cstat-no" title="statement not covered" >require('.
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-19T12:15:55.454Z
+                at 2026-03-21T08:03:10.665Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

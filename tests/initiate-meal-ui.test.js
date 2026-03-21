@@ -53,20 +53,39 @@ describe('发起点餐页面UI测试 - 餐名按钮高亮', () => {
       expect(selectedMealName).toBe('夜宵');
     });
 
-    test('测试WXML中按钮类名绑定逻辑', () => {
+    test('测试WXML中餐名输入与已选数量', () => {
       const fs = require('fs');
       const wxml = fs.readFileSync('pages/initiate-meal/initiate-meal.wxml', 'utf-8');
-      
-      // 检查是否有类名绑定
-      expect(wxml).toMatch(/class.*selectedMealName/);
+
+      expect(wxml).toContain('meal-name-input');
+      expect(wxml).toContain('value="{{selectedMealName}}"');
+      expect(wxml).toContain('selected-dish-count');
+      expect(wxml).toContain('selectedDishes.length');
     });
 
-    test('测试WXSS中样式定义', () => {
+    test('测试WXSS中餐名输入与已选数量样式', () => {
       const fs = require('fs');
       const wxss = fs.readFileSync('pages/initiate-meal/initiate-meal.wxss', 'utf-8');
-      
-      // 检查是否有高亮样式（使用渐变或其他高亮样式）
-      expect(wxss).toMatch(/meal-type-btn--active/i);
+
+      expect(wxss).toMatch(/\.meal-name-input/);
+      expect(wxss).toMatch(/\.selected-dish-count/);
+    });
+
+    test('测试WXSS中已选/未选菜品行样式', () => {
+      const fs = require('fs');
+      const wxss = fs.readFileSync('pages/initiate-meal/initiate-meal.wxss', 'utf-8');
+
+      expect(wxss).toMatch(/\.dish-select-row--selected/);
+      expect(wxss).toMatch(/\.dish-select-row--unselected/);
+    });
+
+    test('测试WXSS中底部固定栏与滚动区', () => {
+      const fs = require('fs');
+      const wxss = fs.readFileSync('pages/initiate-meal/initiate-meal.wxss', 'utf-8');
+
+      expect(wxss).toMatch(/\.page-initiate-meal/);
+      expect(wxss).toMatch(/\.initiate-meal-scroll/);
+      expect(wxss).toMatch(/\.initiate-meal-footer/);
     });
   });
 });

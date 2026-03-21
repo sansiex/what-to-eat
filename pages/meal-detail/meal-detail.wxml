@@ -1,0 +1,100 @@
+<!-- pages/meal-detail/meal-detail.wxml -->
+<view class="container" wx:if="{{meal}}">
+  <!-- 点餐信息 -->
+  <view class="meal-header">
+    <text class="meal-name">{{meal.name}}</text>
+    <view class="meal-header-right">
+      <image
+        wx:if="{{meal.isKitchenMember}}"
+        class="header-delete-icon"
+        src="/images/icon-delete.png"
+        mode="aspectFit"
+        bindtap="deleteMeal"
+      />
+      <view class="status-badge {{meal.status === 1 ? 'status-ordering' : 'status-closed'}}">
+        {{meal.statusText}}
+      </view>
+    </view>
+  </view>
+  <view class="meal-meta">
+    <text class="meta-item">发起人：{{meal.isCreator ? '我' : (meal.creatorName || '未知')}}</text>
+    <text class="meta-item">发起时间：{{meal.formattedCreatedAt}}</text>
+  </view>
+
+  <!-- 已点菜品 -->
+  <view class="section" wx:if="{{orderedDishes.length > 0}}">
+    <text class="section-title">已点菜品（{{orderedDishes.length}}）</text>
+    <view class="dish-list">
+      <view wx:for="{{orderedDishes}}" wx:key="id" class="dish-item">
+        <image
+          src="{{item.displayImage}}"
+          mode="aspectFill"
+          class="dish-img"
+        />
+        <view class="dish-info">
+          <text class="dish-name">{{item.name}}</text>
+          <text class="dish-orderers">{{item.ordererText}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 未点菜品（默认折叠，点击标题展开/收起） -->
+  <view class="section" wx:if="{{unorderedDishes.length > 0}}">
+    <view class="section-header-collapsible" bindtap="toggleUnorderedSection">
+      <text class="section-title section-title--collapsible">未点菜品（{{unorderedDishes.length}}）</text>
+      <text class="collapsible-hint">{{unorderedSectionExpanded ? '收起' : '展开'}}</text>
+      <text class="collapsible-arrow">{{unorderedSectionExpanded ? '▼' : '▶'}}</text>
+    </view>
+    <view class="dish-list" wx:if="{{unorderedSectionExpanded}}">
+      <view wx:for="{{unorderedDishes}}" wx:key="id" class="dish-item">
+        <image
+          src="{{item.displayImage}}"
+          mode="aspectFill"
+          class="dish-img"
+        />
+        <view class="dish-info">
+          <text class="dish-name">{{item.name}}</text>
+          <text class="dish-orderers">暂无点选</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:if="{{orderedDishes.length === 0 && unorderedDishes.length === 0}}" class="empty-state">
+    <text>该点餐暂无菜品</text>
+  </view>
+
+  <!-- 底部操作按钮 -->
+  <view class="bottom-actions">
+    <button
+      wx:if="{{canManage && meal.status === 1}}"
+      class="action-btn btn-edit"
+      bindtap="editMeal"
+    >
+      <image class="btn-icon" src="/images/icon-edit.png" mode="aspectFit" />
+      <text>修改</text>
+    </button>
+    <button wx:if="{{meal.status === 1}}" class="action-btn btn-order" bindtap="goOrder">
+      <image class="btn-icon" src="/images/icon-order.png" mode="aspectFit" />
+      <text>点餐</text>
+    </button>
+    <button
+      wx:if="{{canManage}}"
+      class="action-btn btn-close"
+      bindtap="tapCloseOrReopen"
+    >
+      <image class="btn-icon" src="/images/icon-{{meal.status === 1 ? 'close' : 'reopen'}}.png" mode="aspectFit" />
+      <text>{{meal.status === 1 ? '收单' : '恢复点餐'}}</text>
+    </button>
+    <button
+      wx:if="{{canManage && meal.status === 1}}"
+      class="action-btn btn-share"
+      open-type="share"
+    >
+      <image class="btn-icon" src="/images/icon-share.png" mode="aspectFit" />
+      <text>分享</text>
+    </button>
+  </view>
+</view>

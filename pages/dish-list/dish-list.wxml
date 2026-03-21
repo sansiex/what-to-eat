@@ -2,6 +2,11 @@
 <view class="container">
   <kitchen-switcher id="kitchenSwitcher" bind:kitchenchange="onKitchenChange" />
 
+  <!-- 菜品总数 -->
+  <view wx:if="{{dishes.length > 0}}" class="dish-count-bar">
+    <text class="dish-count-text">共 {{dishes.length}} 道菜</text>
+  </view>
+
   <!-- 搜索和添加 -->
   <view class="header-actions">
     <input 

@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/126</span>
+                <span class='fraction'>0/133</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/53</span>
+                <span class='fraction'>0/55</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/23</span>
+                <span class='fraction'>0/24</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/119</span>
+                <span class='fraction'>0/127</span>
             </div>
         
             
@@ -364,7 +364,20 @@
 <a name='L299'></a><a href='#L299'>299</a>
 <a name='L300'></a><a href='#L300'>300</a>
 <a name='L301'></a><a href='#L301'>301</a>
-<a name='L302'></a><a href='#L302'>302</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L302'></a><a href='#L302'>302</a>
+<a name='L303'></a><a href='#L303'>303</a>
+<a name='L304'></a><a href='#L304'>304</a>
+<a name='L305'></a><a href='#L305'>305</a>
+<a name='L306'></a><a href='#L306'>306</a>
+<a name='L307'></a><a href='#L307'>307</a>
+<a name='L308'></a><a href='#L308'>308</a>
+<a name='L309'></a><a href='#L309'>309</a>
+<a name='L310'></a><a href='#L310'>310</a>
+<a name='L311'></a><a href='#L311'>311</a>
+<a name='L312'></a><a href='#L312'>312</a>
+<a name='L313'></a><a href='#L313'>313</a>
+<a name='L314'></a><a href='#L314'>314</a>
+<a name='L315'></a><a href='#L315'>315</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -417,7 +430,12 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -495,6 +513,14 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -717,16 +743,21 @@ const { API } = <span class="cstat-no" title="statement not covered" >require('.
       const canManageMeals = <span class="cstat-no" title="statement not covered" >role === 'owner' || role === 'admin'</span>
 &nbsp;
       // 格式化时间和状态
-      const mealsWithFormattedTime = <span class="cstat-no" title="statement not covered" >meals.map(<span class="fstat-no" title="function not covered" >me</span>al =&gt; (<span class="cstat-no" title="statement not covered" >{</span></span>
-        ...meal,
-        formattedCreatedAt: this.formatBeijingTime(meal.createdAt),
-        // 将数字状态转换为字符串状态
-        status: meal.status === 1 ? 'ordering' : 'closed',
-        // 兼容旧接口：未返回 isCreator 时默认视为自己发起
-        isCreator: typeof meal.isCreator === 'boolean' ? meal.isCreator : true,
-        // 主人或管理员可管理任意点餐
-        canManageMeals
-      }))
+      const weekdays = <span class="cstat-no" title="statement not covered" >['周日', '周一', '周二', '周三', '周四', '周五', '周六']</span>
+      const mealsWithFormattedTime = <span class="cstat-no" title="statement not covered" >meals.map(<span class="fstat-no" title="function not covered" >me</span>al =&gt; {</span>
+        const beijingDate = <span class="cstat-no" title="statement not covered" >new Date(new Date(meal.createdAt).getTime() + 8 * 60 * 60 * 1000)</span>
+        const weekday = <span class="cstat-no" title="statement not covered" >weekdays[beijingDate.getUTCDay()]</span>
+        const formattedCreatedAt = <span class="cstat-no" title="statement not covered" >this.formatBeijingTime(meal.createdAt)</span>
+        const createdAtDisplay = <span class="cstat-no" title="statement not covered" >formattedCreatedAt ? `${weekday} ${formattedCreatedAt}` : ''</span>
+<span class="cstat-no" title="statement not covered" >        return {</span>
+          ...meal,
+          createdAtDisplay,
+          // 将数字状态转换为字符串状态
+          status: meal.status === 1 ? 'ordering' : 'closed',
+          isCreator: typeof meal.isCreator === 'boolean' ? meal.isCreator : true,
+          canManageMeals
+        }
+      })
 &nbsp;
       // 排序：点餐中排在最前面，每个状态内部按开始时间降序排列
       const sortedMeals = <span class="cstat-no" title="statement not covered" >this.sortMeals(mealsWithFormattedTime)</span>
@@ -800,7 +831,15 @@ const { API } = <span class="cstat-no" title="statement not covered" >require('.
     })
   },
 &nbsp;
-  // 进入点餐页面
+  // 进入点餐详情页
+<span class="fstat-no" title="function not covered" >  go</span>MealDetail(e) {
+    const mealId = <span class="cstat-no" title="statement not covered" >e.currentTarget.dataset.id</span>
+<span class="cstat-no" title="statement not covered" >    wx.navigateTo({</span>
+      url: `/pages/meal-detail/meal-detail?mealId=${mealId}`
+    })
+  },
+&nbsp;
+  // 进入点餐页面（从详情页调用）
 <span class="fstat-no" title="function not covered" >  as</span>ync goOrder(e) {
     const mealId = <span class="cstat-no" title="statement not covered" >e.currentTarget.dataset.id</span>
     const meal = <span class="cstat-no" title="statement not covered" >this.data.meals.find(<span class="fstat-no" title="function not covered" >m </span>=&gt; <span class="cstat-no" title="statement not covered" >m.id === mealId)</span></span>
@@ -973,7 +1012,7 @@ const { API } = <span class="cstat-no" title="statement not covered" >require('.
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-19T12:15:55.454Z
+                at 2026-03-21T08:03:10.665Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

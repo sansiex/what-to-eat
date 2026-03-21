@@ -2,6 +2,7 @@
 
 .container {
   padding: 20rpx;
+  padding-bottom: 180rpx;
   min-height: 100vh;
 }
 
@@ -138,10 +139,100 @@
   box-sizing: border-box;
 }
 
-/* 菜品列表 */
+/* 菜品 Tab：在菜单中 / 不在菜单中 */
+.dish-tabs {
+  display: flex;
+  gap: 12rpx;
+  margin-bottom: 20rpx;
+}
+
+.dish-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  padding: 12rpx 16rpx;
+  background: #E8F5E9;
+  border-radius: 10rpx;
+  border: 2rpx solid transparent;
+  box-sizing: border-box;
+}
+
+.dish-tab--active {
+  background: #fff;
+  border-color: #81C784;
+  box-shadow: 0 4rpx 14rpx rgba(76, 175, 80, 0.2);
+}
+
+.dish-tab__label {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #757575;
+  line-height: 1.2;
+}
+
+.dish-tab--active .dish-tab__label {
+  color: #2E7D32;
+}
+
+.dish-tab__count {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #9E9E9E;
+  line-height: 1.2;
+  margin-left: 4rpx;
+}
+
+.dish-tab--active .dish-tab__count {
+  color: #43A047;
+}
+
+.dishes-tab-panel {
+  min-height: 80rpx;
+}
+
+.tab-panel-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.section-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1A1A1A;
+}
+
+.section-action {
+  font-size: 26rpx;
+  color: #007AFF;
+}
+
+.empty-tip-small {
+  padding: 24rpx 0;
+  text-align: center;
+  color: #999;
+  font-size: 26rpx;
+}
+
+/* 菜品列表（单 Tab 展示，可适当加高） */
 .dishes-list {
-  max-height: 600rpx;
+  max-height: 400rpx;
   overflow-y: auto;
+}
+
+.dishes-list--tab {
+  max-height: 560rpx;
 }
 
 .empty-tip {
@@ -154,9 +245,9 @@
 .dish-item {
   display: flex;
   align-items: center;
-  padding: 24rpx 0;
+  padding: 10rpx 0;
   border-bottom: 1rpx solid #C8E6C9;
-  gap: 14rpx;
+  gap: 10rpx;
 }
 
 .dish-item.selected {
@@ -168,7 +259,7 @@
 }
 
 .dish-name {
-  font-size: 28rpx;
+  font-size: 34rpx;
   color: #1A1A1A;
   margin-left: 0;
   font-weight: 600;
@@ -191,16 +282,32 @@
 }
 
 .dish-thumb {
-  width: 84rpx;
-  height: 84rpx;
-  border-radius: 10rpx;
+  width: 136rpx;
+  height: 136rpx;
+  border-radius: 12rpx;
   background: #C8E6C9;
   flex-shrink: 0;
 }
 
-/* 表单操作 */
+/* 表单操作 - 固定在屏幕底部 */
 .form-actions {
-  margin-top: 40rpx;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 20rpx;
+  padding: 24rpx;
+  background: #fff;
+  box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
+.form-actions .btn {
+  flex: 1;
+}
+
+.btn-save-and-initiate {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
 }
 
 /* ===== 弹窗 ===== */

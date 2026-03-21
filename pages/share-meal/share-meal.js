@@ -1,5 +1,6 @@
 // pages/share-meal/share-meal.js
 const { API } = require('../../utils/cloud-api.js')
+const { previewSingleDishImage } = require('../../utils/dish-preview.js')
 
 Page({
   data: {
@@ -161,9 +162,7 @@ Page({
   },
 
   previewDishImage(e) {
-    var url = e.currentTarget.dataset.url
-    if (!url) return
-    wx.previewImage({ current: url, urls: [url] })
+    previewSingleDishImage(e.currentTarget.dataset.url)
   },
 
   // 提交订单

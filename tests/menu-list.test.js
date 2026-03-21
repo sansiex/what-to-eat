@@ -188,24 +188,20 @@ describe('菜单列表页面测试', () => {
     test('验证WXML包含必要元素', () => {
       const fs = require('fs');
       const wxml = fs.readFileSync('pages/menu-list/menu-list.wxml', 'utf-8');
-      
-      expect(wxml).toContain('创建菜单');
-      expect(wxml).toContain('编辑');
-      expect(wxml).toContain('删除');
-      expect(wxml).toContain('发起点餐');
-      expect(wxml).toContain('showInitiateDialog');
+
+      expect(wxml).toContain('创建新菜单');
+      expect(wxml).toContain('editMenu');
+      expect(wxml).toContain('goInitiateMeal');
     });
 
     test('验证JS包含必要方法', () => {
       const fs = require('fs');
       const js = fs.readFileSync('pages/menu-list/menu-list.js', 'utf-8');
-      
+
       expect(js).toContain('loadMenus');
       expect(js).toContain('createMenu');
       expect(js).toContain('editMenu');
-      expect(js).toContain('deleteMenu');
-      expect(js).toContain('showInitiateMealDialog');
-      expect(js).toContain('confirmInitiateMeal');
+      expect(js).toContain('goInitiateMeal');
     });
   });
 });

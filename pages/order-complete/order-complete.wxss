@@ -51,9 +51,9 @@
 .dish-row {
   display: flex;
   align-items: center;
-  padding: 16rpx 0;
+  padding: 10rpx 0;
   border-bottom: 1rpx solid #C8E6C9;
-  gap: 16rpx;
+  gap: 10rpx;
 }
 
 .dish-row:last-child {
@@ -65,9 +65,9 @@
 }
 
 .dish-thumb {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 10rpx;
+  width: 136rpx;
+  height: 136rpx;
+  border-radius: 12rpx;
   background: #C8E6C9;
   flex-shrink: 0;
 }

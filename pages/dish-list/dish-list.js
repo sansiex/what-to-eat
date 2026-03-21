@@ -1,5 +1,6 @@
 // pages/dish-list/dish-list.js
 const { API } = require('../../utils/cloud-api.js')
+const { previewSingleDishImage } = require('../../utils/dish-preview.js')
 const { uploadDishImage } = require('../../utils/cos-upload.js')
 
 Page({
@@ -193,9 +194,7 @@ Page({
   },
 
   previewDishImage(e) {
-    var url = e.currentTarget.dataset.url
-    if (!url) return
-    wx.previewImage({ current: url, urls: [url] })
+    previewSingleDishImage(e.currentTarget.dataset.url)
   },
 
   // 统一补全展示字段

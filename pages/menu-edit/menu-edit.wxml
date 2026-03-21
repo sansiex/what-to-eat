@@ -45,16 +45,64 @@
       <view class="btn-add-dish" bindtap="showAddDishDialog">新增菜品</view>
     </view>
 
-    <!-- 菜品列表 -->
-    <view class="dishes-list">
-      <view wx:if="{{filteredDishes.length === 0}}" class="empty-tip">
-        <text>暂无菜品</text>
+    <!-- Tab：在菜单中 / 不在菜单中 -->
+    <view class="dish-tabs">
+      <view
+        class="dish-tab {{dishTab === 'in' ? 'dish-tab--active' : ''}}"
+        bindtap="switchDishTab"
+        data-tab="in"
+      >
+        <text class="dish-tab__label">在菜单中</text>
+        <text class="dish-tab__count">（{{dishesInMenu.length}}）</text>
       </view>
-      
-      <view wx:else>
-        <view 
-          wx:for="{{filteredDishes}}" 
-          wx:key="id" 
+      <view
+        class="dish-tab {{dishTab === 'out' ? 'dish-tab--active' : ''}}"
+        bindtap="switchDishTab"
+        data-tab="out"
+      >
+        <text class="dish-tab__label">不在菜单中</text>
+        <text class="dish-tab__count">（{{dishesNotInMenu.length}}）</text>
+      </view>
+    </view>
+
+    <!-- 在菜单中 -->
+    <view wx:if="{{dishTab === 'in'}}" class="dishes-tab-panel">
+      <view wx:if="{{dishesInMenu.length > 0}}" class="tab-panel-toolbar">
+        <view class="section-action" bindtap="toggleSelectAllInMenu">{{inMenuAllSelected ? '全不选' : '全选'}}</view>
+      </view>
+      <view wx:if="{{dishesInMenu.length === 0}}" class="empty-tip-small">
+        <text>暂无，可切换到「不在菜单中」勾选添加</text>
+      </view>
+      <view wx:else class="dishes-list dishes-list--tab">
+        <view
+          wx:for="{{dishesInMenu}}"
+          wx:key="id"
+          class="dish-item {{item.selected ? 'selected' : ''}}"
+          bindtap="toggleDishSelection"
+          data-id="{{item.id}}"
+        >
+          <checkbox checked="{{item.selected}}" />
+          <image class="dish-thumb" src="{{item.displayImage}}" mode="aspectFill" catchtap="previewDishImage" data-url="{{item.displayImage}}" />
+          <view class="dish-text">
+            <text class="dish-name">{{item.name}}</text>
+            <text class="dish-desc">{{item.displayDescription}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 不在菜单中 -->
+    <view wx:if="{{dishTab === 'out'}}" class="dishes-tab-panel">
+      <view wx:if="{{dishesNotInMenu.length > 0}}" class="tab-panel-toolbar">
+        <view class="section-action" bindtap="toggleSelectAllNotInMenu">{{notInMenuAllSelected ? '全不选' : '全选'}}</view>
+      </view>
+      <view wx:if="{{dishesNotInMenu.length === 0}}" class="empty-tip-small">
+        <text>全部已加入菜单</text>
+      </view>
+      <view wx:else class="dishes-list dishes-list--tab">
+        <view
+          wx:for="{{dishesNotInMenu}}"
+          wx:key="id"
           class="dish-item {{item.selected ? 'selected' : ''}}"
           bindtap="toggleDishSelection"
           data-id="{{item.id}}"
@@ -74,6 +122,9 @@
   <view class="form-actions">
     <button class="btn btn-primary" bindtap="saveMenu">
       {{isEditMode ? '保存修改' : '创建菜单'}}
+    </button>
+    <button wx:if="{{isEditMode}}" class="btn btn-primary btn-save-and-initiate" bindtap="saveAndInitiate">
+      保存并发起点餐
     </button>
   </view>
 

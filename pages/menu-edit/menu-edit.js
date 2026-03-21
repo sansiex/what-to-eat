@@ -1,13 +1,22 @@
 // pages/menu-edit/menu-edit.js
 const { API } = require('../../utils/cloud-api.js')
 const { uploadDishImage } = require('../../utils/cos-upload.js')
+const { previewSingleDishImage } = require('../../utils/dish-preview.js')
 
 Page({
   data: {
     isEditMode: false,
     menuName: '',
+    /** 菜品分区 Tab：'in' 在菜单中（默认），'out' 不在菜单中 */
+    dishTab: 'in',
     allDishes: [],
     filteredDishes: [],
+    dishesInMenu: [],
+    dishesNotInMenu: [],
+    dishListAssignment: {}, // 菜品所属列表，'in' | 'out'，切换勾选时不改变，仅保存后刷新
+    /** 当前 Tab 列表是否已全部勾选（用于全选/全不选按钮文案） */
+    inMenuAllSelected: false,
+    notInMenuAllSelected: false,
     selectedDishIds: [],
     searchKeyword: '',
     showAddDishDialog: false,
@@ -59,18 +68,28 @@ Page({
       // 为每个菜品添加 selected 属性
       const dishesWithSelected = dishes.map(dish => {
         const imageUrl = dish.imageUrl || dish.image_url || ''
+        const selected = selectedDishIds.includes(dish.id)
         return {
           ...dish,
-          selected: selectedDishIds.includes(dish.id),
+          selected,
           imageUrl,
           displayImage: imageUrl || defaultDishImage,
           displayDescription: dish.description || '暂无描述'
         }
       })
-      
+      const dishListAssignment = {}
+      dishesWithSelected.forEach(d => {
+        dishListAssignment[d.id] = d.selected ? 'in' : 'out'
+      })
+      const { dishesInMenu, dishesNotInMenu } = this.splitDishesByAssignment(dishesWithSelected, dishListAssignment)
+      const flags = this._listSelectAllFlags(dishesInMenu, dishesNotInMenu)
       this.setData({
         allDishes: dishesWithSelected,
-        filteredDishes: dishesWithSelected
+        filteredDishes: dishesWithSelected,
+        dishListAssignment,
+        dishesInMenu,
+        dishesNotInMenu,
+        ...flags
       })
     } catch (err) {
       console.error('加载菜品失败:', err)
@@ -89,46 +108,112 @@ Page({
     this.setData({ menuName: tag })
   },
 
-  // 搜索菜品
-  onSearch(e) {
-    const keyword = e.detail.value.toLowerCase()
-    const { allDishes } = this.data
-    
-    const filtered = allDishes.filter(dish => 
-      dish.name.toLowerCase().includes(keyword)
-    )
-
-    this.setData({
-      searchKeyword: keyword,
-      filteredDishes: filtered
-    })
+  switchDishTab(e) {
+    const tab = e.currentTarget.dataset.tab
+    if (tab === 'in' || tab === 'out') {
+      this.setData({ dishTab: tab })
+    }
   },
 
-  // 切换菜品选择
-  toggleDishSelection(e) {
-    const dishId = parseInt(e.currentTarget.dataset.id)
-    const { allDishes, filteredDishes, selectedDishIds } = this.data
-    
-    // 切换选中状态
-    const isSelected = selectedDishIds.includes(dishId)
-    let newSelectedIds
-    if (isSelected) {
-      newSelectedIds = selectedDishIds.filter(id => id !== dishId)
-    } else {
-      newSelectedIds = [...selectedDishIds, dishId]
-    }
+  splitDishesByAssignment(dishes, assignment) {
+    const dishesInMenu = dishes.filter(d => assignment[d.id] === 'in')
+    const dishesNotInMenu = dishes.filter(d => assignment[d.id] === 'out')
+    return { dishesInMenu, dishesNotInMenu }
+  },
 
-    // 更新所有菜品列表中的选中状态
-    const updateDishes = (dishes) => dishes.map(dish => ({
+  _listSelectAllFlags(dishesInMenu, dishesNotInMenu) {
+    return {
+      inMenuAllSelected: dishesInMenu.length > 0 && dishesInMenu.every(d => d.selected),
+      notInMenuAllSelected: dishesNotInMenu.length > 0 && dishesNotInMenu.every(d => d.selected)
+    }
+  },
+
+  _applySelection(newSelectedIds) {
+    const { allDishes, filteredDishes } = this.data
+    const updateDishes = dishes => dishes.map(dish => ({
       ...dish,
       selected: newSelectedIds.includes(dish.id)
     }))
-
+    const { dishesInMenu, dishesNotInMenu } = this.updateSelectionInLists(newSelectedIds)
     this.setData({
       allDishes: updateDishes(allDishes),
       filteredDishes: updateDishes(filteredDishes),
-      selectedDishIds: newSelectedIds
+      dishesInMenu,
+      dishesNotInMenu,
+      selectedDishIds: newSelectedIds,
+      ...this._listSelectAllFlags(dishesInMenu, dishesNotInMenu)
     })
+  },
+
+  // 更新列表中菜品的 selected 状态（不移动菜品）
+  updateSelectionInLists(newSelectedIds) {
+    const { dishesInMenu, dishesNotInMenu } = this.data
+    const setIds = new Set(newSelectedIds)
+    const updateSelected = (list) => list.map(d => ({ ...d, selected: setIds.has(d.id) }))
+    return {
+      dishesInMenu: updateSelected(dishesInMenu),
+      dishesNotInMenu: updateSelected(dishesNotInMenu)
+    }
+  },
+
+  // 搜索菜品
+  onSearch(e) {
+    const keyword = e.detail.value.toLowerCase()
+    const { allDishes, dishListAssignment } = this.data
+
+    const filtered = allDishes.filter(dish =>
+      dish.name.toLowerCase().includes(keyword)
+    )
+    const { dishesInMenu, dishesNotInMenu } = this.splitDishesByAssignment(filtered, dishListAssignment)
+
+    this.setData({
+      searchKeyword: keyword,
+      filteredDishes: filtered,
+      dishesInMenu,
+      dishesNotInMenu,
+      ...this._listSelectAllFlags(dishesInMenu, dishesNotInMenu)
+    })
+  },
+
+  // 切换菜品选择（只更新勾选状态，不移动菜品）
+  toggleDishSelection(e) {
+    const dishId = parseInt(e.currentTarget.dataset.id)
+    const { selectedDishIds } = this.data
+
+    const isSelected = selectedDishIds.includes(dishId)
+    const newSelectedIds = isSelected
+      ? selectedDishIds.filter(id => id !== dishId)
+      : [...selectedDishIds, dishId]
+
+    this._applySelection(newSelectedIds)
+  },
+
+  // 在菜单中：已全选则全不选，否则全选
+  toggleSelectAllInMenu() {
+    const { dishesInMenu, selectedDishIds } = this.data
+    if (dishesInMenu.length === 0) return
+    const allSelected = dishesInMenu.every(d => d.selected)
+    if (allSelected) {
+      const idsToRemove = new Set(dishesInMenu.map(d => d.id))
+      this._applySelection(selectedDishIds.filter(id => !idsToRemove.has(id)))
+    } else {
+      const idsToAdd = dishesInMenu.map(d => d.id)
+      this._applySelection([...new Set([...selectedDishIds, ...idsToAdd])])
+    }
+  },
+
+  // 不在菜单中：已全选则全不选，否则全选
+  toggleSelectAllNotInMenu() {
+    const { dishesNotInMenu, selectedDishIds } = this.data
+    if (dishesNotInMenu.length === 0) return
+    const allSelected = dishesNotInMenu.every(d => d.selected)
+    if (allSelected) {
+      const idsToRemove = new Set(dishesNotInMenu.map(d => d.id))
+      this._applySelection(selectedDishIds.filter(id => !idsToRemove.has(id)))
+    } else {
+      const idsToAdd = dishesNotInMenu.map(d => d.id)
+      this._applySelection([...new Set([...selectedDishIds, ...idsToAdd])])
+    }
   },
 
   // 显示新增菜品弹窗
@@ -235,14 +320,23 @@ Page({
         displayDescription: newDishDescription.trim() || newDish.description || '暂无描述'
       }
       
+      const newAllDishes = [...allDishes, dishWithSelected]
+      const newFilteredDishes = [...filteredDishes, dishWithSelected]
+      const newSelectedIds = [...selectedDishIds, newDish.id]
+      const newAssignment = { ...this.data.dishListAssignment, [newDish.id]: 'in' }
+      const { dishesInMenu, dishesNotInMenu } = this.splitDishesByAssignment(newFilteredDishes, newAssignment)
       this.setData({
-        allDishes: [...allDishes, dishWithSelected],
-        filteredDishes: [...filteredDishes, dishWithSelected],
-        selectedDishIds: [...selectedDishIds, newDish.id],
+        allDishes: newAllDishes,
+        filteredDishes: newFilteredDishes,
+        dishListAssignment: newAssignment,
+        dishesInMenu,
+        dishesNotInMenu,
+        selectedDishIds: newSelectedIds,
         showAddDishDialog: false,
         newDishName: '',
         newDishDescription: '',
-        newDishImageUrl: ''
+        newDishImageUrl: '',
+        ...this._listSelectAllFlags(dishesInMenu, dishesNotInMenu)
       })
       
       wx.showToast({ title: '添加成功', icon: 'success' })
@@ -254,9 +348,7 @@ Page({
   },
 
   previewDishImage(e) {
-    var url = e.currentTarget.dataset.url
-    if (!url) return
-    wx.previewImage({ current: url, urls: [url] })
+    previewSingleDishImage(e.currentTarget.dataset.url)
   },
 
   deleteMenu() {
@@ -344,6 +436,94 @@ Page({
       wx.hideLoading()
       console.error(isEditMode ? '更新菜单失败:' : '创建菜单失败:', err)
       wx.showToast({ title: isEditMode ? '更新失败' : '创建失败', icon: 'none' })
+    }
+  },
+
+  async saveAndInitiate() {
+    const { isEditMode, menuName, selectedDishIds, allDishes } = this.data
+
+    if (!menuName.trim()) {
+      wx.showToast({ title: '请输入菜单名称', icon: 'none' })
+      return
+    }
+
+    if (selectedDishIds.length === 0) {
+      wx.showToast({ title: '请至少选择一个菜品', icon: 'none' })
+      return
+    }
+
+    const currentMenu = getApp().globalData.currentMenu
+    const existingMenus = getApp().globalData._menuListCache || []
+    const duplicate = existingMenus.find(m =>
+      m.name === menuName.trim() && (!isEditMode || m.id !== (currentMenu && currentMenu.id))
+    )
+    if (duplicate) {
+      wx.showToast({ title: '该菜单名称已存在', icon: 'none' })
+      return
+    }
+
+    let currentKitchen = getApp().globalData.currentKitchen
+    if (!currentKitchen) {
+      await getApp().initDefaultKitchen()
+      currentKitchen = getApp().globalData.currentKitchen
+    }
+    if (!currentKitchen) {
+      wx.showToast({ title: '请先选择厨房', icon: 'none' })
+      return
+    }
+
+    try {
+      wx.showLoading({ title: '保存中...' })
+
+      if (isEditMode) {
+        const menu = getApp().globalData.currentMenu
+        await API.menu.update({
+          id: menu.id,
+          name: menuName.trim(),
+          dishIds: selectedDishIds
+        })
+      } else {
+        await API.menu.create({
+          name: menuName.trim(),
+          dishIds: selectedDishIds,
+          kitchenId: currentKitchen.id
+        })
+      }
+
+      wx.hideLoading()
+
+      // 获取保存后的菜单数据（含菜品详情）
+      const dishesForMenu = allDishes.filter(d => selectedDishIds.includes(d.id))
+      const menuForInitiate = {
+        name: menuName.trim(),
+        dishes: dishesForMenu.map(d => ({
+          id: d.id,
+          name: d.name,
+          description: d.description,
+          imageUrl: d.imageUrl || d.image_url,
+          selected: true
+        }))
+      }
+      if (isEditMode && currentMenu) {
+        menuForInitiate.id = currentMenu.id
+      } else {
+        // 新建菜单需从列表取最新
+        const listRes = await API.menu.list(currentKitchen.id)
+        const list = listRes.data.list || []
+        const saved = list.find(m => m.name === menuName.trim())
+        if (saved) menuForInitiate.id = saved.id
+      }
+
+      getApp().globalData.initiateFromMenu = menuForInitiate
+
+      wx.navigateTo({
+        url: '/pages/initiate-meal/initiate-meal?fromMenu=1'
+      })
+      wx.showToast({ title: '保存成功', icon: 'success' })
+    } catch (err) {
+      wx.hideLoading()
+      console.error('保存菜单失败:', err)
+      wx.showToast({ title: '保存失败', icon: 'none' })
     }
   }
 })

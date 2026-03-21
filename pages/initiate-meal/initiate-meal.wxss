@@ -1,5 +1,63 @@
 /* pages/initiate-meal/initiate-meal.wxss */
 
+page {
+  height: 100%;
+  background: #E8F5E9;
+}
+
+/* 整页：上滚动 + 底栏贴屏幕底 */
+.page-initiate-meal {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.initiate-meal-scroll {
+  flex: 1;
+  height: 0;
+  min-height: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.initiate-meal-body {
+  padding-bottom: 8rpx;
+}
+
+.section--scroll {
+  margin-bottom: 0;
+}
+
+/* 底部操作栏：始终贴在视口下方 */
+.initiate-meal-footer {
+  flex-shrink: 0;
+  padding: 24rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+  background: #fff;
+  border-top: 1rpx solid #C8E6C9;
+  box-shadow: 0 -8rpx 24rpx rgba(0, 0, 0, 0.06);
+}
+
+.initiate-meal-footer__btns {
+  width: 100%;
+}
+
+.initiate-meal-footer__btns--row {
+  display: flex;
+  gap: 20rpx;
+  align-items: stretch;
+}
+
+.btn--footer {
+  margin-top: 0;
+  width: 100%;
+}
+
+.initiate-meal-footer__btns--row .btn--footer {
+  width: auto;
+}
+
 .btn {
   background: linear-gradient(135deg, #66BB6A 0%, #81C784 100%);
   color: #fff;
@@ -35,23 +93,80 @@ button:active {
   background-color: #C8E6C9;
 }
 
-/* 餐名选择按钮样式 */
-.meal-type-btn {
-  flex: 1;
-  font-size: 28rpx;
-  padding: 12rpx 24rpx;
-  text-align: center;
-  background-color: #C8E6C9;
-  color: #1A1A1A;
-  border-radius: 8rpx;
-  font-weight: 500;
-  border: none;
+/* 餐名输入框 */
+.meal-name-input {
+  width: 100%;
+  height: 80rpx;
+  line-height: 80rpx;
+  padding: 0 24rpx;
+  font-size: 32rpx;
+  border: 1rpx solid #C8E6C9;
+  border-radius: 12rpx;
+  background-color: #fff;
+  box-sizing: border-box;
 }
 
-.meal-type-btn--active {
-  background: linear-gradient(135deg, #66BB6A 0%, #81C784 100%);
-  color: #fff;
-  box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.25);
+/* 已选菜品数（列表上方） */
+.selected-dish-count {
+  display: block;
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 16rpx;
+}
+
+/* 发起点餐页菜品列表 - 已选 / 未选 行区分 */
+.dish-select-row {
+  padding: 10rpx 12rpx;
+  margin-bottom: 12rpx;
+  border-radius: 14rpx;
+  border-bottom: none;
+  box-sizing: border-box;
+}
+
+.dish-select-row__inner {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.dish-select-row:last-child {
+  margin-bottom: 0;
+}
+
+/* 已勾选：浅绿底 + 绿色描边 */
+.dish-select-row--selected {
+  background: linear-gradient(135deg, #E8F5E9 0%, #F1F8E9 100%);
+  border: 2rpx solid #81C784;
+  box-shadow: 0 2rpx 10rpx rgba(76, 175, 80, 0.15);
+}
+
+/* 未勾选：灰底 + 弱化文字 */
+.dish-select-row--unselected {
+  background: #EEEEEE;
+  border: 2rpx solid #E0E0E0;
+  opacity: 0.96;
+}
+
+.dish-select-row--unselected .list-item__title {
+  color: #616161;
+}
+
+.dish-select-row--unselected .list-item__desc {
+  color: #9E9E9E;
+}
+
+.dish-select-row--unselected image {
+  opacity: 0.75;
+}
+
+/* 发起点餐页菜品列表 - 菜品名称字体加大 */
+.dish-select-row .list-item__title {
+  font-size: 34rpx;
+}
+
+.dish-select-row--selected .list-item__title {
+  color: #1B5E20;
+  font-weight: 600;
 }
 
 .dialog-content .input {

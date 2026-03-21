@@ -1,13 +1,11 @@
 // pages/initiate-meal/initiate-meal.js
 const { API } = require('../../utils/cloud-api.js')
+const { previewSingleDishImage } = require('../../utils/dish-preview.js')
 
 Page({
   data: {
-    mealTypes: ['早餐', '午餐', '晚餐'],
     selectedMealName: '',
-    showCustomDialog: false,
-    showCustomInput: false,
-    customMealName: '',
+    fromMenuMode: false,
     dishes: [],
     selectedDishes: [],
     selectAll: true,
@@ -21,6 +19,9 @@ Page({
     if (options && options.mode === 'edit') {
       this.setData({ isEditMode: true })
       this.loadEditingMeal()
+    } else if (options && options.fromMenu === '1') {
+      // 从菜单编辑页「保存并发起点餐」进入
+      this.loadFromMenu()
     } else {
       // 加载菜品数据
       this.loadDishes()
@@ -29,9 +30,36 @@ Page({
 
   onShow() {
     // 页面显示时重新加载菜品数据，确保获取最新数据
-    if (!this.data.isEditMode) {
+    if (!this.data.isEditMode && !this.data.fromMenuMode) {
       this.loadDishes()
     }
+  },
+
+  // 从菜单加载（保存并发起点餐）
+  loadFromMenu() {
+    const menu = getApp().globalData.initiateFromMenu
+    if (!menu || !menu.dishes || menu.dishes.length === 0) {
+      wx.showToast({ title: '没有可用的菜单数据', icon: 'none' })
+      wx.navigateBack()
+      return
+    }
+    const defaultDishImage = this.data.defaultDishImage
+    const dishesWithSelected = menu.dishes.map(d => ({
+      ...d,
+      selected: true,
+      imageUrl: d.imageUrl || d.image_url || '',
+      displayImage: (d.imageUrl || d.image_url) || defaultDishImage,
+      displayDescription: d.description || '暂无描述'
+    }))
+    const selectedDishes = dishesWithSelected.map(d => d.id)
+    this.setData({
+      fromMenuMode: true,
+      selectedMealName: menu.name,
+      dishes: dishesWithSelected,
+      selectedDishes,
+      selectAll: true
+    })
+    getApp().globalData.initiateFromMenu = null
   },
 
   // 加载正在编辑的餐食数据
@@ -111,41 +139,8 @@ Page({
     }
   },
 
-  selectMealType(e) {
-    const type = e.currentTarget.dataset.type
-    this.setData({
-      selectedMealName: type,
-      showCustomInput: false,
-      customMealName: ''
-    })
-  },
-
-  showCustomMealDialog() {
-    this.setData({
-      showCustomDialog: true,
-      customMealName: ''
-    })
-  },
-
-  hideCustomDialog() {
-    this.setData({ showCustomDialog: false })
-  },
-
-  onCustomMealInput(e) {
-    this.setData({ customMealName: e.detail.value })
-  },
-
-  confirmCustomMeal() {
-    const name = this.data.customMealName.trim()
-    if (!name) {
-      wx.showToast({ title: '请输入餐名', icon: 'none' })
-      return
-    }
-
-    this.setData({
-      selectedMealName: name,
-      showCustomDialog: false
-    })
+  onMealNameInput(e) {
+    this.setData({ selectedMealName: e.detail.value })
   },
 
   toggleSelectAll() {
@@ -209,8 +204,8 @@ Page({
   async completeEdit() {
     const { selectedMealName, dishes, editingMealId } = this.data
 
-    if (!selectedMealName) {
-      wx.showToast({ title: '请选择餐名', icon: 'none' })
+    if (!selectedMealName || !selectedMealName.trim()) {
+      wx.showToast({ title: '请输入餐名', icon: 'none' })
       return
     }
 
@@ -223,7 +218,7 @@ Page({
     try {
       // 调用云函数更新点餐
       const selectedDishIds = selectedDishDetails.map(d => d.id)
-      await API.meal.update(editingMealId, selectedMealName, selectedDishIds)
+      await API.meal.update(editingMealId, selectedMealName.trim(), selectedDishIds)
 
       // 清除编辑状态
       getApp().globalData.editingMeal = null
@@ -246,9 +241,7 @@ Page({
   },
 
   previewDishImage(e) {
-    var url = e.currentTarget.dataset.url
-    if (!url) return
-    wx.previewImage({ current: url, urls: [url] })
+    previewSingleDishImage(e.currentTarget.dataset.url)
   },
 
   async initiateMeal() {
@@ -260,9 +253,8 @@ Page({
 
     console.log('当前数据:', { selectedMealName, dishesLength: dishes.length })
 
-    if (!selectedMealName) {
-      console.log('未选择餐名')
-      wx.showToast({ title: '请选择餐名', icon: 'none' })
+    if (!selectedMealName || !selectedMealName.trim()) {
+      wx.showToast({ title: '请输入餐名', icon: 'none' })
       return
     }
 
@@ -284,7 +276,7 @@ Page({
     try {
       // 调用云函数创建点餐
       const selectedDishIds = selectedDishDetails.map(d => d.id)
-      const result = await API.meal.create(selectedMealName, selectedDishIds)
+      const result = await API.meal.create(selectedMealName.trim(), selectedDishIds)
       const mealData = result.data
 
       console.log('创建点餐成功:', mealData)

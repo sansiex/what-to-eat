@@ -87,6 +87,44 @@ describe('发起点菜页面测试', () => {
     const js = fs.readFileSync('pages/initiate-meal/initiate-meal.js', 'utf-8');
     
     expect(js).toContain('initiateMeal');
-    expect(js).toContain('selectMealType');
+    expect(js).toContain('toggleDishSelection');
+  });
+
+  test('验证WXML展示已选菜品数', () => {
+    const fs = require('fs');
+    const wxml = fs.readFileSync('pages/initiate-meal/initiate-meal.wxml', 'utf-8');
+
+    expect(wxml).toContain('selectedDishes.length');
+    expect(wxml).toContain('selected-dish-count');
+  });
+
+  test('验证菜品行按勾选状态区分样式类', () => {
+    const fs = require('fs');
+    const wxml = fs.readFileSync('pages/initiate-meal/initiate-meal.wxml', 'utf-8');
+
+    expect(wxml).toContain('dish-select-row');
+    expect(wxml).toContain('dish-select-row--selected');
+    expect(wxml).toContain('dish-select-row--unselected');
+    expect(wxml).toContain('dish-list-thumb');
+    expect(wxml).toContain('dish-select-row__inner');
+  });
+
+  test('验证发起点餐标题与按钮文案及无选中时禁用', () => {
+    const fs = require('fs');
+    const wxml = fs.readFileSync('pages/initiate-meal/initiate-meal.wxml', 'utf-8');
+
+    expect(wxml).toContain("'编辑点餐' : '发起点餐'");
+    expect(wxml).toContain('发起点餐');
+    expect(wxml).toContain('disabled="{{!selectedMealName || selectedDishes.length === 0}}"');
+  });
+
+  test('验证底部栏与滚动区结构（按钮不跟在列表末尾）', () => {
+    const fs = require('fs');
+    const wxml = fs.readFileSync('pages/initiate-meal/initiate-meal.wxml', 'utf-8');
+
+    expect(wxml).toContain('page-initiate-meal');
+    expect(wxml).toContain('initiate-meal-scroll');
+    expect(wxml).toContain('initiate-meal-footer');
+    expect(wxml).toContain('btn--footer');
   });
 });

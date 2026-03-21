@@ -48,11 +48,33 @@ Page({
     }
   },
 
+  // 格式化时间为北京时间 (UTC+8)
+  formatBeijingTime(isoString) {
+    if (!isoString) return ''
+    try {
+      const date = new Date(isoString)
+      // 转换为北京时间：UTC 时间 + 8 小时
+      const beijingTime = new Date(date.getTime() + 8 * 60 * 60 * 1000)
+      const year = beijingTime.getUTCFullYear()
+      const month = String(beijingTime.getUTCMonth() + 1).padStart(2, '0')
+      const day = String(beijingTime.getUTCDate()).padStart(2, '0')
+      const hours = String(beijingTime.getUTCHours()).padStart(2, '0')
+      const minutes = String(beijingTime.getUTCMinutes()).padStart(2, '0')
+      return `${year}-${month}-${day} ${hours}:${minutes}`
+    } catch (e) {
+      return ''
+    }
+  },
+
   async loadMembers() {
     try {
       const result = await API.kitchen.listMembers(this.data.kitchenId)
       if (result.success) {
-        this.setData({ members: result.data.list || [] })
+        const list = (result.data.list || []).map(m => ({
+          ...m,
+          joinedAt: this.formatBeijingTime(m.joinedAt)
+        }))
+        this.setData({ members: list })
       }
     } catch (err) {
       console.error('加载成员列表失败:', err)

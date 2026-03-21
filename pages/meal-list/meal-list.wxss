@@ -32,10 +32,37 @@
 }
 
 .meal-item {
-  background-color: #fff;
   border-radius: 16rpx;
   padding: 30rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  border-left: 6rpx solid transparent;
+}
+
+/* 点餐中：绿色强调，更鲜活 */
+.meal-item-ordering {
+  background-color: #fff;
+  border-left-color: #4CAF50;
+  box-shadow: 0 2rpx 12rpx rgba(76, 175, 80, 0.15);
+}
+
+.meal-item-ordering .meal-name {
+  color: #1A1A1A;
+}
+
+/* 已收单：灰色调，视觉弱化 */
+.meal-item-closed {
+  background-color: #F5F5F5;
+  border-left-color: #9E9E9E;
+}
+
+.meal-item-closed .meal-name {
+  color: #757575;
+}
+
+.meal-item-closed .meal-time,
+.meal-item-closed .meal-dishes {
+  color: #9E9E9E;
 }
 
 .meal-info {
@@ -50,7 +77,7 @@
 }
 
 .meal-name {
-  font-size: 32rpx;
+  font-size: 36rpx;
   font-weight: 600;
   color: #1A1A1A;
   flex: 1;
@@ -64,13 +91,14 @@
 }
 
 .status-ordering {
-  background-color: #C8E6C9;
-  color: #666;
+  background: linear-gradient(135deg, #66BB6A 0%, #81C784 100%);
+  color: #fff;
+  font-weight: 600;
 }
 
 .status-closed {
-  background-color: #C8E6C9;
-  color: #999;
+  background-color: #E0E0E0;
+  color: #757575;
 }
 
 .meal-time {

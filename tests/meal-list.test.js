@@ -139,10 +139,11 @@ describe('点餐列表页测试', () => {
     test('验证WXML包含必要元素', () => {
       const fs = require('fs');
       const wxml = fs.readFileSync('pages/meal-list/meal-list.wxml', 'utf-8');
-      
+
       expect(wxml).toContain('点餐');
-      expect(wxml).toContain('收单');
-      expect(wxml).toContain('查看');
+      expect(wxml).toContain('goMealDetail');
+      expect(wxml).toContain('createdAtDisplay');
+      expect(wxml).not.toMatch(/\{\{item\.name\}\}\s*\{\{item\.weekday\}\}/);
     });
 
     test('验证JS包含必要方法', () => {
@@ -151,7 +152,8 @@ describe('点餐列表页测试', () => {
     
     expect(js).toContain('loadMeals');
     expect(js).toContain('closeMeal');
-    expect(js).toContain('goOrder');
+    expect(js).toContain('goMealDetail');
+    expect(js).toContain('createdAtDisplay');
   });
   });
 });

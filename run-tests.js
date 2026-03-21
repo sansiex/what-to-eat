@@ -284,8 +284,8 @@ describe('菜单列表页面功能测试', () => {
     expect(menuListJs).toContain('deleteMenu');
   });
 
-  test('验证showInitiateMealDialog方法存在', () => {
-    expect(menuListJs).toContain('showInitiateMealDialog');
+  test('验证goInitiateMeal方法存在', () => {
+    expect(menuListJs).toContain('goInitiateMeal');
   });
 
   test('验证WXML包含创建菜单按钮', () => {

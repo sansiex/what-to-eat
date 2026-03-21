@@ -129,8 +129,8 @@ describe('菜单编辑页面 - 新增菜品弹窗测试', () => {
       expect(wxmlContent).toMatch(/class="dialog-title"/);
       expect(wxmlContent).toContain('新增菜品');
       
-      // 验证包含关闭按钮
-      expect(wxmlContent).toMatch(/class="dialog-close"/);
+      // 验证取消按钮（关闭弹窗）
+      expect(wxmlContent).toMatch(/class="dialog-btn dialog-btn-cancel"/);
       
       // 验证包含输入框
       expect(wxmlContent).toMatch(/placeholder="请输入菜品名称"/);
@@ -154,8 +154,8 @@ describe('菜单编辑页面 - 新增菜品弹窗测试', () => {
       // 验证确定按钮绑定 confirmAddDish
       expect(wxmlContent).toMatch(/bindtap="confirmAddDish"/);
       
-      // 验证关闭按钮绑定 hideAddDishDialog
-      expect(wxmlContent).toMatch(/class="dialog-close"[^>]*bindtap="hideAddDishDialog"/);
+      // 验证取消按钮绑定 hideAddDishDialog
+      expect(wxmlContent).toMatch(/dialog-btn-cancel" bindtap="hideAddDishDialog"/);
     });
 
     test('验证输入框绑定正确的事件和属性', () => {
@@ -187,17 +187,15 @@ describe('菜单编辑页面 - 新增菜品弹窗测试', () => {
       
       // 验证弹窗容器样式
       expect(wxssContent).toMatch(/\.dialog\s*\{/);
-      expect(wxssContent).toMatch(/width:\s*80%/);
-      expect(wxssContent).toMatch(/max-width:/);
-      
+      expect(wxssContent).toMatch(/width:\s*92vw/);
+
       // 验证按钮区域样式
       expect(wxssContent).toMatch(/\.dialog-actions\s*\{/);
       expect(wxssContent).toMatch(/display:\s*flex/);
-      
+
       // 验证按钮样式
-      expect(wxssContent).toMatch(/\.dialog-actions\s+\.btn/);
-      expect(wxssContent).toMatch(/\.btn-cancel/);
-      expect(wxssContent).toMatch(/\.btn-confirm/);
+      expect(wxssContent).toMatch(/\.dialog-btn-cancel/);
+      expect(wxssContent).toMatch(/\.dialog-btn-confirm/);
     });
 
     test('验证按钮并排显示样式', () => {

@@ -1,0 +1,218 @@
+/* pages/meal-detail/meal-detail.wxss */
+.container {
+  padding: 24rpx;
+  padding-bottom: 180rpx;
+  min-height: 100vh;
+}
+
+.meal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.meal-name {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #1A1A1A;
+  flex: 1;
+  min-width: 0;
+}
+
+.meal-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex-shrink: 0;
+}
+
+.header-delete-icon {
+  width: 52rpx;
+  height: 52rpx;
+  padding: 4rpx;
+}
+
+.status-badge {
+  padding: 8rpx 20rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+.status-ordering {
+  background-color: #C8E6C9;
+  color: #2E7D32;
+}
+
+.status-closed {
+  background-color: #E0E0E0;
+  color: #757575;
+}
+
+.meal-meta {
+  margin-bottom: 32rpx;
+}
+
+.meta-item {
+  display: block;
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 8rpx;
+}
+
+.section {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+}
+
+.section-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1A1A1A;
+  display: block;
+  margin-bottom: 20rpx;
+}
+
+.section-header-collapsible {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin: -8rpx -8rpx 0;
+  padding: 8rpx;
+  border-radius: 12rpx;
+}
+
+.section-header-collapsible:active {
+  opacity: 0.65;
+}
+
+.section-title--collapsible {
+  flex: 1;
+  margin-bottom: 0;
+  min-width: 0;
+}
+
+.collapsible-hint {
+  font-size: 24rpx;
+  color: #999;
+  flex-shrink: 0;
+}
+
+.collapsible-arrow {
+  font-size: 22rpx;
+  color: #81C784;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.section-header-collapsible + .dish-list {
+  margin-top: 16rpx;
+}
+
+.dish-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.dish-item {
+  display: flex;
+  align-items: center;
+  padding: 8rpx 0;
+  border-bottom: 1rpx solid #F0F0F0;
+}
+
+.dish-item:last-child {
+  border-bottom: none;
+}
+
+.dish-img {
+  width: 136rpx;
+  height: 136rpx;
+  border-radius: 12rpx;
+  background: #f2f4f7;
+  flex-shrink: 0;
+}
+
+.dish-info {
+  margin-left: 12rpx;
+  flex: 1;
+  min-width: 0;
+}
+
+.dish-name {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #1A1A1A;
+  display: block;
+  margin-bottom: 4rpx;
+}
+
+.dish-orderers {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.empty-state {
+  padding: 80rpx 0;
+  text-align: center;
+  color: #999;
+  font-size: 28rpx;
+}
+
+/* 底部操作按钮 */
+.bottom-actions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 16rpx;
+  padding: 24rpx;
+  background: #fff;
+  box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
+.action-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 20rpx 12rpx;
+  font-size: 24rpx;
+  border-radius: 12rpx;
+  border: none;
+  color: #fff;
+}
+
+.btn-icon {
+  width: 40rpx;
+  height: 40rpx;
+}
+
+.btn-edit {
+  background: linear-gradient(135deg, #66BB6A 0%, #81C784 100%);
+}
+
+.btn-order {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.btn-close {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.btn-share {
+  background: linear-gradient(135deg, #E53935 0%, #ee5a6f 100%);
+}
+
+.action-btn::after {
+  border: none;
+}

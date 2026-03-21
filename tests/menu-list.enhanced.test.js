@@ -88,90 +88,45 @@ describe('菜单列表页面增强测试', () => {
 
     test('测试 editMenu 方法', () => {
       const menu = { id: 1, name: '测试菜单', dishes: [] };
-      
+      pageInstance.setData({ menus: [menu] });
+
       if (pageInstance.editMenu) {
-        // 模拟点击事件
         pageInstance.editMenu({
           currentTarget: {
-            dataset: { menu: menu }
+            dataset: { id: 1 }
           }
         });
-        
-        // 验证全局数据被设置
+
         expect(mockGlobalData.currentMenu).toEqual(menu);
-        
-        // 验证导航调用
         expect(wx.navigateTo).toHaveBeenCalledWith({
           url: '/pages/menu-edit/menu-edit?mode=edit'
         });
       }
     });
 
-    test('测试 deleteMenu 方法', async () => {
-      mockAPI.menu.delete.mockResolvedValue({});
-      
-      if (pageInstance.deleteMenu) {
-        // 模拟点击事件
-        await pageInstance.deleteMenu({
-          currentTarget: {
-            dataset: { id: 1 }
-          }
-        });
-        
-        // 验证确认对话框显示
-        expect(wx.showModal).toHaveBeenCalled();
-      }
-    });
   });
 
-  describe('发起点餐弹窗测试', () => {
-    test('测试 showInitiateMealDialog 方法', () => {
+  describe('发起点餐测试', () => {
+    test('测试 goInitiateMeal 方法跳转到发起点餐页', () => {
       const menu = {
         id: 1,
         name: '午餐菜单',
         dishes: [
-          { id: 1, name: '红烧肉' },
-          { id: 2, name: '酸菜鱼' }
+          { id: 1, name: '红烧肉', imageUrl: '' },
+          { id: 2, name: '酸菜鱼', imageUrl: '' }
         ]
       };
+      pageInstance.setData({ menus: [menu] });
 
-      if (pageInstance.showInitiateMealDialog) {
-        pageInstance.showInitiateMealDialog({
-          currentTarget: {
-            dataset: { menu: menu }
-          }
+      if (pageInstance.goInitiateMeal) {
+        pageInstance.goInitiateMeal({
+          currentTarget: { dataset: { id: 1 } }
         });
 
-        // 验证弹窗显示状态
-        expect(pageInstance.setData).toHaveBeenCalledWith(
-          expect.objectContaining({
-            showInitiateDialog: true
-          })
-        );
-      }
-    });
-
-    test('测试 confirmInitiateMeal 方法', async () => {
-      mockAPI.meal.create.mockResolvedValue({
-        data: { id: 100, name: '午餐菜单' }
-      });
-
-      if (pageInstance.confirmInitiateMeal) {
-        // 设置选中菜品
-        pageInstance.data = {
-          ...pageInstance.data,
-          selectedMealName: '午餐菜单',
-          selectedDishes: [1, 2]
-        };
-
-        await pageInstance.confirmInitiateMeal();
-
-        // 验证 API 调用
-        expect(mockAPI.meal.create).toHaveBeenCalledWith('午餐菜单', [1, 2]);
-        
-        // 验证导航到点餐页面
+        expect(getApp().globalData.initiateFromMenu).toBeDefined();
+        expect(getApp().globalData.initiateFromMenu.name).toBe('午餐菜单');
         expect(wx.navigateTo).toHaveBeenCalledWith({
-          url: '/pages/order-food/order-food'
+          url: '/pages/initiate-meal/initiate-meal?fromMenu=1'
         });
       }
     });

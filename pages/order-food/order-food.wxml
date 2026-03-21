@@ -1,5 +1,5 @@
 <!-- pages/order-food/order-food.wxml -->
-<view class="container">
+<view class="container order-food-page">
   <!-- 餐名显示 -->
   <view class="section" wx:if="{{currentMeal}}">
     <text style="font-size: 36rpx; font-weight: 600; display: block; margin-bottom: 12rpx;">
@@ -38,23 +38,23 @@
     <view wx:else>
       <!-- 正常模式：带复选框 -->
       <checkbox-group wx:if="{{!viewMode}}" bindchange="onCheckboxChange">
-        <view wx:for="{{filteredDishes}}" wx:key="id" class="list-item">
-          <view style="display: flex; align-items: center; padding: 16rpx 0;">
+        <view wx:for="{{filteredDishes}}" wx:key="id" class="list-item order-food-dish-item">
+          <view class="order-food-dish-row">
             <!-- 复选框 -->
             <checkbox
               value="{{item.id}}"
               checked="{{dishSelectionMap[item.id] || false}}"
-              style="transform: scale(1.2); margin-right: 16rpx;"
+              class="order-food-dish-check"
             />
 
             <image
+              class="dish-list-thumb"
               src="{{item.displayImage || '/images/dish-placeholder.png'}}"
               mode="aspectFill"
-              style="width: 84rpx; height: 84rpx; border-radius: 10rpx; background: #f2f4f7;"
               catchtap="previewDishImage"
               data-url="{{item.displayImage || '/images/dish-placeholder.png'}}"
             />
-            <view style="margin-left: 16rpx; flex: 1; display: flex; flex-direction: column; min-width: 0;">
+            <view class="order-food-dish-text">
               <text class="list-item__title" style="margin-bottom: 4rpx;">{{item.name}}</text>
               <text class="list-item__desc" style="margin-bottom: 8rpx;">{{item.displayDescription || item.description || '暂无描述'}}</text>
               <text class="list-item__desc">{{dishOrderersMap[item.id] || '暂无点选'}}</text>
@@ -65,16 +65,16 @@
 
       <!-- 查看模式：只显示列表 -->
       <view wx:else>
-        <view wx:for="{{filteredDishes}}" wx:key="id" class="list-item">
-          <view style="display: flex; align-items: center; padding: 16rpx 0;">
+        <view wx:for="{{filteredDishes}}" wx:key="id" class="list-item order-food-dish-item">
+          <view class="order-food-dish-row">
             <image
+              class="dish-list-thumb"
               src="{{item.displayImage || '/images/dish-placeholder.png'}}"
               mode="aspectFill"
-              style="width: 84rpx; height: 84rpx; border-radius: 10rpx; background: #f2f4f7;"
               bindtap="previewDishImage"
               data-url="{{item.displayImage || '/images/dish-placeholder.png'}}"
             />
-            <view style="margin-left: 16rpx; flex: 1; display: flex; flex-direction: column; min-width: 0;">
+            <view class="order-food-dish-text">
               <text class="list-item__title" style="margin-bottom: 4rpx;">{{item.name}}</text>
               <text class="list-item__desc" style="margin-bottom: 8rpx;">{{item.displayDescription || item.description || '暂无描述'}}</text>
               <text class="list-item__desc">{{dishOrderersMap[item.id] || '暂无点选'}}</text>

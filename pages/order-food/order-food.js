@@ -1,5 +1,6 @@
 // pages/order-food/order-food.js
 const { API } = require('../../utils/cloud-api.js')
+const { isDishPlaceholderUrl } = require('../../utils/dish-preview.js')
 
 Page({
   data: {
@@ -136,15 +137,29 @@ Page({
         return
       }
 
-      // 检查是否餐食发生变化，如果是则重置为默认选中所有
+      // 检查是否餐食发生变化
       const mealChanged = !this.data.currentMeal || this.data.currentMeal.id !== currentMeal.id
       let userSelectedDishes
 
       if (mealChanged) {
-        // 如果餐食变化，则默认勾选所有菜品
-        userSelectedDishes = currentMeal.dishes.map(dish => dish.id)
+        // 餐食变化时：若用户已下单过，按历史订单勾选；否则默认全不勾选
+        try {
+          const orderResult = await API.order.getMyOrder(currentMeal.id)
+          const myOrder = orderResult.data
+          if (myOrder.hasOrdered && myOrder.orders && myOrder.orders.length > 0) {
+            const validDishIds = new Set(currentMeal.dishes.map(d => d.id))
+            userSelectedDishes = myOrder.orders
+              .map(o => o.dishId)
+              .filter(id => validDishIds.has(id))
+          } else {
+            userSelectedDishes = []
+          }
+        } catch (err) {
+          console.error('获取用户订单失败，默认全不勾选:', err)
+          userSelectedDishes = []
+        }
       } else {
-        // 如果餐食未变，则保持原有的选择状态
+        // 餐食未变，保持原有选择状态
         userSelectedDishes = this.data.userSelectedDishes
       }
 
@@ -397,10 +412,10 @@ Page({
 
   previewDishImage(e) {
     const url = e.currentTarget.dataset.url
-    if (!url || url === '/images/dish-placeholder.png') return
+    if (isDishPlaceholderUrl(url)) return
     const urls = (this.data.filteredDishes || [])
       .map(function(d) { return d.displayImage || '' })
-      .filter(function(u) { return u && u !== '/images/dish-placeholder.png' })
+      .filter(function(u) { return !isDishPlaceholderUrl(u) })
     wx.previewImage({
       current: url,
       urls: urls.length > 0 ? urls : [url]
