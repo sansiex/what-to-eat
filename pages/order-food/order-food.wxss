@@ -1,28 +1,448 @@
 /* pages/order-food/order-food.wxss */
 
+/* 顶部：餐名 + 用餐时间 + 发起时间（收紧行距；用餐时间为纯黑 #000） */
+.order-food-meal-meta .order-food-meal-name {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #1a1a1a;
+  line-height: 1.25;
+  margin-bottom: 6rpx;
+}
+
+.order-food-meal-meta .order-food-meal-scheduled {
+  display: block;
+  font-size: 24rpx;
+  color: #000000;
+  line-height: 1.3;
+  margin-bottom: 4rpx;
+}
+
+.order-food-meal-meta .order-food-meal-created {
+  display: block;
+  font-size: 24rpx;
+  color: #999;
+  line-height: 1.3;
+}
+
+.order-food-meal-meta .order-food-meal-view-hint {
+  display: block;
+  font-size: 24rpx;
+  color: #999;
+  line-height: 1.3;
+  margin-top: 6rpx;
+}
+
+.order-food-root {
+  min-height: 100vh;
+  padding-bottom: calc(140rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
 .container {
   padding: 20rpx;
 }
 
+.order-food-dish-section {
+  margin-bottom: 32rpx;
+}
+
+.order-food-footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  display: flex;
+  gap: 16rpx;
+  padding: 16rpx 24rpx;
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+  background: #fff;
+  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.06);
+}
+
+.order-food-footer__btn {
+  flex: 1;
+  margin: 0;
+  font-size: 32rpx;
+  font-weight: 600;
+  border-radius: 12rpx;
+  border: none;
+  padding: 22rpx 0;
+  line-height: 1.3;
+}
+
+.order-food-footer__btn::after {
+  border: none;
+}
+
+.order-food-footer__btn--primary {
+  background: linear-gradient(135deg, #66bb6a 0%, #81c784 100%);
+  color: #fff;
+}
+
+.order-food-footer__btn--share {
+  background: #576b95;
+  color: #fff;
+}
+
+.order-food-dish-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.order-food-dish-main--view {
+  margin-left: 0;
+}
+
+.order-food-dish-title {
+  margin-bottom: 6rpx;
+}
+
+.order-food-desc--collapsed {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.order-food-desc--expanded {
+  white-space: normal;
+  overflow: visible;
+  word-break: break-word;
+}
+
+.order-food-dish-panel {
+  margin-top: 12rpx;
+  padding: 12rpx 0 8rpx;
+  border-top: 1rpx solid #e8f5e9;
+}
+
+.order-food-tag-block-title {
+  font-size: 24rpx;
+  color: #666;
+  margin-bottom: 12rpx;
+  display: block;
+}
+
+.order-food-tag-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 12rpx;
+  margin-bottom: 10rpx;
+  flex-wrap: wrap;
+}
+
+.order-food-tag-users {
+  font-size: 26rpx;
+  color: #333;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.5;
+}
+
+.dish-tag-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6rpx 16rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  color: #fff;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.dish-tag-pill--red {
+  background: linear-gradient(135deg, #e53935 0%, #ef5350 100%);
+}
+
+.dish-tag-pill--blue {
+  background: linear-gradient(135deg, #1565c0 0%, #1e88e5 100%);
+}
+
+.dish-tag-pill--large {
+  font-size: 28rpx;
+  padding: 10rpx 20rpx;
+  border-radius: 10rpx;
+}
+
+.order-food-my-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  align-items: center;
+}
+
+.order-food-my-tag-chip {
+  gap: 8rpx;
+}
+
+.order-food-my-tag-x {
+  margin-left: 6rpx;
+  font-size: 32rpx;
+  line-height: 1;
+  padding: 0 4rpx;
+  opacity: 0.95;
+}
+
+/* 折叠态：只读「我的标签」，约为展开态的 50% 尺寸 */
+.order-food-my-tags--collapsed {
+  margin-top: 10rpx;
+  padding-top: 10rpx;
+  border-top: 1rpx solid #e8f5e9;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.order-food-my-tags-row--collapsed {
+  gap: 10rpx;
+}
+
+/* 折叠态 pill：比原先 50% 略大，便于阅读（仍小于展开态 large） */
+.dish-tag-pill--collapsed-readonly {
+  font-size: 22rpx;
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+}
+
+/* 添加标签：在展开面板底部、标签区域下方 */
+.order-food-add-tag-row {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.order-food-add-tag-row--in-panel {
+  margin-top: 4rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid #e8f5e9;
+}
+
+.order-food-add-tag-btn {
+  display: block;
+  width: 60%;
+  max-width: 420rpx;
+  margin: 0 auto;
+  background: #e8f5e9 !important;
+  color: #2e7d32 !important;
+  font-size: 26rpx;
+  font-weight: 600;
+  border-radius: 10rpx;
+  line-height: 1.35;
+  padding: 12rpx 16rpx;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.order-food-add-tag-btn::after {
+  border: none;
+}
+
+/* 标签选择器 */
+.tag-picker-mask {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 500;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.tag-picker-panel {
+  width: 100%;
+  max-height: 70vh;
+  background: #fff;
+  border-radius: 24rpx 24rpx 0 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  display: flex;
+  flex-direction: column;
+}
+
+.tag-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 28rpx;
+  border-bottom: 1rpx solid #eee;
+  gap: 16rpx;
+}
+
+.tag-picker-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1a1a1a;
+  flex: 1;
+  min-width: 0;
+}
+
+.tag-picker-clear {
+  flex-shrink: 0;
+  font-size: 28rpx;
+  color: #1565c0;
+  padding: 8rpx 12rpx;
+}
+
+/* 左分类 | 右标签 双栏 */
+.tag-picker-split {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  height: 420rpx;
+  border-bottom: 1rpx solid #eee;
+}
+
+.tag-picker-cats {
+  width: 38%;
+  flex-shrink: 0;
+  border-right: 1rpx solid #eee;
+  background: #fafafa;
+  box-sizing: border-box;
+}
+
+.tag-picker-tags {
+  flex: 1;
+  min-width: 0;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+/* 双栏可滚动（替代 scroll-view，避免点击失效） */
+.tag-picker-col-scroll {
+  height: 420rpx;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tag-picker-cat-item {
+  padding: 28rpx 20rpx;
+  font-size: 28rpx;
+  color: #333;
+  border-bottom: 1rpx solid #eee;
+}
+
+.tag-picker-cat-item--active {
+  background: #e8f5e9;
+  color: #1b5e20;
+  font-weight: 700;
+}
+
+.tag-picker-tag-item {
+  padding: 26rpx 28rpx;
+  font-size: 30rpx;
+  color: #333;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.tag-picker-tag-item--active {
+  background: #e8f5e9;
+  color: #1b5e20;
+  font-weight: 600;
+}
+
+.tag-picker-footer {
+  display: flex;
+  gap: 20rpx;
+  padding: 20rpx 24rpx 24rpx;
+}
+
+.tag-picker-btn {
+  flex: 1;
+  width: 100%;
+  font-size: 30rpx;
+  border-radius: 12rpx;
+  border: none;
+  padding: 22rpx 0;
+  margin: 0;
+}
+
+.tag-picker-btn::after {
+  border: none;
+}
+
+.tag-picker-btn--ghost {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.tag-picker-btn--primary {
+  background: linear-gradient(135deg, #66bb6a 0%, #81c784 100%);
+  color: #fff;
+  font-weight: 600;
+}
+
 /* 菜品行：大图、收紧与列表边缘间距 */
+/* 覆盖 app.wxss .list-item 的横向 flex，否则展开区会与主行并排，按钮被挤到右侧 */
 .order-food-page .list-item.order-food-dish-item {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
   padding: 8rpx 0;
+}
+
+/* 与发起点餐页类似：已选浅绿底+绿描边，未选灰底弱化，提升列表可扫性 */
+.order-food-page .list-item.order-food-dish-item.order-food-dish-item--selected,
+.order-food-page .list-item.order-food-dish-item.order-food-dish-item--unselected {
+  border-bottom: none;
+  margin-bottom: 12rpx;
+  padding: 14rpx 12rpx;
+  border-radius: 16rpx;
+  box-sizing: border-box;
+}
+
+.order-food-dish-item--selected {
+  background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+  border: 2rpx solid #81c784;
+  box-shadow: 0 2rpx 10rpx rgba(76, 175, 80, 0.12);
+}
+
+.order-food-dish-item--selected .order-food-dish-title,
+.order-food-dish-item--selected .list-item__title {
+  color: #1b5e20;
+}
+
+.order-food-dish-item--unselected {
+  background: #f5f5f5;
+  border: 2rpx solid #e8e8e8;
+}
+
+.order-food-dish-item--unselected .order-food-dish-title,
+.order-food-dish-item--unselected .list-item__title {
+  color: #616161;
+}
+
+.order-food-dish-item--unselected .list-item__desc,
+.order-food-dish-item--unselected .order-food-desc {
+  color: #9e9e9e;
+}
+
+.order-food-dish-item--unselected .dish-list-thumb {
+  opacity: 0.82;
 }
 
 .order-food-dish-row {
   display: flex;
   align-items: center;
   width: 100%;
+  gap: 28rpx;
 }
 
 .order-food-dish-check {
   transform: scale(1.2);
-  margin-right: 10rpx;
+  margin-left: 0;
+  margin-right: 0;
   flex-shrink: 0;
 }
 
 .order-food-dish-text {
-  margin-left: 10rpx;
+  margin-left: 0;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -71,8 +491,8 @@
 
 .dish-name {
   flex: 1;
-  font-size: 32rpx;
-  color: #1A1A1A;
+  font-size: 38rpx;
+  color: #1a1a1a;
 }
 
 .dish-count {

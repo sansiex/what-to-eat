@@ -121,9 +121,9 @@ describe('点餐页面测试', () => {
       data: { id: 100, mealId: 1, dishIds: [1, 2] }
     });
     
-    const result = await mockAPI.order.create(1, [1, 2]);
+    const result = await mockAPI.order.create(1, [1, 2], { 1: [], 2: [] });
     
-    expect(mockAPI.order.create).toHaveBeenCalledWith(1, [1, 2]);
+    expect(mockAPI.order.create).toHaveBeenCalledWith(1, [1, 2], { 1: [], 2: [] });
     expect(result.data.id).toBe(100);
   });
 
@@ -143,6 +143,26 @@ describe('点餐页面测试', () => {
     expect(wxml).toContain('分享');
     // 分享按钮应使用微信原生分享能力（与 meal-list 一致）
     expect(wxml).toContain('open-type="share"');
+    expect(wxml).toContain('order-food-footer');
+    expect(wxml).toContain('bindtap="placeOrder"');
+    expect(wxml).toContain('toggleDishExpand');
+    expect(wxml).toContain('tag-picker-mask');
+    expect(wxml).toContain('tag-picker-split');
+    expect(wxml).toContain('clearTagPickerSelection');
+    expect(wxml).toContain('selectTagPickerCategory');
+    expect(wxml).toContain('order-food-add-tag-row');
+    expect(wxml).toContain('dish-tag-pill');
+    expect(wxml).toContain('order-food-dish-item--selected');
+    expect(wxml).toContain('order-food-dish-item--unselected');
+    expect(wxml).not.toContain('collapsed-offset');
+    expect(wxml).toContain('用餐时间');
+    expect(wxml).toContain('formattedScheduledMeal');
+  });
+
+  test('用餐时间行 WXSS 为黑色', () => {
+    const fs = require('fs');
+    const wxss = fs.readFileSync('pages/order-food/order-food.wxss', 'utf-8');
+    expect(wxss).toMatch(/\.order-food-meal-scheduled\s*\{[^}]*#000000/);
   });
 
   test('验证JS包含分享方法', () => {
@@ -150,6 +170,9 @@ describe('点餐页面测试', () => {
     const js = fs.readFileSync('pages/order-food/order-food.js', 'utf-8');
     
     expect(js).toContain('isInitiator');
+    expect(js).toContain('formatScheduledMealDisplayForOrderFood');
+    expect(js).toContain('formattedScheduledMeal');
+    expect(js).toContain('formatMealCreatedAtBeijing(currentMeal.createdAt, true)');
     // 需要提供分享卡片配置
     expect(js).toContain('onShareAppMessage');
   });

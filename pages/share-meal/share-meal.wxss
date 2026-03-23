@@ -48,7 +48,7 @@
 .dish-content {
   display: flex;
   align-items: center;
-  gap: 10rpx;
+  gap: 28rpx;
 }
 
 .dish-checkbox {
@@ -64,9 +64,9 @@
 }
 
 .dish-name {
-  font-size: 28rpx;
+  font-size: 38rpx;
   font-weight: 600;
-  color: #1A1A1A;
+  color: #1a1a1a;
   margin-bottom: 4rpx;
 }
 

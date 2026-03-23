@@ -64,9 +64,36 @@
   margin-top: 8rpx;
 }
 
-.menu-action-icon {
-  width: 100rpx;
-  height: 100rpx;
+/* 发起点餐：横向长方形 + 圆角 + 图标文案 */
+.menu-start-meal-btn {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
   margin-left: 20rpx;
+  padding: 20rpx 32rpx;
+  min-height: 80rpx;
+  box-sizing: border-box;
+  background: linear-gradient(135deg, #66bb6a 0%, #81c784 100%);
+  border-radius: 12rpx;
+  box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.28);
+}
+
+.menu-start-meal-btn:active {
+  opacity: 0.92;
+}
+
+.menu-start-meal-btn__icon {
+  width: 40rpx;
+  height: 40rpx;
+  flex-shrink: 0;
+  margin-right: 12rpx;
+}
+
+.menu-start-meal-btn__text {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.2;
 }

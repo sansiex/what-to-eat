@@ -10,7 +10,15 @@
   justify-content: space-between;
   align-items: center;
   gap: 16rpx;
-  margin-bottom: 16rpx;
+  margin-bottom: 10rpx;
+}
+
+.meal-scheduled-line {
+  display: block;
+  font-size: 26rpx;
+  color: #000000;
+  line-height: 1.35;
+  margin-bottom: 12rpx;
 }
 
 .meal-name {
@@ -120,42 +128,146 @@
   gap: 10rpx;
 }
 
-.dish-item {
-  display: flex;
-  align-items: center;
-  padding: 8rpx 0;
-  border-bottom: 1rpx solid #F0F0F0;
+.dish-block {
+  border-bottom: 1rpx solid #f0f0f0;
+  padding-bottom: 12rpx;
+  margin-bottom: 8rpx;
 }
 
-.dish-item:last-child {
+.dish-block:last-child {
   border-bottom: none;
 }
 
-.dish-img {
+.dish-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 8rpx 0;
+}
+
+/* 角标占右下角，给文案右侧留白避免重叠 */
+.dish-item--has-tag-badge {
+  padding-right: 88rpx;
+}
+
+.dish-item--tap:active {
+  opacity: 0.85;
+}
+
+.dish-img-wrap {
   width: 136rpx;
   height: 136rpx;
+  flex-shrink: 0;
+  border-radius: 12rpx;
+  overflow: hidden;
+}
+
+.dish-img {
+  display: block;
+  width: 100%;
+  height: 100%;
   border-radius: 12rpx;
   background: #f2f4f7;
-  flex-shrink: 0;
+}
+
+/* 有人打过标签：整行列表项右下角角标（相对 .dish-item） */
+.dish-tag-corner-badge {
+  position: absolute;
+  right: 0;
+  bottom: 8rpx;
+  padding: 4rpx 10rpx;
+  background: rgba(21, 101, 192, 0.92);
+  color: #fff;
+  font-size: 18rpx;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  border-radius: 8rpx;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .dish-info {
-  margin-left: 12rpx;
+  margin-left: 28rpx;
   flex: 1;
   min-width: 0;
 }
 
 .dish-name {
-  font-size: 28rpx;
-  font-weight: 500;
-  color: #1A1A1A;
+  font-size: 38rpx;
+  font-weight: 600;
+  color: #1a1a1a;
   display: block;
   margin-bottom: 4rpx;
+}
+
+.dish-desc {
+  font-size: 26rpx;
+  color: #666;
+  display: block;
+  margin-bottom: 4rpx;
+  line-height: 1.45;
 }
 
 .dish-orderers {
   font-size: 24rpx;
   color: #999;
+}
+
+.dish-desc--collapsed {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.dish-desc--expanded {
+  white-space: normal;
+  overflow: visible;
+  word-break: break-word;
+}
+
+.dish-tag-panel {
+  padding: 12rpx 0 8rpx 164rpx;
+}
+
+.meal-detail-tag-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 12rpx;
+  margin-bottom: 10rpx;
+  flex-wrap: wrap;
+}
+
+.meal-detail-tag-users {
+  font-size: 26rpx;
+  color: #333;
+  flex: 1;
+  line-height: 1.5;
+}
+
+.meal-detail-tag-empty {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.dish-tag-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6rpx 16rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  color: #fff;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.dish-tag-pill--red {
+  background: linear-gradient(135deg, #e53935 0%, #ef5350 100%);
+}
+
+.dish-tag-pill--blue {
+  background: linear-gradient(135deg, #1565c0 0%, #1e88e5 100%);
 }
 
 .empty-state {

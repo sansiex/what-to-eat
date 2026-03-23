@@ -4,7 +4,58 @@
  */
 
 const { query, transaction, getUserId } = require('./utils/db');
+const { buildDishTagDisplaysByDishId, expandOrderRowsToTagRows } = require('./utils/tag-registry');
 const { success, error, paramError, notFound } = require('./utils/response');
+const { formatScheduledForApi } = require('./utils/schedule-format');
+
+function pad2(n) {
+  return String(n).padStart(2, '0');
+}
+
+/** 今日北京时间 YYYY-MM-DD（与小程序 beijing-day 自然日一致） */
+function todayYmdBeijing() {
+  const now = new Date();
+  const b = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+  const y = b.getUTCFullYear();
+  const mo = b.getUTCMonth() + 1;
+  const d = b.getUTCDate();
+  return `${y}-${pad2(mo)}-${pad2(d)}`;
+}
+
+/**
+ * @param {Object} data
+ * @returns {{ ok: true, sqlDatetime: string, timeSpecified: 0|1 } | { err: string }}
+ */
+function parseScheduleFromClient(data) {
+  let scheduledDate = data && data.scheduledDate != null ? String(data.scheduledDate).trim() : '';
+  if (!scheduledDate) {
+    scheduledDate = todayYmdBeijing();
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(scheduledDate)) {
+    return { err: '用餐日期无效' };
+  }
+  const timeSpec = !!(data && data.scheduledTimeSpecified);
+  if (timeSpec) {
+    const h = Number(data.scheduledHour);
+    const m = Number(data.scheduledMinute);
+    if (!Number.isInteger(h) || h < 0 || h > 23) {
+      return { err: '用餐时间（时）无效' };
+    }
+    if (!Number.isInteger(m) || m < 0 || m > 55 || m % 5 !== 0) {
+      return { err: '用餐时间须为 5 分钟粒度' };
+    }
+    return {
+      ok: true,
+      sqlDatetime: `${scheduledDate} ${pad2(h)}:${pad2(m)}:00`,
+      timeSpecified: 1
+    };
+  }
+  return {
+    ok: true,
+    sqlDatetime: `${scheduledDate} 00:00:00`,
+    timeSpecified: 0
+  };
+}
 
 /**
  * 检查用户是否为厨房成员（owner 或 admin），返回角色或 null
@@ -117,6 +168,11 @@ async function createMeal(data, context) {
   if (!dishIds || !Array.isArray(dishIds) || dishIds.length === 0) {
     return paramError('请至少选择一个菜品');
   }
+
+  const scheduleParsed = parseScheduleFromClient(data);
+  if (scheduleParsed.err) {
+    return paramError(scheduleParsed.err);
+  }
   
   const userId = await getUserId(data, context);
   const trimmedName = name.trim();
@@ -137,8 +193,14 @@ async function createMeal(data, context) {
   return await transaction(async (connection) => {
     // 创建点餐活动
     const [mealResult] = await connection.query(
-      'INSERT INTO wte_meals (user_id, kitchen_id, name) VALUES (?, ?, ?)',
-      [userId, targetKitchenId, trimmedName]
+      'INSERT INTO wte_meals (user_id, kitchen_id, name, scheduled_at, scheduled_time_specified) VALUES (?, ?, ?, ?, ?)',
+      [
+        userId,
+        targetKitchenId,
+        trimmedName,
+        scheduleParsed.sqlDatetime,
+        scheduleParsed.timeSpecified
+      ]
     );
     
     const mealId = mealResult.insertId;
@@ -164,7 +226,7 @@ async function createMeal(data, context) {
     
     // 返回完整的点餐信息
     const [newMeal] = await connection.query(
-      `SELECT m.id, m.name, m.status, m.created_at,
+      `SELECT m.id, m.name, m.status, m.created_at, m.scheduled_at, m.scheduled_time_specified,
         GROUP_CONCAT(d.id) as dish_ids,
         GROUP_CONCAT(d.name) as dish_names
       FROM wte_meals m
@@ -174,12 +236,15 @@ async function createMeal(data, context) {
       GROUP BY m.id`,
       [mealId]
     );
-    
+    const sch = formatScheduledForApi(newMeal[0].scheduled_at, newMeal[0].scheduled_time_specified);
+
     return success({
       id: newMeal[0].id,
       name: newMeal[0].name,
       status: newMeal[0].status,
       createdAt: newMeal[0].created_at,
+      scheduledAt: sch.scheduledAt,
+      scheduledTimeSpecified: sch.scheduledTimeSpecified,
       dishes: parseDishes(newMeal[0].dish_ids, newMeal[0].dish_names)
     }, '点餐活动创建成功');
   });
@@ -226,11 +291,31 @@ async function updateMeal(data, context) {
     return error('已收单的点餐活动不能修改');
   }
   
+  const shouldUpdateSchedule =
+    data &&
+    data.scheduledDate != null &&
+    String(data.scheduledDate).trim() !== '';
+
+  let scheduleUpdate = null;
+  if (shouldUpdateSchedule) {
+    scheduleUpdate = parseScheduleFromClient(data);
+    if (scheduleUpdate.err) {
+      return paramError(scheduleUpdate.err);
+    }
+  }
+
   return await transaction(async (connection) => {
-    await connection.query(
-      'UPDATE wte_meals SET name = ? WHERE id = ?',
-      [trimmedName, id]
-    );
+    if (scheduleUpdate) {
+      await connection.query(
+        'UPDATE wte_meals SET name = ?, scheduled_at = ?, scheduled_time_specified = ? WHERE id = ?',
+        [trimmedName, scheduleUpdate.sqlDatetime, scheduleUpdate.timeSpecified, id]
+      );
+    } else {
+      await connection.query(
+        'UPDATE wte_meals SET name = ? WHERE id = ?',
+        [trimmedName, id]
+      );
+    }
     
     const placeholders = dishIds.map(() => '?').join(',');
     const [validDishes] = await connection.query(
@@ -258,7 +343,7 @@ async function updateMeal(data, context) {
     
     // 返回更新后的点餐信息
     const [updatedMeal] = await connection.query(
-      `SELECT m.id, m.name, m.status, m.created_at,
+      `SELECT m.id, m.name, m.status, m.created_at, m.scheduled_at, m.scheduled_time_specified,
         GROUP_CONCAT(d.id) as dish_ids,
         GROUP_CONCAT(d.name) as dish_names
       FROM wte_meals m
@@ -268,12 +353,15 @@ async function updateMeal(data, context) {
       GROUP BY m.id`,
       [id]
     );
-    
+    const schU = formatScheduledForApi(updatedMeal[0].scheduled_at, updatedMeal[0].scheduled_time_specified);
+
     return success({
       id: updatedMeal[0].id,
       name: updatedMeal[0].name,
       status: updatedMeal[0].status,
       createdAt: updatedMeal[0].created_at,
+      scheduledAt: schU.scheduledAt,
+      scheduledTimeSpecified: schU.scheduledTimeSpecified,
       dishes: parseDishes(updatedMeal[0].dish_ids, updatedMeal[0].dish_names)
     }, '点餐活动更新成功');
   });
@@ -329,7 +417,16 @@ async function deleteMeal(data, context) {
  * @returns {Object} 点餐列表
  */
 async function listMeals(data, context) {
-  const { status, kitchenId, page = 1, pageSize = 100 } = data || {};
+  const {
+    status,
+    kitchenId,
+    page = 1,
+    pageSize = 100,
+    /** ISO 字符串，created_at >= createdAfter */
+    createdAfter,
+    /** ISO 字符串，created_at < createdBefore */
+    createdBefore
+  } = data || {};
   const userId = await getUserId(data, context);
   
   // 如果没有提供kitchenId，获取或创建用户的默认厨房
@@ -348,6 +445,7 @@ async function listMeals(data, context) {
   // ordered_dish_count: 至少有一个人点过的菜品数量
   let sql = `
     SELECT m.id, m.name, m.status, m.created_at, m.closed_at,
+      m.scheduled_at, m.scheduled_time_specified,
       m.user_id as creator_user_id,
       u.nickname as creator_name,
       COUNT(DISTINCT md.dish_id) as dish_count,
@@ -365,7 +463,16 @@ async function listMeals(data, context) {
     sql += ' AND m.status = ?';
     params.push(status);
   }
-  
+
+  if (createdAfter) {
+    sql += ' AND m.created_at >= ?';
+    params.push(createdAfter);
+  }
+  if (createdBefore) {
+    sql += ' AND m.created_at < ?';
+    params.push(createdBefore);
+  }
+
   sql += ' GROUP BY m.id ORDER BY m.created_at DESC';
   
   // 分页
@@ -387,23 +494,37 @@ async function listMeals(data, context) {
     countSql += ' AND m.status = ?';
     countParams.push(status);
   }
-  
+
+  if (createdAfter) {
+    countSql += ' AND m.created_at >= ?';
+    countParams.push(createdAfter);
+  }
+  if (createdBefore) {
+    countSql += ' AND m.created_at < ?';
+    countParams.push(createdBefore);
+  }
+
   const countResult = await query(countSql, countParams);
   
   return success({
-    list: meals.map(meal => ({
-      id: meal.id,
-      name: meal.name,
-      status: meal.status,
-      createdAt: meal.created_at,
-      closedAt: meal.closed_at,
-      creatorUserId: meal.creator_user_id,
-      creatorName: meal.creator_name,
-      isCreator: meal.creator_user_id === userId,
-      dishCount: meal.dish_count,
-      orderedDishCount: parseInt(meal.ordered_dish_count) || 0,
-      ordererCount: meal.orderer_count
-    })),
+    list: meals.map(meal => {
+      const sch = formatScheduledForApi(meal.scheduled_at, meal.scheduled_time_specified);
+      return {
+        id: meal.id,
+        name: meal.name,
+        status: meal.status,
+        createdAt: meal.created_at,
+        closedAt: meal.closed_at,
+        scheduledAt: sch.scheduledAt,
+        scheduledTimeSpecified: sch.scheduledTimeSpecified,
+        creatorUserId: meal.creator_user_id,
+        creatorName: meal.creator_name,
+        isCreator: meal.creator_user_id === userId,
+        dishCount: meal.dish_count,
+        orderedDishCount: parseInt(meal.ordered_dish_count) || 0,
+        ordererCount: meal.orderer_count
+      };
+    }),
     total: countResult[0].total,
     page: parseInt(page),
     pageSize: parseInt(pageSize)
@@ -428,6 +549,7 @@ async function getMeal(data, context) {
   // 获取点餐基本信息（不限制用户，允许查看他人创建的点餐）
   const meal = await query(
     `SELECT m.id, m.user_id, m.kitchen_id, m.name, m.status, m.created_at, m.closed_at,
+            m.scheduled_at, m.scheduled_time_specified,
             u.nickname as creator_name
      FROM wte_meals m
      LEFT JOIN wte_users u ON m.user_id = u.id
@@ -472,6 +594,18 @@ async function getMeal(data, context) {
     ? await checkKitchenMembership(meal[0].kitchen_id, userId)
     : null;
 
+  const orderTagRows = await query(
+    `SELECT o.dish_id, o.user_id, o.tags, u.nickname as nickname
+     FROM wte_orders o
+     INNER JOIN wte_users u ON o.user_id = u.id
+     WHERE o.meal_id = ? AND o.status = 1`,
+    [id]
+  );
+  const tagRows = expandOrderRowsToTagRows(orderTagRows);
+  const tagMap = buildDishTagDisplaysByDishId(tagRows, userId);
+
+  const schG = formatScheduledForApi(meal[0].scheduled_at, meal[0].scheduled_time_specified);
+
   return success({
     id: meal[0].id,
     name: meal[0].name,
@@ -482,12 +616,15 @@ async function getMeal(data, context) {
     kitchenRole: kitchenRole,
     createdAt: meal[0].created_at,
     closedAt: meal[0].closed_at,
+    scheduledAt: schG.scheduledAt,
+    scheduledTimeSpecified: schG.scheduledTimeSpecified,
     dishes: dishes.map(dish => ({
       id: dish.id,
       name: dish.name,
       description: dish.description,
       imageUrl: dish.image_url,
-      orderers: dishOrderMap[dish.id] || []
+      orderers: dishOrderMap[dish.id] || [],
+      tagDisplay: tagMap.get(dish.id)?.tagDisplay || { groups: [], myTags: [] }
     }))
   });
 }

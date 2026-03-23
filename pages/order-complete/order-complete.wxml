@@ -1,48 +1,110 @@
 <!-- pages/order-complete/order-complete.wxml -->
 <view class="container">
-  <!-- 成功提示 -->
   <view class="success-banner">
     <text class="success-text">点餐成功！🎉</text>
     <text class="success-sub">{{meal.name}}</text>
   </view>
 
-  <!-- 已点菜品 -->
   <view class="section" wx:if="{{orderedDishes.length > 0}}">
     <text class="section-title">已点菜品</text>
-    <view wx:for="{{orderedDishes}}" wx:key="id" class="dish-row">
-      <image class="dish-thumb" src="{{item.displayImage || '/images/dish-placeholder.png'}}" mode="aspectFill" bindtap="previewDishImage" data-url="{{item.displayImage}}" />
-      <view class="dish-text">
-        <text class="dish-name">{{item.name}}</text>
-        <text class="dish-desc">{{item.displayDescription || '暂无描述'}}</text>
+    <view wx:for="{{orderedDishes}}" wx:key="id" class="oc-dish-block">
+      <view class="dish-row" bindtap="toggleDishExpand" data-id="{{item.id}}">
+        <image class="dish-thumb" src="{{item.displayImage || '/images/dish-placeholder.png'}}" mode="aspectFill" catchtap="previewDishImage" data-url="{{item.displayImage}}" />
+        <view class="dish-text">
+          <text class="dish-name">{{item.name}}</text>
+          <text class="dish-desc {{expandedDishId === item.id ? 'dish-desc--expanded' : 'dish-desc--collapsed'}}">{{item.displayDescription || '暂无描述'}}</text>
+        </view>
+        <text class="dish-badge">✓</text>
       </view>
-      <text class="dish-badge">✓</text>
+      <!-- 折叠：与点餐页折叠态一致，无标题、无 X，左缘与缩略图对齐 -->
+      <view
+        wx:if="{{expandedDishId !== item.id && item.tagView.myTags.length > 0}}"
+        class="oc-my-tags-collapsed"
+        catchtap="noop"
+      >
+        <view class="oc-my-tags-collapsed-row">
+          <text
+            wx:for="{{item.tagView.myTags}}"
+            wx:key="rowKey"
+            wx:for-item="mt"
+            class="dish-tag-pill dish-tag-pill--{{mt.colorKey}} dish-tag-pill--oc-collapsed"
+          >{{mt.tagLabel}}</text>
+        </view>
+      </view>
+      <view wx:if="{{expandedDishId === item.id}}" class="oc-tag-panel" catchtap="noop">
+        <view wx:if="{{item.tagView.groups.length > 0}}">
+          <block wx:for="{{item.tagView.groups}}" wx:key="categoryKey" wx:for-item="grp">
+            <view wx:for="{{grp.items}}" wx:key="tagLabel" wx:for-item="row" class="oc-tag-line">
+              <text class="dish-tag-pill dish-tag-pill--{{grp.colorKey}}">{{row.tagLabel}}</text>
+              <text class="oc-tag-users">{{row.usersText}}</text>
+            </view>
+          </block>
+        </view>
+        <view wx:if="{{item.tagView.myTags.length > 0}}" class="oc-my-tags-expanded">
+          <view class="oc-my-tags-collapsed-row">
+            <text
+              wx:for="{{item.tagView.myTags}}"
+              wx:key="rowKey"
+              wx:for-item="mt"
+              class="dish-tag-pill dish-tag-pill--{{mt.colorKey}} dish-tag-pill--oc-collapsed"
+            >{{mt.tagLabel}}</text>
+          </view>
+        </view>
+        <text wx:if="{{item.tagView.groups.length === 0 && item.tagView.myTags.length === 0}}" class="oc-tag-empty">暂无标签</text>
+      </view>
     </view>
   </view>
 
-  <!-- 未点菜品 -->
   <view class="section" wx:if="{{unorderedDishes.length > 0}}">
     <text class="section-title section-title--muted">未点菜品</text>
-    <view wx:for="{{unorderedDishes}}" wx:key="id" class="dish-row dish-row--muted">
-      <image class="dish-thumb dish-thumb--muted" src="{{item.displayImage || '/images/dish-placeholder.png'}}" mode="aspectFill" bindtap="previewDishImage" data-url="{{item.displayImage}}" />
-      <view class="dish-text">
-        <text class="dish-name dish-name--muted">{{item.name}}</text>
-        <text class="dish-desc">{{item.displayDescription || '暂无描述'}}</text>
+    <view wx:for="{{unorderedDishes}}" wx:key="id" class="oc-dish-block">
+      <view class="dish-row dish-row--muted" bindtap="toggleDishExpand" data-id="{{item.id}}">
+        <image class="dish-thumb dish-thumb--muted" src="{{item.displayImage || '/images/dish-placeholder.png'}}" mode="aspectFill" catchtap="previewDishImage" data-url="{{item.displayImage}}" />
+        <view class="dish-text">
+          <text class="dish-name dish-name--muted">{{item.name}}</text>
+          <text class="dish-desc {{expandedDishId === item.id ? 'dish-desc--expanded' : 'dish-desc--collapsed'}}">{{item.displayDescription || '暂无描述'}}</text>
+        </view>
+      </view>
+      <view wx:if="{{expandedDishId === item.id}}" class="oc-tag-panel" catchtap="noop">
+        <view wx:if="{{item.tagView.groups.length > 0}}">
+          <block wx:for="{{item.tagView.groups}}" wx:key="categoryKey" wx:for-item="grp">
+            <view wx:for="{{grp.items}}" wx:key="tagLabel" wx:for-item="row" class="oc-tag-line">
+              <text class="dish-tag-pill dish-tag-pill--{{grp.colorKey}}">{{row.tagLabel}}</text>
+              <text class="oc-tag-users">{{row.usersText}}</text>
+            </view>
+          </block>
+        </view>
+        <text wx:else class="oc-tag-empty">暂无标签</text>
       </view>
     </view>
   </view>
 
-  <!-- 操作按钮 -->
   <view class="action-bar">
-    <button class="btn btn-secondary" bindtap="reOrder">重新点餐</button>
-    <button
-      wx:if="{{!isCreator}}"
-      class="btn btn-primary"
-      bindtap="enterMyKitchen"
-    >进入我的厨房</button>
-    <button
-      wx:if="{{isCreator}}"
-      class="btn btn-primary"
-      open-type="share"
-    >分享</button>
+    <!-- 发起人：点餐列表 | 分享 | 重新点餐（分享与重新点餐相对原顺序已对调） -->
+    <block wx:if="{{isCreator}}">
+      <button class="btn btn-secondary btn-with-icon" bindtap="goMealList">
+        <image class="btn-with-icon__img" src="/images/tab-meal.png" mode="aspectFit" />
+        <text class="btn-with-icon__text">点餐列表</text>
+      </button>
+      <button class="btn btn-primary btn-with-icon" open-type="share">
+        <image class="btn-with-icon__img" src="/images/icon-share.png" mode="aspectFit" />
+        <text class="btn-with-icon__text">分享</text>
+      </button>
+      <button class="btn btn-secondary btn-with-icon" bindtap="reOrder">
+        <image class="btn-with-icon__img" src="/images/icon-reopen.png" mode="aspectFit" />
+        <text class="btn-with-icon__text">重新点餐</text>
+      </button>
+    </block>
+    <!-- 非发起人 -->
+    <block wx:else>
+      <button class="btn btn-secondary btn-with-icon" bindtap="reOrder">
+        <image class="btn-with-icon__img" src="/images/icon-reopen.png" mode="aspectFit" />
+        <text class="btn-with-icon__text">重新点餐</text>
+      </button>
+      <button class="btn btn-primary btn-with-icon" bindtap="enterMyKitchen">
+        <image class="btn-with-icon__img" src="/images/tab-kitchen.png" mode="aspectFit" />
+        <text class="btn-with-icon__text">进入我的厨房</text>
+      </button>
+    </block>
   </view>
 </view>

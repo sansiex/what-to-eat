@@ -29,6 +29,82 @@ page {
   margin-bottom: 0;
 }
 
+/* 用餐时间：与餐名、菜品选择同级，不再单独套一层色块框 */
+.meal-schedule-section {
+  margin-bottom: 24rpx;
+}
+
+.meal-schedule-title {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #000000;
+  margin-bottom: 12rpx;
+}
+
+.meal-schedule-picker-block {
+  display: block;
+  margin-bottom: 16rpx;
+}
+
+.meal-schedule-time-outer {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.meal-schedule-picker-block--grow {
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.meal-schedule-row {
+  display: flex;
+  align-items: center;
+  min-height: 80rpx;
+  padding: 0 24rpx;
+  background: #fff;
+  border-radius: 12rpx;
+  border: 1rpx solid #c8e6c9;
+  box-sizing: border-box;
+}
+
+.meal-schedule-row__label {
+  font-size: 28rpx;
+  color: #666;
+  width: 100rpx;
+  flex-shrink: 0;
+}
+
+.meal-schedule-row__value {
+  flex: 1;
+  font-size: 28rpx;
+  color: #000000;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meal-schedule-row__value--muted {
+  color: #999;
+}
+
+.meal-schedule-row__arrow {
+  margin-left: 12rpx;
+  font-size: 32rpx;
+  color: #bdbdbd;
+  flex-shrink: 0;
+}
+
+.meal-schedule-clear {
+  font-size: 26rpx;
+  color: #2e7d32;
+  flex-shrink: 0;
+  padding: 8rpx 12rpx;
+}
+
 /* 底部操作栏：始终贴在视口下方 */
 .initiate-meal-footer {
   flex-shrink: 0;
@@ -57,6 +133,37 @@ page {
 .initiate-meal-footer__btns--row .btn--footer {
   width: auto;
 }
+
+/* 仅「完成」单按钮时占满宽度 */
+.initiate-meal-footer__btns .btn--footer-complete {
+  width: 100%;
+}
+
+/* 编辑点餐：完成 = 绿底白字 + 勾选图标（返回使用导航栏左上角） */
+.initiate-footer-btn-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
+}
+
+.initiate-meal-footer .btn--footer-complete {
+  margin-top: 0;
+  background: linear-gradient(135deg, #66bb6a 0%, #81c784 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 4rpx 14rpx rgba(76, 175, 80, 0.28);
+}
+
+.initiate-meal-footer .btn--footer-complete::after {
+  border: none;
+}
+
+.initiate-meal-footer .btn--footer-complete[disabled] {
+  background: #c8e6c9 !important;
+  color: #999 !important;
+  box-shadow: none;
+}
+
 
 .btn {
   background: linear-gradient(135deg, #66BB6A 0%, #81C784 100%);
@@ -106,7 +213,38 @@ button:active {
   box-sizing: border-box;
 }
 
-/* 已选菜品数（列表上方） */
+/* 菜品选择标题（与菜单编辑页「选择菜品」同级字号） */
+.initiate-dish-select-label {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 12rpx;
+}
+
+/* 已选数量 + 全选：与菜单编辑页 tab 工具条一致，全选为蓝色文字链 */
+.initiate-select-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12rpx;
+  gap: 16rpx;
+}
+
+.initiate-select-toolbar .selected-dish-count {
+  margin-bottom: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+/* 与 menu-edit .section-action 一致 */
+.initiate-meal-body .section-action {
+  font-size: 26rpx;
+  color: #007aff;
+  flex-shrink: 0;
+}
+
+/* 已选菜品数 */
 .selected-dish-count {
   display: block;
   font-size: 26rpx;
@@ -116,17 +254,52 @@ button:active {
 
 /* 发起点餐页菜品列表 - 已选 / 未选 行区分 */
 .dish-select-row {
-  padding: 10rpx 12rpx;
+  /* 右侧多留空：原生 checkbox 热区/绘制易略宽于 32rpx，避免超出卡片描边 */
+  padding: 10rpx 22rpx 10rpx 12rpx;
   margin-bottom: 12rpx;
   border-radius: 14rpx;
   border-bottom: none;
   box-sizing: border-box;
 }
 
+/* list-item 仅有一个子节点时默认不占满宽，需拉满才能让勾选框靠最右 */
+.dish-select-row.list-item > .dish-select-row__inner {
+  flex: 1;
+  min-width: 0;
+}
+
 .dish-select-row__inner {
   display: flex;
   align-items: center;
-  gap: 10rpx;
+  gap: 28rpx;
+}
+
+.dish-select-row__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.dish-select-row__desc {
+  margin-top: 6rpx;
+}
+
+/* 勾选框靠右但留在卡片内：由外层占位，避免 margin-left:auto 直接作用在原生组件上溢出 */
+.dish-select-row__check-wrap {
+  flex-shrink: 0;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40rpx;
+  padding-left: 8rpx;
+}
+
+.dish-select-row__check {
+  margin-right: 0 !important;
+  margin-left: 0 !important;
+  flex-shrink: 0;
 }
 
 .dish-select-row:last-child {
@@ -161,7 +334,7 @@ button:active {
 
 /* 发起点餐页菜品列表 - 菜品名称字体加大 */
 .dish-select-row .list-item__title {
-  font-size: 34rpx;
+  font-size: 40rpx;
 }
 
 .dish-select-row--selected .list-item__title {

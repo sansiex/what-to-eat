@@ -21,9 +21,13 @@ const API = {
       return callHttpFunction('dish', 'list', data)
     },
 
-    // 创建菜品
-    create(name, description = '', imageUrl = '') {
-      return callHttpFunction('dish', 'create', { name, description, imageUrl })
+    // 创建菜品（kitchenId 不传时后端使用用户默认厨房）
+    create(name, description = '', imageUrl = '', kitchenId = null) {
+      const data = { name, description: description || '', imageUrl: imageUrl || '' }
+      if (kitchenId != null && kitchenId !== '') {
+        data.kitchenId = kitchenId
+      }
+      return callHttpFunction('dish', 'create', data)
     },
 
     // 更新菜品
@@ -44,21 +48,33 @@ const API = {
 
   // 点餐管理
   meal: {
-    list(status = null, kitchenId = null) {
-      const data = {}
-      if (status) data.status = status
-      if (kitchenId) data.kitchenId = kitchenId
+    list(status = null, kitchenId = null, extra = {}) {
+      const data = { ...extra }
+      if (status !== null && status !== undefined) data.status = status
+      if (kitchenId !== null && kitchenId !== undefined) data.kitchenId = kitchenId
       return callHttpFunction('meal', 'list', data)
     },
 
-    // 创建点餐
-    create(name, dishIds) {
-      return callHttpFunction('meal', 'create', { name, dishIds })
+    // 创建点餐（kitchenId 不传时后端使用用户默认厨房，需与点餐列表 currentKitchen 一致）
+    // schedule 可选：{ scheduledDate, scheduledTimeSpecified, scheduledHour, scheduledMinute }
+    create(name, dishIds, kitchenId = null, schedule = null) {
+      const data = { name, dishIds }
+      if (kitchenId != null && kitchenId !== '') {
+        data.kitchenId = kitchenId
+      }
+      if (schedule && typeof schedule === 'object') {
+        Object.assign(data, schedule)
+      }
+      return callHttpFunction('meal', 'create', data)
     },
 
-    // 更新点餐
-    update(id, name, dishIds) {
-      return callHttpFunction('meal', 'update', { id, name, dishIds })
+    // 更新点餐；schedule 同 create，编辑页传入则会更新用餐时间
+    update(id, name, dishIds, schedule = null) {
+      const data = { id, name, dishIds }
+      if (schedule && typeof schedule === 'object') {
+        Object.assign(data, schedule)
+      }
+      return callHttpFunction('meal', 'update', data)
     },
 
     // 删除点餐
@@ -84,9 +100,11 @@ const API = {
 
   // 订单管理
   order: {
-    // 创建订单（下单）
-    create(mealId, dishIds) {
-      return callHttpFunction('order', 'create', { mealId, dishIds })
+    // 创建订单（下单）；dishTagsByDishId 可选：{ [dishId]: [{ categoryKey, tagCode }] }，与勾选一并提交
+    create(mealId, dishIds, dishTagsByDishId) {
+      const data = { mealId, dishIds }
+      if (dishTagsByDishId != null) data.dishTagsByDishId = dishTagsByDishId
+      return callHttpFunction('order', 'create', data)
     },
 
     // 取消订单
@@ -107,6 +125,19 @@ const API = {
     // 获取我在某个点餐中的订单
     getMyOrder(mealId) {
       return callHttpFunction('order', 'getMyOrder', { mealId })
+    },
+
+    /** tags: [{ categoryKey, tagCode }] */
+    addDishTags(mealId, dishId, tags) {
+      return callHttpFunction('order', 'addDishTags', { mealId, dishId, tags })
+    },
+
+    removeDishTag(mealId, dishId, categoryKey, tagCode) {
+      return callHttpFunction('order', 'removeDishTag', { mealId, dishId, categoryKey, tagCode })
+    },
+
+    listMealDishTags(mealId) {
+      return callHttpFunction('order', 'listMealDishTags', { mealId })
     }
   },
 

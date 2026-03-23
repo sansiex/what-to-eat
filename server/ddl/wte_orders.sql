@@ -13,6 +13,9 @@ CREATE TABLE IF NOT EXISTS `wte_orders` (
     `user_id` BIGINT UNSIGNED NOT NULL COMMENT '下单用户ID，关联wte_users.id',
     `dish_id` BIGINT UNSIGNED NOT NULL COMMENT '菜品ID，关联wte_dishes.id',
     
+    -- 用户对这道菜的标签（JSON 数组：[{"categoryKey":"spiciness","tagCode":"mild"},...]）
+    `tags` JSON NULL COMMENT '点餐标签，辣度与忌口等',
+    
     -- 状态字段
     `status` TINYINT UNSIGNED NOT NULL DEFAULT '1' COMMENT '订单状态：1-正常，0-已取消',
     

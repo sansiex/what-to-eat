@@ -11,13 +11,10 @@
         <text class="menu-name">{{item.name}}</text>
         <text class="menu-count">{{item.dishCount}} 道菜</text>
       </view>
-      <image
-        class="menu-action-icon"
-        src="/images/icon-start-meal.png"
-        mode="aspectFit"
-        catchtap="goInitiateMeal"
-        data-id="{{item.id}}"
-      />
+      <view class="menu-start-meal-btn" catchtap="goInitiateMeal" data-id="{{item.id}}">
+        <image class="menu-start-meal-btn__icon" src="/images/icon-start-meal.png" mode="aspectFit" />
+        <text class="menu-start-meal-btn__text">发起点餐</text>
+      </view>
     </view>
   </view>
 </view>

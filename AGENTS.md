@@ -20,6 +20,13 @@
 - 使用软删除（status 字段）
 - 完整的索引设计
 
+### 点餐菜品标签（`wte_orders.tags`）
+- 与订单同行存储：`wte_orders.tags` 为 **JSON** 数组，元素形如 `{"categoryKey":"spiciness","tagCode":"mild"}`（辣度与 `taboo` 忌口等）
+- 已有库请执行：`scripts/migrations/001_wte_orders_tags_json.sql`；新建库可参考 `server/ddl/wte_orders.sql`（已含 `tags`）
+- 标签类型与可选值：`meal` / `order` 云函数内各有一份 **`utils/tag-registry.js`**（内容须一致；与小程序 `utils/dish-tag-registry.js` 保持同步）
+- 云函数：`order` 提供 `addDishTags` / `removeDishTag` / `listMealDishTags`；`meal.get` 返回的每道菜含 `tagDisplay`（由订单行 `tags` 聚合）
+- 点餐页：**勾选与「我的标签」草稿仅存在前端**，用户点「下单」时 `order.create` 传入 `dishIds` 与 `dishTagsByDishId`（每道已选菜的标签数组），一并写入 `wte_orders.tags`；`addDishTags` / `removeDishTag` 仍可在已有订单行上改标签（其他场景）
+
 ## 云函数规范
 
 ### 目录结构
@@ -32,6 +39,7 @@ functions/{functionName}/
     ├── db.js         # 数据库连接工具
     └── response.js   # 响应工具
 ```
+**部署说明**：SCF 上传的是单个函数目录（如 `meal/`），`require` 只能引用该目录内的文件；**不能**使用 `../其它目录` 引用兄弟函数或 `functions/utils` 公共文件，否则线上会报 `Cannot find module`。跨函数复用的逻辑（如 `tag-registry.js`）需在 **`meal/utils` 与 `order/utils` 各放一份并保持同步**。
 
 ### 数据库连接 (utils/db.js)
 ```javascript
@@ -82,7 +90,12 @@ const dishes = result.data.list
 ### 数据绑定注意事项
 - 后端返回的状态字段通常是数字（1/0）
 - 前端需要转换为字符串（'ordering'/'closed'）便于模板判断
-- 时间字段需要格式化为北京时间
+
+### 日期与时间（北京时间）
+- **本小程序中所有与用户相关的日期、时间的输入与展示，一律使用北京时间（UTC+8）。** 界面上默认**不要**在文案末尾追加「（北京时间）」等字样；以日期、时刻本身的换算与约定体现时区即可。
+- **展示**：与云端约定的无时区字符串（如 `YYYY-MM-DD`、`YYYY-MM-DD HH:mm`）按**北京时间墙钟**理解；若接口返回带 `Z` 或 `±` 偏移的 ISO 8601，必须先换算为北京时间再格式化展示。
+- **输入**：发起点餐的用餐日期/时刻、**点餐列表分区**（明天及以后用餐 / 今天用餐 / 历史点餐）均以**用餐日期的北京日历日**为界；无 `scheduledAt` 时回退为发起日的北京日历日（见 `utils/beijing-day.js` 的 `partitionMealsByScheduledBeijingDate`）；用餐时间展示见 `utils/beijing-meal-schedule.js`；发起时间见 `utils/format-meal-created-at-beijing.js`。
+- **云函数**：`meal` 等与排期、今日日期相关的逻辑应与小程序一致，按北京时间处理。`scheduled_at` 经 mysql2 读入为 `Date` 时，**不可用 `getHours()` 等依赖进程时区的字段拼 API 字符串**（SCF 多为 `TZ=UTC`，会少 8 小时）；应使用与前端一致的「UTC 毫秒 +8h 再取 `getUTC*()`」方式，见 `server/functions/meal/utils/schedule-format.js` 的 `formatScheduledForApi`。
 
 ## 测试规范
 

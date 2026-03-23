@@ -60,7 +60,7 @@
   color: #757575;
 }
 
-.meal-item-closed .meal-time,
+.meal-item-closed .meal-time:not(.meal-time--scheduled),
 .meal-item-closed .meal-dishes {
   color: #9E9E9E;
 }
@@ -76,11 +76,73 @@
   margin-bottom: 16rpx;
 }
 
+/* 餐名进一步加大 */
 .meal-name {
-  font-size: 36rpx;
-  font-weight: 600;
+  font-size: 42rpx;
+  font-weight: 700;
   color: #1A1A1A;
   flex: 1;
+}
+
+.meal-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.meal-section {
+  background: transparent;
+}
+
+.meal-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 24rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+  margin-bottom: 12rpx;
+}
+
+.meal-section__header:active {
+  opacity: 0.85;
+}
+
+.meal-section__title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #2e7d32;
+}
+
+.meal-section__arrow {
+  font-size: 24rpx;
+  color: #81c784;
+}
+
+.meal-section__body {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.meal-section__empty {
+  font-size: 26rpx;
+  color: #999;
+  padding: 24rpx 16rpx;
+  text-align: center;
+}
+
+.history-loading,
+.history-end {
+  text-align: center;
+  font-size: 26rpx;
+  color: #999;
+  padding: 24rpx 0 32rpx;
+}
+
+.history-end {
+  color: #81c784;
 }
 
 .status-badge {
@@ -106,6 +168,11 @@
   font-size: 26rpx;
   color: #666;
   margin-bottom: 8rpx;
+}
+
+/* 用餐时间：黑色（与发起时间灰色区分；已收单卡片也保持黑色） */
+.meal-time.meal-time--scheduled {
+  color: #000000;
 }
 
 .meal-dishes {

@@ -85,6 +85,8 @@ function initSchema() {
       user_id INTEGER NOT NULL,
       kitchen_id INTEGER NOT NULL,
       name TEXT NOT NULL,
+      scheduled_at DATETIME,
+      scheduled_time_specified INTEGER NOT NULL DEFAULT 0,
       status INTEGER DEFAULT 1,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -109,12 +111,14 @@ function initSchema() {
     CREATE INDEX IF NOT EXISTS idx_md_status ON wte_meal_dishes(status);
   `);
   
-  // 订单表
+  // 订单表（与线上一致：一行一道菜；tags 为 JSON 文本）
   database.exec(`
     CREATE TABLE IF NOT EXISTS wte_orders (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       meal_id INTEGER NOT NULL,
       user_id INTEGER NOT NULL,
+      dish_id INTEGER,
+      tags TEXT,
       status INTEGER DEFAULT 1,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -123,6 +127,7 @@ function initSchema() {
     CREATE INDEX IF NOT EXISTS idx_order_meal_id ON wte_orders(meal_id);
     CREATE INDEX IF NOT EXISTS idx_order_user_id ON wte_orders(user_id);
     CREATE INDEX IF NOT EXISTS idx_order_status ON wte_orders(status);
+    CREATE INDEX IF NOT EXISTS idx_order_dish_id ON wte_orders(dish_id);
   `);
   
   // 订单菜品关联表

@@ -1,5 +1,15 @@
 // pages/meal-detail/meal-detail.js
 const { API } = require('../../utils/cloud-api.js')
+const { isDishPlaceholderUrl } = require('../../utils/dish-preview.js')
+const { formatTagView } = require('../../utils/dish-tag-view.js')
+const { formatScheduledMealDisplayForOrderFood } = require('../../utils/beijing-meal-schedule.js')
+const { formatMealCreatedAtBeijing } = require('../../utils/format-meal-created-at-beijing.js')
+
+/** 详情列表角标：是否已有用户在该菜上打过标签（聚合 groups 有展示行） */
+function dishHasTagBadge(tagView) {
+  const groups = (tagView && tagView.groups) || []
+  return groups.some((g) => Array.isArray(g.items) && g.items.length > 0)
+}
 
 Page({
   data: {
@@ -7,10 +17,11 @@ Page({
     meal: null,
     orderedDishes: [],
     unorderedDishes: [],
-    /** 未点菜品区块是否展开（默认折叠） */
+    /** 未点菜品区块是否展开（加载后：无已点菜品时有未点则自动展开） */
     unorderedSectionExpanded: false,
     canManage: false,
-    shareToken: ''
+    shareToken: '',
+    expandedDishId: null
   },
 
   onLoad(options) {
@@ -35,20 +46,28 @@ Page({
     })
   },
 
-  formatBeijingTime(isoString) {
-    if (!isoString) return ''
-    try {
-      const date = new Date(isoString)
-      const beijingTime = new Date(date.getTime() + 8 * 60 * 60 * 1000)
-      const year = beijingTime.getUTCFullYear()
-      const month = String(beijingTime.getUTCMonth() + 1).padStart(2, '0')
-      const day = String(beijingTime.getUTCDate()).padStart(2, '0')
-      const hours = String(beijingTime.getUTCHours()).padStart(2, '0')
-      const minutes = String(beijingTime.getUTCMinutes()).padStart(2, '0')
-      return `${year}-${month}-${day} ${hours}:${minutes}`
-    } catch (e) {
-      return ''
-    }
+  toggleDishExpand(e) {
+    const id = e.currentTarget.dataset.id
+    if (id == null) return
+    this.setData({
+      expandedDishId: this.data.expandedDishId === id ? null : id
+    })
+  },
+
+  noop() {},
+
+  previewDishImage(e) {
+    const url = e.currentTarget.dataset.url
+    if (isDishPlaceholderUrl(url)) return
+    const ordered = this.data.orderedDishes || []
+    const unordered = this.data.unorderedDishes || []
+    const urls = [...ordered, ...unordered]
+      .map(d => d.displayImage)
+      .filter(u => !isDishPlaceholderUrl(u))
+    wx.previewImage({
+      current: url,
+      urls: urls.length > 0 ? urls : [url]
+    })
   },
 
   async loadMealDetail() {
@@ -64,28 +83,51 @@ Page({
       const defaultImg = '/images/dish-placeholder.png'
       const orderedDishes = (meal.dishes || [])
         .filter(d => (d.orderers || []).length > 0)
-        .map(d => ({
-          ...d,
-          displayImage: (d.imageUrl || d.image_url) || defaultImg,
-          ordererText: (d.orderers || []).length > 0 ? '已点：' + (d.orderers || []).join('、') : '暂无点选'
-        }))
+        .map(d => {
+          const tagView = formatTagView(d.tagDisplay)
+          return {
+            ...d,
+            displayImage: (d.imageUrl || d.image_url) || defaultImg,
+            displayDescription: d.description || '暂无描述',
+            ordererText: (d.orderers || []).length > 0 ? '已点：' + (d.orderers || []).join('、') : '暂无点选',
+            tagView,
+            hasTagBadge: dishHasTagBadge(tagView)
+          }
+        })
       const unorderedDishes = (meal.dishes || [])
         .filter(d => !(d.orderers || []).length)
-        .map(d => ({
-          ...d,
-          displayImage: (d.imageUrl || d.image_url) || defaultImg
-        }))
+        .map(d => {
+          const tagView = formatTagView(d.tagDisplay)
+          return {
+            ...d,
+            displayImage: (d.imageUrl || d.image_url) || defaultImg,
+            displayDescription: d.description || '暂无描述',
+            tagView,
+            hasTagBadge: dishHasTagBadge(tagView)
+          }
+        })
 
       const canManage = meal.isCreator || (meal.kitchenRole === 'owner' || meal.kitchenRole === 'admin')
+
+      const formattedScheduledMeal = formatScheduledMealDisplayForOrderFood(
+        meal.scheduledAt,
+        meal.scheduledTimeSpecified
+      )
+
+      /** 无已点菜品时默认展开未点菜品，便于首屏看到可点列表 */
+      const unorderedSectionExpanded =
+        orderedDishes.length === 0 && unorderedDishes.length > 0
 
       this.setData({
         meal: {
           ...meal,
-          formattedCreatedAt: this.formatBeijingTime(meal.createdAt),
+          formattedCreatedAt: formatMealCreatedAtBeijing(meal.createdAt, true),
+          formattedScheduledMeal,
           statusText: meal.status === 1 ? '点餐中' : '已收单'
         },
         orderedDishes,
         unorderedDishes,
+        unorderedSectionExpanded,
         canManage
       })
 

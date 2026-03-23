@@ -26,6 +26,44 @@ function parseDishes(dishIds, dishNames) {
   }));
 }
 
+function pad2Test(n) {
+  return String(n).padStart(2, '0');
+}
+
+/** 与 meal 云函数 parseScheduleFromClient 对齐（测试用） */
+function parseScheduleForTest(data) {
+  let scheduledDate = data && data.scheduledDate != null ? String(data.scheduledDate).trim() : '';
+  if (!scheduledDate) {
+    const now = new Date();
+    const b = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+    scheduledDate = `${b.getUTCFullYear()}-${pad2Test(b.getUTCMonth() + 1)}-${pad2Test(b.getUTCDate())}`;
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(scheduledDate)) {
+    return { err: '用餐日期无效' };
+  }
+  const timeSpec = !!(data && data.scheduledTimeSpecified);
+  if (timeSpec) {
+    const h = Number(data.scheduledHour);
+    const m = Number(data.scheduledMinute);
+    if (!Number.isInteger(h) || h < 0 || h > 23) {
+      return { err: '用餐时间（时）无效' };
+    }
+    if (!Number.isInteger(m) || m < 0 || m > 55 || m % 5 !== 0) {
+      return { err: '用餐时间须为 5 分钟粒度' };
+    }
+    return {
+      ok: true,
+      sqlDatetime: `${scheduledDate} ${pad2Test(h)}:${pad2Test(m)}:00`,
+      timeSpecified: 1
+    };
+  }
+  return {
+    ok: true,
+    sqlDatetime: `${scheduledDate} 00:00:00`,
+    timeSpecified: 0
+  };
+}
+
 // 模拟点餐云函数
 async function mealMain(event, context) {
   const { action, data } = event;
@@ -73,11 +111,16 @@ async function mealMain(event, context) {
         if (validDishes.length !== dishIds.length) {
           return error('部分菜品不存在或不属于当前用户');
         }
+
+        const scheduleParsed = parseScheduleForTest(data);
+        if (scheduleParsed.err) {
+          return paramError(scheduleParsed.err);
+        }
         
         // 创建点餐活动
         const mealResult = testQuery(
-          'INSERT INTO wte_meals (user_id, kitchen_id, name) VALUES (?, ?, ?)',
-          [userId, kitchenId, trimmedName]
+          'INSERT INTO wte_meals (user_id, kitchen_id, name, scheduled_at, scheduled_time_specified) VALUES (?, ?, ?, ?, ?)',
+          [userId, kitchenId, trimmedName, scheduleParsed.sqlDatetime, scheduleParsed.timeSpecified]
         );
         
         const mealId = mealResult.insertId;
@@ -92,7 +135,7 @@ async function mealMain(event, context) {
         
         // 返回完整的点餐信息
         const newMeal = testQuery(
-          `SELECT m.id, m.name, m.status, m.created_at,
+          `SELECT m.id, m.name, m.status, m.created_at, m.scheduled_at, m.scheduled_time_specified,
             GROUP_CONCAT(d.id) as dish_ids,
             GROUP_CONCAT(d.name) as dish_names
           FROM wte_meals m
@@ -108,6 +151,8 @@ async function mealMain(event, context) {
           name: newMeal[0].name,
           status: newMeal[0].status,
           createdAt: newMeal[0].createdAt,
+          scheduledAt: newMeal[0].scheduledAt,
+          scheduledTimeSpecified: newMeal[0].scheduledTimeSpecified === 1,
           dishes: parseDishes(newMeal[0].dishIds || newMeal[0].dish_ids, newMeal[0].dishNames || newMeal[0].dish_names)
         }, '点餐活动创建成功');
       }
@@ -131,6 +176,7 @@ async function mealMain(event, context) {
         // 只返回当前厨房的点餐，不混入其他厨房
         let sql = `
           SELECT m.id, m.name, m.status, m.created_at, m.closed_at,
+            m.scheduled_at, m.scheduled_time_specified,
             m.user_id as creator_user_id,
             u.nickname as creator_name,
             COUNT(DISTINCT md.dish_id) as dish_count,
@@ -178,6 +224,8 @@ async function mealMain(event, context) {
             status: meal.status,
             createdAt: meal.createdAt,
             closedAt: meal.closedAt,
+            scheduledAt: meal.scheduledAt,
+            scheduledTimeSpecified: meal.scheduledTimeSpecified === 1,
             creatorUserId: meal.creatorUserId,
             creatorName: meal.creatorName,
             isCreator: meal.creatorUserId === userId,
@@ -199,7 +247,7 @@ async function mealMain(event, context) {
         
         // 获取点餐基本信息
         const meal = testQuery(
-          'SELECT id, name, status, created_at, closed_at FROM wte_meals WHERE id = ? AND user_id = ?',
+          'SELECT id, name, status, created_at, closed_at, scheduled_at, scheduled_time_specified FROM wte_meals WHERE id = ? AND user_id = ?',
           [id, userId]
         );
         
@@ -222,6 +270,8 @@ async function mealMain(event, context) {
           status: meal[0].status,
           createdAt: meal[0].createdAt,
           closedAt: meal[0].closedAt,
+          scheduledAt: meal[0].scheduledAt,
+          scheduledTimeSpecified: meal[0].scheduledTimeSpecified === 1,
           dishes: dishes
         });
       }
@@ -272,12 +322,24 @@ async function mealMain(event, context) {
         if (validDishes.length !== dishIds.length) {
           return error('部分菜品不存在或不属于当前用户');
         }
-        
-        // 更新点餐名称
-        testQuery(
-          'UPDATE wte_meals SET name = ? WHERE id = ?',
-          [trimmedName, id]
-        );
+
+        const shouldUpdateSchedule =
+          data && data.scheduledDate != null && String(data.scheduledDate).trim() !== '';
+        if (shouldUpdateSchedule) {
+          const sch = parseScheduleForTest(data);
+          if (sch.err) {
+            return paramError(sch.err);
+          }
+          testQuery(
+            'UPDATE wte_meals SET name = ?, scheduled_at = ?, scheduled_time_specified = ? WHERE id = ?',
+            [trimmedName, sch.sqlDatetime, sch.timeSpecified, id]
+          );
+        } else {
+          testQuery(
+            'UPDATE wte_meals SET name = ? WHERE id = ?',
+            [trimmedName, id]
+          );
+        }
         
         // 删除旧的菜品关联
         testQuery(
@@ -295,7 +357,7 @@ async function mealMain(event, context) {
         
         // 返回更新后的点餐信息
         const updatedMeal = testQuery(
-          `SELECT m.id, m.name, m.status, m.created_at,
+          `SELECT m.id, m.name, m.status, m.created_at, m.scheduled_at, m.scheduled_time_specified,
             GROUP_CONCAT(d.id) as dish_ids,
             GROUP_CONCAT(d.name) as dish_names
           FROM wte_meals m
@@ -311,6 +373,8 @@ async function mealMain(event, context) {
           name: updatedMeal[0].name,
           status: updatedMeal[0].status,
           createdAt: updatedMeal[0].createdAt,
+          scheduledAt: updatedMeal[0].scheduledAt,
+          scheduledTimeSpecified: updatedMeal[0].scheduledTimeSpecified === 1,
           dishes: parseDishes(updatedMeal[0].dishIds || updatedMeal[0].dish_ids, updatedMeal[0].dishNames || updatedMeal[0].dish_names)
         }, '点餐活动更新成功');
       }

@@ -82,7 +82,7 @@
   padding: 14rpx 16rpx;
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: 30rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
 }
 
@@ -111,9 +111,9 @@
 }
 
 .dish-name {
-  font-size: 34rpx;
+  font-size: 40rpx;
   font-weight: 600;
-  color: #1A1A1A;
+  color: #1a1a1a;
   line-height: 1.4;
 }
 

@@ -108,9 +108,9 @@ describe('菜单编辑页面测试', () => {
         data: { id: 4, name: '麻婆豆腐' }
       });
 
-      const result = await mockAPI.dish.create('麻婆豆腐', '');
+      const result = await mockAPI.dish.create('麻婆豆腐', '', '', 1);
       
-      expect(mockAPI.dish.create).toHaveBeenCalledWith('麻婆豆腐', '');
+      expect(mockAPI.dish.create).toHaveBeenCalledWith('麻婆豆腐', '', '', 1);
       expect(result.data.id).toBe(4);
     });
 
@@ -200,6 +200,7 @@ describe('菜单编辑页面测试', () => {
       expect(wxml).toContain('选择菜品');
       expect(wxml).toContain('新增菜品');
       expect(wxml).toContain('checkbox');
+      expect(wxml).toContain('dish-item-check');
       expect(wxml).toContain('搜索菜品');
       expect(wxml).toContain('dish-tabs');
       expect(wxml).toContain('switchDishTab');
@@ -218,6 +219,8 @@ describe('菜单编辑页面测试', () => {
       const js = fs.readFileSync('pages/menu-edit/menu-edit.js', 'utf-8');
       
       expect(js).toContain('loadAllDishes');
+      expect(js).toContain('kitchenIdForDishes');
+      expect(js).toContain('normalizeDishId');
       expect(js).toContain('toggleDishSelection');
       expect(js).toContain('toggleSelectAllInMenu');
       expect(js).toContain('toggleSelectAllNotInMenu');
@@ -226,6 +229,12 @@ describe('菜单编辑页面测试', () => {
       expect(js).toContain('saveMenu');
       expect(js).toContain('switchDishTab');
       expect(js).toContain("dishTab: 'in'");
+    });
+
+    test('验证WXSS勾选框在右侧样式', () => {
+      const fs = require('fs');
+      const wxss = fs.readFileSync('pages/menu-edit/menu-edit.wxss', 'utf-8');
+      expect(wxss).toMatch(/\.dish-item \.dish-item-check/);
     });
   });
 });

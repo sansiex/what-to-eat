@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS `wte_meals` (
     
     -- 点餐信息字段
     `name` VARCHAR(100) NOT NULL COMMENT '点餐名称，如：午餐、晚餐、自定义名称',
+    `scheduled_at` DATETIME NULL DEFAULT NULL COMMENT '计划用餐日期时间（北京时间）',
+    `scheduled_time_specified` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否指定具体时刻：1-是，0-仅日期（scheduled_at 为当日 00:00:00）',
     `status` TINYINT UNSIGNED NOT NULL DEFAULT '1' COMMENT '点餐状态：1-点餐中，2-已收单',
     
     -- 时间戳字段

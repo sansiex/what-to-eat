@@ -15,38 +15,54 @@
             value="{{selectedMealName}}"
           />
         </view>
+
+        <!-- 用餐时间：日期/时刻均为北京时间，见 AGENTS.md -->
+        <view class="meal-schedule-section">
+          <text class="meal-schedule-title">用餐时间</text>
+          <picker class="meal-schedule-picker-block" mode="selector" range="{{mealDateLabels}}" value="{{mealDateIndex}}" bindchange="onMealDateChange">
+            <view class="meal-schedule-row">
+              <text class="meal-schedule-row__label">日期</text>
+              <text class="meal-schedule-row__value">{{mealDateDisplay}}</text>
+              <text class="meal-schedule-row__arrow">›</text>
+            </view>
+          </picker>
+          <view class="meal-schedule-time-outer">
+            <picker
+              class="meal-schedule-picker-block meal-schedule-picker-block--grow"
+              mode="multiSelector"
+              range="{{mealTimeRange}}"
+              value="{{mealTimePickerValue}}"
+              bindchange="onMealTimeChange"
+            >
+              <view class="meal-schedule-row">
+                <text class="meal-schedule-row__label">时间</text>
+                <text class="meal-schedule-row__value">{{mealTimeDisplay}}</text>
+                <text class="meal-schedule-row__arrow">›</text>
+              </view>
+            </picker>
+            <text wx:if="{{mealTimeSpecified}}" class="meal-schedule-clear" catchtap="clearMealTime">清除</text>
+          </view>
+        </view>
         
         <!-- 菜品选择 -->
         <view>
-          <view style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12rpx;">
-            <text style="font-size: 28rpx;">菜品选择（默认全选）</text>
-            <button 
-              style="font-size: 24rpx; padding: 6rpx 12rpx;" 
-              bindtap="toggleSelectAll"
-            >
-              {{selectAll ? '取消全选' : '全选'}}
-            </button>
-          </view>
-          
+          <text class="initiate-dish-select-label">菜品选择</text>
+
           <view wx:if="{{dishes.length === 0}}" style="padding: 40rpx 0; text-align: center; color: #999;">
             暂无菜品，请先在首页添加
           </view>
-          
+
           <view wx:else>
-            <text class="selected-dish-count">已选 {{selectedDishes.length}} 道菜</text>
+            <view class="initiate-select-toolbar">
+              <text class="selected-dish-count">已选 {{selectedDishes.length}} 道菜</text>
+              <view class="section-action" bindtap="toggleSelectAll">{{selectAll ? '全不选' : '全选'}}</view>
+            </view>
             <view 
               wx:for="{{dishes}}" 
               wx:key="{{item.id}}" 
               class="list-item dish-select-row {{item.selected ? 'dish-select-row--selected' : 'dish-select-row--unselected'}}"
             >
           <view class="dish-select-row__inner">
-            <checkbox 
-              class="checkbox" 
-              value="{{item.id}}"
-              checked="{{item.selected}}" 
-              bindtap="toggleDishSelection"
-              data-id="{{item.id}}"
-            />
             <image
               class="dish-list-thumb"
               src="{{item.displayImage}}"
@@ -54,11 +70,20 @@
               catchtap="previewDishImage"
               data-url="{{item.displayImage}}"
             />
-                <view style="display: flex; flex-direction: column; min-width: 0; flex: 1;">
-                  <text class="list-item__title">{{item.name}}</text>
-                  <text class="list-item__desc" style="margin-top: 6rpx;">{{item.displayDescription}}</text>
-                </view>
-              </view>
+            <view class="dish-select-row__text">
+              <text class="list-item__title">{{item.name}}</text>
+              <text class="list-item__desc dish-select-row__desc">{{item.displayDescription}}</text>
+            </view>
+            <view class="dish-select-row__check-wrap">
+              <checkbox
+                class="checkbox dish-select-row__check"
+                value="{{item.id}}"
+                checked="{{item.selected}}"
+                bindtap="toggleDishSelection"
+                data-id="{{item.id}}"
+              />
+            </view>
+          </view>
             </view>
           </view>
         </view>
@@ -68,19 +93,21 @@
 
   <!-- 底部固定操作区（相对视口底部，不随列表滚动） -->
   <view class="initiate-meal-footer">
-    <view wx:if="{{isEditMode}}" class="initiate-meal-footer__btns initiate-meal-footer__btns--row">
-      <button 
-        class="btn btn--footer" 
-        style="flex: 1; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"
+    <view wx:if="{{isEditMode}}" class="initiate-meal-footer__btns">
+      <button
+        class="btn btn--footer btn--footer-complete"
         bindtap="completeEdit"
-        disabled="{{!selectedMealName}}">
-        完成
-      </button>
-      <button 
-        class="btn btn--footer" 
-        style="flex: 1; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"
-        bindtap="goBack">
-        返回
+        disabled="{{!selectedMealName}}"
+      >
+        <view class="initiate-footer-btn-inner">
+          <icon
+            class="initiate-footer-btn-icon"
+            type="success_no_circle"
+            size="22"
+            color="{{selectedMealName ? '#FFFFFF' : '#9E9E9E'}}"
+          />
+          <text>完成</text>
+        </view>
       </button>
     </view>
     <button 
@@ -88,7 +115,7 @@
       class="btn btn--footer" 
       bindtap="initiateMeal"
       disabled="{{!selectedMealName || selectedDishes.length === 0}}">
-      发起点餐
+      确认发起点餐
     </button>
   </view>
 </view>

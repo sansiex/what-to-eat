@@ -3,6 +3,12 @@ const { API } = require('../../utils/cloud-api.js')
 const { uploadDishImage } = require('../../utils/cos-upload.js')
 const { previewSingleDishImage } = require('../../utils/dish-preview.js')
 
+/** 与后端/缓存中的 id 类型统一，避免 number 与 string 导致 includes 失败 */
+function normalizeDishId(id) {
+  const n = Number(id)
+  return Number.isNaN(n) ? id : n
+}
+
 Page({
   data: {
     isEditMode: false,
@@ -50,7 +56,7 @@ Page({
     this.setData({
       isEditMode: true,
       menuName: menu.name,
-      selectedDishIds: menu.dishes.map(d => d.id)
+      selectedDishIds: (menu.dishes || []).map(d => normalizeDishId(d.id))
     })
 
     this.loadAllDishes()
@@ -59,18 +65,30 @@ Page({
   // 加载所有菜品
   async loadAllDishes() {
     try {
-      const result = await API.dish.list()
+      // 必须与菜单列表使用同一厨房，否则拉错菜品库，编辑页「在菜单中」全空
+      const currentKitchen = getApp().globalData.currentKitchen
+      const kitchenIdForDishes =
+        currentKitchen && currentKitchen.id != null ? currentKitchen.id : null
+      const result = await API.dish.list(kitchenIdForDishes, '')
       const dishes = result.data.list || []
-      console.log('[loadAllDishes] raw list from API:', JSON.stringify(dishes.map(d => ({ id: d.id, name: d.name, image_url: d.image_url, imageUrl: d.imageUrl }))))
+      console.log(
+        '[loadAllDishes] kitchenId:',
+        kitchenIdForDishes,
+        'raw list:',
+        JSON.stringify(dishes.map(d => ({ id: d.id, name: d.name, image_url: d.image_url, imageUrl: d.imageUrl })))
+      )
       const { selectedDishIds } = this.data
       const defaultDishImage = this.data.defaultDishImage
-      
+      const selectedSet = new Set(selectedDishIds.map(id => normalizeDishId(id)))
+
       // 为每个菜品添加 selected 属性
       const dishesWithSelected = dishes.map(dish => {
         const imageUrl = dish.imageUrl || dish.image_url || ''
-        const selected = selectedDishIds.includes(dish.id)
+        const nid = normalizeDishId(dish.id)
+        const selected = selectedSet.has(nid)
         return {
           ...dish,
+          id: nid,
           selected,
           imageUrl,
           displayImage: imageUrl || defaultDishImage,
@@ -116,8 +134,8 @@ Page({
   },
 
   splitDishesByAssignment(dishes, assignment) {
-    const dishesInMenu = dishes.filter(d => assignment[d.id] === 'in')
-    const dishesNotInMenu = dishes.filter(d => assignment[d.id] === 'out')
+    const dishesInMenu = dishes.filter(d => assignment[normalizeDishId(d.id)] === 'in')
+    const dishesNotInMenu = dishes.filter(d => assignment[normalizeDishId(d.id)] === 'out')
     return { dishesInMenu, dishesNotInMenu }
   },
 
@@ -130,10 +148,12 @@ Page({
 
   _applySelection(newSelectedIds) {
     const { allDishes, filteredDishes } = this.data
-    const updateDishes = dishes => dishes.map(dish => ({
-      ...dish,
-      selected: newSelectedIds.includes(dish.id)
-    }))
+    const sel = new Set(newSelectedIds.map(id => normalizeDishId(id)))
+    const updateDishes = dishes =>
+      dishes.map(dish => ({
+        ...dish,
+        selected: sel.has(normalizeDishId(dish.id))
+      }))
     const { dishesInMenu, dishesNotInMenu } = this.updateSelectionInLists(newSelectedIds)
     this.setData({
       allDishes: updateDishes(allDishes),
@@ -148,8 +168,9 @@ Page({
   // 更新列表中菜品的 selected 状态（不移动菜品）
   updateSelectionInLists(newSelectedIds) {
     const { dishesInMenu, dishesNotInMenu } = this.data
-    const setIds = new Set(newSelectedIds)
-    const updateSelected = (list) => list.map(d => ({ ...d, selected: setIds.has(d.id) }))
+    const setIds = new Set(newSelectedIds.map(id => normalizeDishId(id)))
+    const updateSelected = (list) =>
+      list.map(d => ({ ...d, selected: setIds.has(normalizeDishId(d.id)) }))
     return {
       dishesInMenu: updateSelected(dishesInMenu),
       dishesNotInMenu: updateSelected(dishesNotInMenu)
@@ -177,12 +198,12 @@ Page({
 
   // 切换菜品选择（只更新勾选状态，不移动菜品）
   toggleDishSelection(e) {
-    const dishId = parseInt(e.currentTarget.dataset.id)
+    const dishId = normalizeDishId(e.currentTarget.dataset.id)
     const { selectedDishIds } = this.data
 
-    const isSelected = selectedDishIds.includes(dishId)
+    const isSelected = selectedDishIds.some(id => normalizeDishId(id) === dishId)
     const newSelectedIds = isSelected
-      ? selectedDishIds.filter(id => id !== dishId)
+      ? selectedDishIds.filter(id => normalizeDishId(id) !== dishId)
       : [...selectedDishIds, dishId]
 
     this._applySelection(newSelectedIds)
@@ -194,10 +215,12 @@ Page({
     if (dishesInMenu.length === 0) return
     const allSelected = dishesInMenu.every(d => d.selected)
     if (allSelected) {
-      const idsToRemove = new Set(dishesInMenu.map(d => d.id))
-      this._applySelection(selectedDishIds.filter(id => !idsToRemove.has(id)))
+      const idsToRemove = new Set(dishesInMenu.map(d => normalizeDishId(d.id)))
+      this._applySelection(
+        selectedDishIds.filter(id => !idsToRemove.has(normalizeDishId(id)))
+      )
     } else {
-      const idsToAdd = dishesInMenu.map(d => d.id)
+      const idsToAdd = dishesInMenu.map(d => normalizeDishId(d.id))
       this._applySelection([...new Set([...selectedDishIds, ...idsToAdd])])
     }
   },
@@ -208,10 +231,12 @@ Page({
     if (dishesNotInMenu.length === 0) return
     const allSelected = dishesNotInMenu.every(d => d.selected)
     if (allSelected) {
-      const idsToRemove = new Set(dishesNotInMenu.map(d => d.id))
-      this._applySelection(selectedDishIds.filter(id => !idsToRemove.has(id)))
+      const idsToRemove = new Set(dishesNotInMenu.map(d => normalizeDishId(d.id)))
+      this._applySelection(
+        selectedDishIds.filter(id => !idsToRemove.has(normalizeDishId(id)))
+      )
     } else {
-      const idsToAdd = dishesNotInMenu.map(d => d.id)
+      const idsToAdd = dishesNotInMenu.map(d => normalizeDishId(d.id))
       this._applySelection([...new Set([...selectedDishIds, ...idsToAdd])])
     }
   },
@@ -301,8 +326,15 @@ Page({
     try {
       wx.showLoading({ title: '添加中...' })
       
-      // 创建菜品
-      const result = await API.dish.create(newDishName.trim(), newDishDescription.trim(), newDishImageUrl)
+      const currentKitchen = getApp().globalData.currentKitchen
+      const kitchenId =
+        currentKitchen && currentKitchen.id != null ? currentKitchen.id : null
+      const result = await API.dish.create(
+        newDishName.trim(),
+        newDishDescription.trim(),
+        newDishImageUrl,
+        kitchenId
+      )
       const newDish = result.data
       
       wx.hideLoading()

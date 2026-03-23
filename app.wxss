@@ -64,9 +64,10 @@ page {
 }
 
 .list-item__title {
-  font-size: 32rpx;
+  font-size: 38rpx;
   margin-bottom: 8rpx;
-  color: #1A1A1A;
+  color: #1a1a1a;
+  font-weight: 600;
 }
 
 .list-item__desc {
@@ -80,6 +81,7 @@ page {
 }
 
 /* 各页列表中的菜品缩略图：统一尺寸、略大圆角，配合各页收紧 padding 更醒目 */
+/* 与文案间距：各页 flex gap / margin-left 建议 ≈ 136 + 28 = 164rpx 对齐文案左缘 */
 .dish-list-thumb {
   width: 136rpx;
   height: 136rpx;

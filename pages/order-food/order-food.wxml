@@ -1,108 +1,224 @@
 <!-- pages/order-food/order-food.wxml -->
-<view class="container order-food-page">
-  <!-- 餐名显示 -->
-  <view class="section" wx:if="{{currentMeal}}">
-    <text style="font-size: 36rpx; font-weight: 600; display: block; margin-bottom: 12rpx;">
-      {{currentMeal.name}}
-    </text>
-    <text style="font-size: 24rpx; color: #999;">
-      发起时间：{{currentMeal.formattedCreatedAt}}
-    </text>
-    <!-- 已收单标记 -->
-    <text wx:if="{{viewMode}}" style="font-size: 24rpx; color: #999; margin-top: 8rpx; display: block;">
-      已收单
-    </text>
-  </view>
-
-  <!-- 搜索栏 -->
-  <view class="search-bar" wx:if="{{!viewMode}}">
-    <text class="search-icon">🔍</text>
-    <input
-      class="search-input"
-      placeholder="搜索菜品"
-      bindinput="onSearch"
-      value="{{searchKeyword}}"
-    />
-  </view>
-
-  <!-- 菜品列表 -->
-  <view class="section">
-    <view wx:if="{{!currentMeal}}" style="padding: 40rpx 0; text-align: center; color: #999;">
-      暂无发起的餐食，请先发起一餐
+<view class="order-food-root">
+  <view class="container order-food-page">
+    <view class="section order-food-meal-meta" wx:if="{{currentMeal}}">
+      <text class="order-food-meal-name">{{currentMeal.name}}</text>
+      <text
+        wx:if="{{currentMeal.formattedScheduledMeal}}"
+        class="order-food-meal-scheduled"
+      >
+        用餐时间：{{currentMeal.formattedScheduledMeal}}
+      </text>
+      <text class="order-food-meal-created">发起时间：{{currentMeal.formattedCreatedAt}}</text>
+      <text wx:if="{{viewMode}}" class="order-food-meal-view-hint">已收单</text>
     </view>
 
-    <view wx:elif="{{filteredDishes.length === 0}}" style="padding: 40rpx 0; text-align: center; color: #999;">
-      没有找到匹配的菜品
+    <view class="search-bar" wx:if="{{!viewMode}}">
+      <text class="search-icon">🔍</text>
+      <input
+        class="search-input"
+        placeholder="搜索菜品"
+        bindinput="onSearch"
+        value="{{searchKeyword}}"
+      />
     </view>
 
-    <view wx:else>
-      <!-- 正常模式：带复选框 -->
-      <checkbox-group wx:if="{{!viewMode}}" bindchange="onCheckboxChange">
-        <view wx:for="{{filteredDishes}}" wx:key="id" class="list-item order-food-dish-item">
-          <view class="order-food-dish-row">
-            <!-- 复选框 -->
-            <checkbox
-              value="{{item.id}}"
-              checked="{{dishSelectionMap[item.id] || false}}"
-              class="order-food-dish-check"
-            />
+    <view class="section order-food-dish-section">
+      <view wx:if="{{!currentMeal}}" style="padding: 40rpx 0; text-align: center; color: #999;">
+        暂无发起的餐食，请先发起一餐
+      </view>
 
-            <image
-              class="dish-list-thumb"
-              src="{{item.displayImage || '/images/dish-placeholder.png'}}"
-              mode="aspectFill"
-              catchtap="previewDishImage"
-              data-url="{{item.displayImage || '/images/dish-placeholder.png'}}"
-            />
-            <view class="order-food-dish-text">
-              <text class="list-item__title" style="margin-bottom: 4rpx;">{{item.name}}</text>
-              <text class="list-item__desc" style="margin-bottom: 8rpx;">{{item.displayDescription || item.description || '暂无描述'}}</text>
-              <text class="list-item__desc">{{dishOrderersMap[item.id] || '暂无点选'}}</text>
-            </view>
-          </view>
-        </view>
-      </checkbox-group>
+      <view wx:elif="{{filteredDishes.length === 0}}" style="padding: 40rpx 0; text-align: center; color: #999;">
+        没有找到匹配的菜品
+      </view>
 
-      <!-- 查看模式：只显示列表 -->
       <view wx:else>
-        <view wx:for="{{filteredDishes}}" wx:key="id" class="list-item order-food-dish-item">
-          <view class="order-food-dish-row">
-            <image
-              class="dish-list-thumb"
-              src="{{item.displayImage || '/images/dish-placeholder.png'}}"
-              mode="aspectFill"
-              bindtap="previewDishImage"
-              data-url="{{item.displayImage || '/images/dish-placeholder.png'}}"
-            />
-            <view class="order-food-dish-text">
-              <text class="list-item__title" style="margin-bottom: 4rpx;">{{item.name}}</text>
-              <text class="list-item__desc" style="margin-bottom: 8rpx;">{{item.displayDescription || item.description || '暂无描述'}}</text>
-              <text class="list-item__desc">{{dishOrderersMap[item.id] || '暂无点选'}}</text>
+        <checkbox-group wx:if="{{!viewMode}}" bindchange="onCheckboxChange">
+          <block wx:for="{{filteredDishes}}" wx:key="id">
+            <view class="list-item order-food-dish-item {{dishSelectionMap[item.id] ? 'order-food-dish-item--selected' : 'order-food-dish-item--unselected'}}">
+              <view class="order-food-dish-row">
+                <image
+                  class="dish-list-thumb"
+                  src="{{item.displayImage || '/images/dish-placeholder.png'}}"
+                  mode="aspectFill"
+                  catchtap="previewDishImage"
+                  data-url="{{item.displayImage || '/images/dish-placeholder.png'}}"
+                />
+                <view class="order-food-dish-main" bindtap="toggleDishExpand" data-id="{{item.id}}">
+                  <text class="list-item__title order-food-dish-title">{{item.name}}</text>
+                  <text class="list-item__desc order-food-desc {{expandedDishId === item.id ? 'order-food-desc--expanded' : 'order-food-desc--collapsed'}}">{{item.displayDescription || item.description || '暂无描述'}}</text>
+                  <text class="list-item__desc">{{dishOrderersMap[item.id] || '暂无点选'}}</text>
+                </view>
+                <checkbox
+                  value="{{item.id}}"
+                  checked="{{dishSelectionMap[item.id] || false}}"
+                  class="order-food-dish-check"
+                  catchtap="noop"
+                />
+              </view>
+
+              <!-- 折叠：只读标签；左缘与缩略图左缘对齐（勾选框已在右侧） -->
+              <view
+                wx:if="{{expandedDishId !== item.id && item.tagView.myTags.length > 0}}"
+                class="order-food-my-tags order-food-my-tags--collapsed"
+                catchtap="noop"
+              >
+                <view class="order-food-my-tags-row order-food-my-tags-row--collapsed">
+                  <text
+                    wx:for="{{item.tagView.myTags}}"
+                    wx:key="rowKey"
+                    wx:for-item="mt"
+                    class="dish-tag-pill dish-tag-pill--{{mt.colorKey}} dish-tag-pill--collapsed-readonly"
+                  >{{mt.tagLabel}}</text>
+                </view>
+              </view>
+
+              <view wx:if="{{expandedDishId === item.id}}" class="order-food-dish-panel" catchtap="noop">
+                <view wx:if="{{item.tagView.groups.length > 0}}" class="order-food-tag-block">
+                  <text class="order-food-tag-block-title">大家的选择</text>
+                  <block wx:for="{{item.tagView.groups}}" wx:key="categoryKey" wx:for-item="grp">
+                    <view wx:for="{{grp.items}}" wx:key="tagLabel" wx:for-item="row" class="order-food-tag-line">
+                      <text class="dish-tag-pill dish-tag-pill--{{grp.colorKey}}">{{row.tagLabel}}</text>
+                      <text class="order-food-tag-users">{{row.usersText}}</text>
+                    </view>
+                  </block>
+                </view>
+
+                <view wx:if="{{!viewMode && item.tagView.myTags.length > 0}}" class="order-food-my-tags">
+                  <text class="order-food-tag-block-title">我的标签</text>
+                  <view class="order-food-my-tags-row">
+                    <view
+                      wx:for="{{item.tagView.myTags}}"
+                      wx:key="rowKey"
+                      wx:for-item="mt"
+                      class="order-food-my-tag-chip dish-tag-pill dish-tag-pill--{{mt.colorKey}} dish-tag-pill--large"
+                    >
+                      <text>{{mt.tagLabel}}</text>
+                      <text class="order-food-my-tag-x" catchtap="removeMyDishTag" data-dish-id="{{item.id}}" data-category="{{mt.categoryKey}}" data-code="{{mt.tagCode}}">×</text>
+                    </view>
+                  </view>
+                </view>
+
+                <!-- 展开：「添加标签」放在标签区域下方（有/无我的标签均在面板底部） -->
+                <view wx:if="{{!viewMode}}" class="order-food-add-tag-row order-food-add-tag-row--in-panel">
+                  <button
+                    class="order-food-add-tag-btn"
+                    bindtap="openTagPicker"
+                  >添加标签</button>
+                </view>
+              </view>
             </view>
-          </view>
+          </block>
+        </checkbox-group>
+
+        <view wx:else>
+          <block wx:for="{{filteredDishes}}" wx:key="id">
+            <view class="list-item order-food-dish-item {{dishSelectionMap[item.id] ? 'order-food-dish-item--selected' : 'order-food-dish-item--unselected'}}">
+              <view class="order-food-dish-row">
+                <image
+                  class="dish-list-thumb"
+                  src="{{item.displayImage || '/images/dish-placeholder.png'}}"
+                  mode="aspectFill"
+                  bindtap="previewDishImage"
+                  data-url="{{item.displayImage || '/images/dish-placeholder.png'}}"
+                />
+                <view class="order-food-dish-main order-food-dish-main--view" bindtap="toggleDishExpand" data-id="{{item.id}}">
+                  <text class="list-item__title order-food-dish-title">{{item.name}}</text>
+                  <text class="list-item__desc order-food-desc {{expandedDishId === item.id ? 'order-food-desc--expanded' : 'order-food-desc--collapsed'}}">{{item.displayDescription || item.description || '暂无描述'}}</text>
+                  <text class="list-item__desc">{{dishOrderersMap[item.id] || '暂无点选'}}</text>
+                </view>
+              </view>
+
+              <view
+                wx:if="{{expandedDishId !== item.id && item.tagView.myTags.length > 0}}"
+                class="order-food-my-tags order-food-my-tags--collapsed"
+                catchtap="noop"
+              >
+                <view class="order-food-my-tags-row order-food-my-tags-row--collapsed">
+                  <text
+                    wx:for="{{item.tagView.myTags}}"
+                    wx:key="rowKey"
+                    wx:for-item="mt"
+                    class="dish-tag-pill dish-tag-pill--{{mt.colorKey}} dish-tag-pill--collapsed-readonly"
+                  >{{mt.tagLabel}}</text>
+                </view>
+              </view>
+
+              <view wx:if="{{expandedDishId === item.id}}" class="order-food-dish-panel" catchtap="noop">
+                <view wx:if="{{item.tagView.groups.length > 0}}" class="order-food-tag-block">
+                  <text class="order-food-tag-block-title">大家的选择</text>
+                  <block wx:for="{{item.tagView.groups}}" wx:key="categoryKey" wx:for-item="grp">
+                    <view wx:for="{{grp.items}}" wx:key="tagLabel" wx:for-item="row" class="order-food-tag-line">
+                      <text class="dish-tag-pill dish-tag-pill--{{grp.colorKey}}">{{row.tagLabel}}</text>
+                      <text class="order-food-tag-users">{{row.usersText}}</text>
+                    </view>
+                  </block>
+                </view>
+                <view wx:if="{{item.tagView.myTags.length > 0}}" class="order-food-my-tags">
+                  <text class="order-food-tag-block-title">我的标签</text>
+                  <view class="order-food-my-tags-row">
+                    <text
+                      wx:for="{{item.tagView.myTags}}"
+                      wx:key="rowKey"
+                      wx:for-item="mt"
+                      class="dish-tag-pill dish-tag-pill--{{mt.colorKey}} dish-tag-pill--large"
+                    >{{mt.tagLabel}}</text>
+                  </view>
+                </view>
+              </view>
+            </view>
+          </block>
         </view>
       </view>
     </view>
   </view>
 
-  <!-- 按钮区域（仅正常模式显示） -->
-  <view wx:if="{{currentMeal && !viewMode}}" style="display: flex; gap: 16rpx; width: 100%;">
+  <view wx:if="{{currentMeal && !viewMode}}" class="order-food-footer">
+    <button class="order-food-footer__btn order-food-footer__btn--primary" bindtap="placeOrder">下单</button>
     <button
-      class="btn"
-      bindtap="placeOrder"
-      style="flex: 1;"
-    >
-      下单
-    </button>
-    <button
-      class="btn btn-share"
-      style="flex: 1;"
       wx:if="{{isInitiator}}"
+      class="order-food-footer__btn order-food-footer__btn--share"
       open-type="share"
       data-id="{{currentMeal.id}}"
       data-name="{{currentMeal.name}}"
-    >
-      分享
-    </button>
+    >分享</button>
+  </view>
+
+  <!-- 标签选择：左侧分类 + 右侧具体标签 -->
+  <view wx:if="{{tagPickerVisible}}" class="tag-picker-mask" catchtap="closeTagPicker">
+    <view class="tag-picker-panel" catchtap="noop">
+      <view class="tag-picker-header">
+        <text class="tag-picker-title">选择具体标签</text>
+        <text class="tag-picker-clear" catchtap="clearTagPickerSelection">清除选择</text>
+      </view>
+      <view class="tag-picker-split">
+        <!-- 不用 scroll-view：部分机型上内部 tap 不触发；分类/标签数量少用 view 滚动即可 -->
+        <view class="tag-picker-cats tag-picker-col-scroll">
+          <view
+            wx:for="{{tagRegistryCategories}}"
+            wx:key="key"
+            class="tag-picker-cat-item {{tagPickerActiveCategory === item.key ? 'tag-picker-cat-item--active' : ''}}"
+            catchtap="selectTagPickerCategory"
+            data-cat-key="{{item.key}}"
+          >
+            <text>{{item.label}}</text>
+          </view>
+        </view>
+        <view class="tag-picker-tags tag-picker-col-scroll">
+          <view
+            wx:for="{{tagPickerOptions}}"
+            wx:key="code"
+            class="tag-picker-tag-item {{item.selected ? 'tag-picker-tag-item--active' : ''}}"
+            catchtap="togglePickerTag"
+            data-tag-code="{{item.code}}"
+          >
+            <text>{{item.label}}</text>
+          </view>
+        </view>
+      </view>
+      <view class="tag-picker-footer">
+        <button class="tag-picker-btn tag-picker-btn--primary" catchtap="confirmTagPicker">确定</button>
+      </view>
+    </view>
   </view>
 </view>

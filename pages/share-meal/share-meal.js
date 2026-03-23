@@ -1,5 +1,6 @@
 // pages/share-meal/share-meal.js
 const { API } = require('../../utils/cloud-api.js')
+const { formatMealCreatedAtBeijing } = require('../../utils/format-meal-created-at-beijing.js')
 const { previewSingleDishImage } = require('../../utils/dish-preview.js')
 
 Page({
@@ -91,7 +92,10 @@ Page({
       }))
 
       this.setData({
-        meal: meal,
+        meal: {
+          ...meal,
+          formattedCreatedAt: formatMealCreatedAtBeijing(meal.createdAt)
+        },
         dishes: dishes,
         selectedDishes,
         dishSelectionMap

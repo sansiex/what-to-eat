@@ -1,275 +1,260 @@
 // pages/meal-list/meal-list.js
 const { API } = require('../../utils/cloud-api.js')
+const {
+  partitionMealsByScheduledBeijingDate,
+  mealEffectiveScheduledBeijingYmd
+} = require('../../utils/beijing-day.js')
+const { formatScheduledMealDisplayForOrderFood } = require('../../utils/beijing-meal-schedule.js')
+const { formatMealCreatedAtBeijing } = require('../../utils/format-meal-created-at-beijing.js')
+
+/** 首屏一次拉取条数（不按日期拆 API，前端按北京时间分区，避免库时区与 ISO 边界不一致） */
+const MEAL_LIST_PAGE_SIZE = 500
+/** 「加载更多」追加页大小 */
+const MEAL_LIST_MORE_SIZE = 100
 
 Page({
   data: {
-    meals: []
+    /** 用餐日期为明天及以后（北京时间） */
+    mealsFuture: [],
+    /** 用餐日期为今天 */
+    mealsToday: [],
+    /** 用餐日期早于今天 */
+    mealsHistory: [],
+    sectionExpanded: {
+      future: true,
+      today: true,
+      history: false
+    },
+    historyPage: 1,
+    historyTotal: 0,
+    historyLoading: false,
+    historyNoMore: false,
+    hasAnyMeal: false,
+    shareTokenMap: {},
+    /** 已拉取的原始列表（用于追加分页后重新分区） */
+    _mealListRawBuffer: []
   },
 
   onLoad() {
-    this.loadMeals()
+    this.loadMeals(true)
   },
 
   onShow() {
-    this.loadMeals()
+    this.loadMeals(true)
   },
 
-  // 格式化时间为北京时间
-  formatBeijingTime(isoString) {
-    if (!isoString) return ''
-    try {
-      const date = new Date(isoString)
-      // 转换为北京时间 (UTC+8)
-      const beijingTime = new Date(date.getTime() + 8 * 60 * 60 * 1000)
-      const year = beijingTime.getUTCFullYear()
-      const month = String(beijingTime.getUTCMonth() + 1).padStart(2, '0')
-      const day = String(beijingTime.getUTCDate()).padStart(2, '0')
-      const hours = String(beijingTime.getUTCHours()).padStart(2, '0')
-      const minutes = String(beijingTime.getUTCMinutes()).padStart(2, '0')
-      return `${year}-${month}-${day} ${hours}:${minutes}`
-    } catch (e) {
-      return ''
+  onReachBottom() {
+    if (!this.data.sectionExpanded.history) return
+    if (this.data.historyLoading || this.data.historyNoMore) return
+    const buf = this.data._mealListRawBuffer || []
+    const total = this.data.historyTotal || 0
+    if (buf.length >= total && total > 0) {
+      this.setData({ historyNoMore: true })
+      return
+    }
+    this.loadMoreHistory()
+  },
+
+  mapMealRow(meal, canManageMeals) {
+    const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+    const beijingDate = new Date(new Date(meal.createdAt).getTime() + 8 * 60 * 60 * 1000)
+    const weekday = weekdays[beijingDate.getUTCDay()]
+    const formattedCreatedAt = formatMealCreatedAtBeijing(meal.createdAt)
+    const createdAtDisplay = formattedCreatedAt ? `${weekday} ${formattedCreatedAt}` : ''
+    const scheduledMealDisplay = formatScheduledMealDisplayForOrderFood(
+      meal.scheduledAt,
+      meal.scheduledTimeSpecified
+    )
+    return {
+      ...meal,
+      createdAtDisplay,
+      scheduledMealDisplay,
+      status: meal.status === 1 ? 'ordering' : 'closed',
+      canManageMeals
     }
   },
 
-  // 加载点餐列表
-  async loadMeals() {
+  findMealById(mealId) {
+    const { mealsFuture, mealsToday, mealsHistory } = this.data
+    const all = [...mealsFuture, ...mealsToday, ...mealsHistory]
+    return all.find(m => m.id === mealId)
+  },
+
+  _mapAndSortBuckets(rawFuture, rawToday, rawHistory, canManageMeals) {
+    const createdDesc = (a, b) => {
+      const ta = new Date(a.createdAt || a.created_at || 0).getTime()
+      const tb = new Date(b.createdAt || b.created_at || 0).getTime()
+      return tb - ta
+    }
+    const futureSort = (a, b) => {
+      const ya = mealEffectiveScheduledBeijingYmd(a)
+      const yb = mealEffectiveScheduledBeijingYmd(b)
+      if (ya !== yb) return (ya || '').localeCompare(yb || '')
+      return createdDesc(a, b)
+    }
+    const historySort = (a, b) => {
+      const ya = mealEffectiveScheduledBeijingYmd(a)
+      const yb = mealEffectiveScheduledBeijingYmd(b)
+      if (ya !== yb) return (yb || '').localeCompare(ya || '')
+      return createdDesc(a, b)
+    }
+    return {
+      mealsFuture: rawFuture.map(m => this.mapMealRow(m, canManageMeals)).sort(futureSort),
+      mealsToday: rawToday.map(m => this.mapMealRow(m, canManageMeals)).sort(createdDesc),
+      mealsHistory: rawHistory.map(m => this.mapMealRow(m, canManageMeals)).sort(historySort)
+    }
+  },
+
+  async loadMeals(resetHistory) {
     try {
-      // 从云函数获取所有点餐数据
+      if (typeof getApp().initDefaultKitchen === 'function') {
+        await getApp().initDefaultKitchen()
+      }
+
       const currentKitchen = getApp().globalData.currentKitchen
       const kitchenId = currentKitchen ? currentKitchen.id : null
-      const result = await API.meal.list(null, kitchenId)
-      const meals = result.data.list || []
+      if (!kitchenId) {
+        this.setData({
+          mealsFuture: [],
+          mealsToday: [],
+          mealsHistory: [],
+          hasAnyMeal: false,
+          historyTotal: 0,
+          historyNoMore: true,
+          _mealListRawBuffer: []
+        })
+        return
+      }
 
-      // 主人或管理员可管理点餐（编辑、收单、分享、恢复）
       const role = currentKitchen && currentKitchen.role
       const canManageMeals = role === 'owner' || role === 'admin'
+      const listRes = await API.meal.list(null, kitchenId, {
+        page: 1,
+        pageSize: MEAL_LIST_PAGE_SIZE
+      })
 
-      // 格式化时间和状态
-      const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
-      const mealsWithFormattedTime = meals.map(meal => {
-        const beijingDate = new Date(new Date(meal.createdAt).getTime() + 8 * 60 * 60 * 1000)
-        const weekday = weekdays[beijingDate.getUTCDay()]
-        const formattedCreatedAt = this.formatBeijingTime(meal.createdAt)
-        const createdAtDisplay = formattedCreatedAt ? `${weekday} ${formattedCreatedAt}` : ''
-        return {
-          ...meal,
-          createdAtDisplay,
-          // 将数字状态转换为字符串状态
-          status: meal.status === 1 ? 'ordering' : 'closed',
-          isCreator: typeof meal.isCreator === 'boolean' ? meal.isCreator : true,
-          canManageMeals
+      const rawList = listRes.data.list || []
+      const total =
+        listRes.data.total != null ? Number(listRes.data.total) : rawList.length
+
+      const { future: rawF, today: rawT, history: rawH } =
+        partitionMealsByScheduledBeijingDate(rawList)
+
+      const { mealsFuture, mealsToday, mealsHistory } = this._mapAndSortBuckets(
+        rawF,
+        rawT,
+        rawH,
+        canManageMeals
+      )
+
+      const noFuture = mealsFuture.length === 0
+      const noToday = mealsToday.length === 0
+      const expandHistoryDefault =
+        noFuture && noToday && (total > 0 || mealsHistory.length > 0)
+
+      const hasAnyMeal =
+        mealsFuture.length > 0 ||
+        mealsToday.length > 0 ||
+        mealsHistory.length > 0 ||
+        total > 0
+
+      const fetchedAll = rawList.length >= total
+
+      this.setData({
+        _mealListRawBuffer: rawList,
+        mealsFuture,
+        mealsToday,
+        mealsHistory,
+        historyPage: 1,
+        historyTotal: total,
+        historyLoading: false,
+        historyNoMore: fetchedAll || total === 0,
+        hasAnyMeal,
+        sectionExpanded: {
+          future: !expandHistoryDefault,
+          today: !expandHistoryDefault,
+          history: expandHistoryDefault
         }
       })
 
-      // 排序：点餐中排在最前面，每个状态内部按开始时间降序排列
-      const sortedMeals = this.sortMeals(mealsWithFormattedTime)
-
-      this.setData({ meals: sortedMeals })
-
-      // 为自己发起的活跃 meal 预生成分享令牌
-      this.preGenerateShareTokens(sortedMeals)
+      this.preGenerateShareTokens([...mealsFuture, ...mealsToday, ...mealsHistory])
     } catch (err) {
       console.error('加载点餐列表失败:', err)
     }
   },
 
-  // 排序餐食列表
-  sortMeals(meals) {
-    return meals.sort((a, b) => {
-      // 按开始时间降序排列（最新的在前），不区分状态
-      return new Date(b.createdAt) - new Date(a.createdAt)
-    })
-  },
+  async loadMoreHistory() {
+    const currentKitchen = getApp().globalData.currentKitchen
+    const kitchenId = currentKitchen ? currentKitchen.id : null
+    if (!kitchenId) return
 
-  // 编辑点餐
-  async editMeal(e) {
-    const mealId = e.currentTarget.dataset.id
+    const { historyPage, historyTotal, historyLoading, _mealListRawBuffer } = this.data
+    if (historyLoading) return
 
+    const buf = _mealListRawBuffer || []
+    if (buf.length >= historyTotal && historyTotal > 0) {
+      this.setData({ historyNoMore: true })
+      return
+    }
+
+    const role = currentKitchen && currentKitchen.role
+    const canManageMeals = role === 'owner' || role === 'admin'
+    const nextPage = historyPage + 1
+
+    this.setData({ historyLoading: true })
     try {
-      // 获取完整的餐食详情（包含菜品列表）
-      const result = await API.meal.get(mealId)
-      const meal = result.data
-
-      if (!meal) {
-        wx.showToast({ title: '点餐不存在', icon: 'none' })
-        return
-      }
-
-      // 存储当前编辑的餐食数据到全局
-      getApp().globalData.editingMeal = meal
-
-      // 跳转到编辑页面（使用 initiate-meal 页面，传入编辑模式参数）
-      wx.navigateTo({
-        url: '/pages/initiate-meal/initiate-meal?mode=edit'
+      const result = await API.meal.list(null, kitchenId, {
+        page: nextPage,
+        pageSize: MEAL_LIST_MORE_SIZE
       })
-    } catch (err) {
-      console.error('获取餐食详情失败:', err)
-      wx.showToast({ title: '加载失败', icon: 'none' })
-    }
-  },
+      const chunk = result.data.list || []
+      const total =
+        result.data.total != null ? Number(result.data.total) : historyTotal
+      const merged = buf.concat(chunk)
+      const { future: rawF, today: rawT, history: rawH } =
+        partitionMealsByScheduledBeijingDate(merged)
 
-  // 收单
-  closeMeal(e) {
-    const mealId = e.currentTarget.dataset.id
+      const { mealsFuture, mealsToday, mealsHistory } = this._mapAndSortBuckets(
+        rawF,
+        rawT,
+        rawH,
+        canManageMeals
+      )
 
-    wx.showModal({
-      title: '确认收单',
-      content: '收单后将不能再点餐，是否继续？',
-      success: async (res) => {
-        if (res.confirm) {
-          try {
-            // 调用云函数收单
-            await API.meal.close(mealId)
+      const fetchedAll = merged.length >= total || chunk.length === 0
 
-            // 刷新列表
-            this.loadMeals()
-
-            wx.showToast({ title: '收单成功', icon: 'success' })
-          } catch (err) {
-            console.error('收单失败:', err)
-          }
-        }
-      }
-    })
-  },
-
-  // 进入点餐详情页
-  goMealDetail(e) {
-    const mealId = e.currentTarget.dataset.id
-    wx.navigateTo({
-      url: `/pages/meal-detail/meal-detail?mealId=${mealId}`
-    })
-  },
-
-  // 进入点餐页面（从详情页调用）
-  async goOrder(e) {
-    const mealId = e.currentTarget.dataset.id
-    const meal = this.data.meals.find(m => m.id === mealId)
-
-    if (!meal) {
-      wx.showToast({ title: '点餐不存在', icon: 'none' })
-      return
-    }
-
-    // 检查是否已收单
-    if (meal.status === 'closed') {
-      wx.showToast({ title: '该点餐已收单', icon: 'none' })
-      return
-    }
-
-    // 存储当前餐食到全局数据
-    getApp().globalData.currentMeal = meal
-
-    // 跳转到点餐页面
-    wx.navigateTo({
-      url: '/pages/order-food/order-food'
-    })
-  },
-
-  // 查看点餐详情（只读模式）
-  async viewMeal(e) {
-    const mealId = e.currentTarget.dataset.id
-
-    try {
-      // 获取完整的餐食详情
-      const result = await API.meal.get(mealId)
-      const meal = result.data
-
-      if (!meal) {
-        wx.showToast({ title: '点餐不存在', icon: 'none' })
-        return
-      }
-
-      // 存储到全局数据
-      getApp().globalData.currentMeal = meal
-      getApp().globalData.viewMode = true // 标记为查看模式
-
-      // 跳转到点餐页面（查看模式）
-      wx.navigateTo({
-        url: '/pages/order-food/order-food'
+      this.setData({
+        _mealListRawBuffer: merged,
+        mealsFuture,
+        mealsToday,
+        mealsHistory,
+        historyPage: nextPage,
+        historyTotal: total,
+        historyNoMore: fetchedAll,
+        historyLoading: false
       })
-    } catch (err) {
-      console.error('获取餐食详情失败:', err)
-      wx.showToast({ title: '加载失败', icon: 'none' })
-    }
-  },
-
-  // 恢复点餐（将已收单的点餐恢复为点餐中状态）
-  async reopenMeal(e) {
-    const mealId = e.currentTarget.dataset.id
-
-    wx.showModal({
-      title: '确认恢复点餐',
-      content: '恢复后可以继续点餐，是否继续？',
-      success: async (res) => {
-        if (res.confirm) {
-          try {
-            // 调用云函数恢复点餐
-            await API.meal.reopen(mealId)
-            wx.showToast({ title: '恢复成功', icon: 'success' })
-            // 刷新列表
-            this.loadMeals()
-          } catch (err) {
-            console.error('恢复点餐失败:', err)
-            wx.showToast({ title: '恢复失败', icon: 'none' })
-          }
-        }
+      if (chunk.length > 0) {
+        this.preGenerateShareTokens([...mealsFuture, ...mealsToday, ...mealsHistory])
       }
-    })
+    } catch (e) {
+      console.error('加载历史点餐失败:', e)
+      this.setData({ historyLoading: false })
+    }
   },
 
-  // 分享点餐
-  async shareMeal(e) {
-    const mealId = e.currentTarget.dataset.id
-    const meal = this.data.meals.find(m => m.id === mealId)
-
-    if (!meal) {
-      wx.showToast({ title: '点餐不存在', icon: 'none' })
-      return
-    }
-
-    // 检查是否已收单
-    if (meal.status === 'closed') {
-      wx.showToast({ title: '已收单的点餐不能分享', icon: 'none' })
-      return
-    }
-
-    try {
-      // 调用云函数生成分享链接
-      const result = await API.share.generateShareLink(mealId)
-      const { shareUrl } = result.data
-
-      // 显示分享菜单
-      wx.showActionSheet({
-        itemList: ['复制链接', '分享给好友'],
-        success: (res) => {
-          if (res.tapIndex === 0) {
-            // 复制链接
-            wx.setClipboardData({
-              data: shareUrl,
-              success: () => {
-                wx.showToast({ title: '链接已复制', icon: 'success' })
-              }
-            })
-          } else if (res.tapIndex === 1) {
-            // 调用微信分享
-            // 这里可以调用 wx.shareAppMessage
-            wx.showToast({ title: '请使用右上角分享按钮', icon: 'none' })
-          }
-        }
-      })
-    } catch (err) {
-      console.error('生成分享链接失败:', err)
-      wx.showToast({ title: '分享失败', icon: 'none' })
-    }
+  toggleSection(e) {
+    const key = e.currentTarget.dataset.key
+    if (!key) return
+    const sectionExpanded = { ...this.data.sectionExpanded }
+    sectionExpanded[key] = !sectionExpanded[key]
+    this.setData({ sectionExpanded })
   },
 
   async preGenerateShareTokens(meals) {
     const myActiveMeals = meals.filter(m => m.canManageMeals && m.status === 'ordering')
     const tokenMap = this.data.shareTokenMap || {}
-    for (var i = 0; i < myActiveMeals.length; i++) {
-      var meal = myActiveMeals[i]
+    for (let i = 0; i < myActiveMeals.length; i++) {
+      const meal = myActiveMeals[i]
       if (tokenMap[meal.id]) continue
       try {
         const result = await API.share.generateShareLink(meal.id)
@@ -284,23 +269,157 @@ Page({
     this.setData({ shareTokenMap: tokenMap })
   },
 
+  async editMeal(e) {
+    const mealId = e.currentTarget.dataset.id
+    try {
+      const result = await API.meal.get(mealId)
+      const meal = result.data
+      if (!meal) {
+        wx.showToast({ title: '点餐不存在', icon: 'none' })
+        return
+      }
+      getApp().globalData.editingMeal = meal
+      wx.navigateTo({
+        url: '/pages/initiate-meal/initiate-meal?mode=edit'
+      })
+    } catch (err) {
+      console.error('获取餐食详情失败:', err)
+      wx.showToast({ title: '加载失败', icon: 'none' })
+    }
+  },
+
+  closeMeal(e) {
+    const mealId = e.currentTarget.dataset.id
+    wx.showModal({
+      title: '确认收单',
+      content: '收单后将不能再点餐，是否继续？',
+      success: async (res) => {
+        if (res.confirm) {
+          try {
+            await API.meal.close(mealId)
+            this.loadMeals(true)
+            wx.showToast({ title: '收单成功', icon: 'success' })
+          } catch (err) {
+            console.error('收单失败:', err)
+          }
+        }
+      }
+    })
+  },
+
+  goMealDetail(e) {
+    const mealId = e.currentTarget.dataset.id
+    wx.navigateTo({
+      url: `/pages/meal-detail/meal-detail?mealId=${mealId}`
+    })
+  },
+
+  async goOrder(e) {
+    const mealId = e.currentTarget.dataset.id
+    const meal = this.findMealById(mealId)
+    if (!meal) {
+      wx.showToast({ title: '点餐不存在', icon: 'none' })
+      return
+    }
+    if (meal.status === 'closed') {
+      wx.showToast({ title: '该点餐已收单', icon: 'none' })
+      return
+    }
+    getApp().globalData.currentMeal = meal
+    wx.navigateTo({
+      url: '/pages/order-food/order-food'
+    })
+  },
+
+  async viewMeal(e) {
+    const mealId = e.currentTarget.dataset.id
+    try {
+      const result = await API.meal.get(mealId)
+      const meal = result.data
+      if (!meal) {
+        wx.showToast({ title: '点餐不存在', icon: 'none' })
+        return
+      }
+      getApp().globalData.currentMeal = meal
+      getApp().globalData.viewMode = true
+      wx.navigateTo({
+        url: '/pages/order-food/order-food'
+      })
+    } catch (err) {
+      console.error('获取餐食详情失败:', err)
+      wx.showToast({ title: '加载失败', icon: 'none' })
+    }
+  },
+
+  async reopenMeal(e) {
+    const mealId = e.currentTarget.dataset.id
+    wx.showModal({
+      title: '确认恢复点餐',
+      content: '恢复后可以继续点餐，是否继续？',
+      success: async (res) => {
+        if (res.confirm) {
+          try {
+            await API.meal.reopen(mealId)
+            wx.showToast({ title: '恢复成功', icon: 'success' })
+            this.loadMeals(true)
+          } catch (err) {
+            console.error('恢复点餐失败:', err)
+            wx.showToast({ title: '恢复失败', icon: 'none' })
+          }
+        }
+      }
+    })
+  },
+
+  async shareMeal(e) {
+    const mealId = e.currentTarget.dataset.id
+    const meal = this.findMealById(mealId)
+    if (!meal) {
+      wx.showToast({ title: '点餐不存在', icon: 'none' })
+      return
+    }
+    if (meal.status === 'closed') {
+      wx.showToast({ title: '已收单的点餐不能分享', icon: 'none' })
+      return
+    }
+    try {
+      const result = await API.share.generateShareLink(mealId)
+      const { shareUrl } = result.data
+      wx.showActionSheet({
+        itemList: ['复制链接', '分享给好友'],
+        success: (res) => {
+          if (res.tapIndex === 0) {
+            wx.setClipboardData({
+              data: shareUrl,
+              success: () => {
+                wx.showToast({ title: '链接已复制', icon: 'success' })
+              }
+            })
+          } else if (res.tapIndex === 1) {
+            wx.showToast({ title: '请使用右上角分享按钮', icon: 'none' })
+          }
+        }
+      })
+    } catch (err) {
+      console.error('生成分享链接失败:', err)
+      wx.showToast({ title: '分享失败', icon: 'none' })
+    }
+  },
+
   onShareAppMessage(e) {
     const mealId = e.target.dataset.id
     const mealName = e.target.dataset.name
-
     if (!mealId) {
       return {
         title: '今天吃什么？一起来点餐吧！',
         path: '/pages/meal-list/meal-list'
       }
     }
-
     const tokenMap = this.data.shareTokenMap || {}
     const token = tokenMap[mealId] || ''
     const sharePath = token
       ? `/pages/share-meal/share-meal?token=${token}&mealId=${mealId}`
       : `/pages/share-meal/share-meal?mealId=${mealId}`
-
     return {
       title: `【${mealName}】快来一起点餐吧！`,
       path: sharePath,

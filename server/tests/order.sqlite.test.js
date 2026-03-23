@@ -147,11 +147,8 @@ async function orderMain(event, context) {
           return paramError('点餐ID不能为空');
         }
 
-        // 检查点餐是否存在且属于当前用户
-        const meal = testQuery(
-          'SELECT id FROM wte_meals WHERE id = ? AND user_id = ?',
-          [mealId, userId]
-        );
+        // 与线上一致：任意登录用户可查该点餐的订单统计（用于点餐页展示「已点：xxx」）
+        const meal = testQuery('SELECT id FROM wte_meals WHERE id = ?', [mealId]);
 
         if (meal.length === 0) {
           return notFound('点餐活动不存在');

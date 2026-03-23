@@ -61,6 +61,10 @@ describe('发起点餐页面UI测试 - 餐名按钮高亮', () => {
       expect(wxml).toContain('value="{{selectedMealName}}"');
       expect(wxml).toContain('selected-dish-count');
       expect(wxml).toContain('selectedDishes.length');
+      expect(wxml).toContain('initiate-dish-select-label');
+      expect(wxml).toContain('initiate-select-toolbar');
+      expect(wxml).toContain('section-action');
+      expect(wxml).not.toContain('默认全选');
     });
 
     test('测试WXSS中餐名输入与已选数量样式', () => {
@@ -69,6 +73,8 @@ describe('发起点餐页面UI测试 - 餐名按钮高亮', () => {
 
       expect(wxss).toMatch(/\.meal-name-input/);
       expect(wxss).toMatch(/\.selected-dish-count/);
+      expect(wxss).toMatch(/\.initiate-select-toolbar/);
+      expect(wxss).toMatch(/\.section-action/);
     });
 
     test('测试WXSS中已选/未选菜品行样式', () => {
@@ -77,6 +83,15 @@ describe('发起点餐页面UI测试 - 餐名按钮高亮', () => {
 
       expect(wxss).toMatch(/\.dish-select-row--selected/);
       expect(wxss).toMatch(/\.dish-select-row--unselected/);
+      expect(wxss).toMatch(/\.dish-select-row__check/);
+    });
+
+    test('测试WXSS中编辑模式底栏完成按钮样式', () => {
+      const fs = require('fs');
+      const wxss = fs.readFileSync('pages/initiate-meal/initiate-meal.wxss', 'utf-8');
+
+      expect(wxss).toMatch(/\.btn--footer-complete/);
+      expect(wxss).toMatch(/\.initiate-footer-btn-inner/);
     });
 
     test('测试WXSS中底部固定栏与滚动区', () => {

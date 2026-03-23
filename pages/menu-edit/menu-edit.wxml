@@ -81,12 +81,12 @@
           bindtap="toggleDishSelection"
           data-id="{{item.id}}"
         >
-          <checkbox checked="{{item.selected}}" />
           <image class="dish-thumb" src="{{item.displayImage}}" mode="aspectFill" catchtap="previewDishImage" data-url="{{item.displayImage}}" />
           <view class="dish-text">
             <text class="dish-name">{{item.name}}</text>
             <text class="dish-desc">{{item.displayDescription}}</text>
           </view>
+          <checkbox class="dish-item-check" checked="{{item.selected}}" />
         </view>
       </view>
     </view>
@@ -107,12 +107,12 @@
           bindtap="toggleDishSelection"
           data-id="{{item.id}}"
         >
-          <checkbox checked="{{item.selected}}" />
           <image class="dish-thumb" src="{{item.displayImage}}" mode="aspectFill" catchtap="previewDishImage" data-url="{{item.displayImage}}" />
           <view class="dish-text">
             <text class="dish-name">{{item.name}}</text>
             <text class="dish-desc">{{item.displayDescription}}</text>
           </view>
+          <checkbox class="dish-item-check" checked="{{item.selected}}" />
         </view>
       </view>
     </view>

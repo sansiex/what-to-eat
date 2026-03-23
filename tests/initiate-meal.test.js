@@ -49,15 +49,9 @@ describe('发起点菜页面测试', () => {
       data: { id: 1, name: '午餐' }
     });
 
-    const result = await mockAPI.meal.create({
-      name: '午餐',
-      dishIds: [1, 2]
-    });
+    const result = await mockAPI.meal.create('午餐', [1, 2], 1);
 
-    expect(mockAPI.meal.create).toHaveBeenCalledWith({
-      name: '午餐',
-      dishIds: [1, 2]
-    });
+    expect(mockAPI.meal.create).toHaveBeenCalledWith('午餐', [1, 2], 1);
     expect(result.data.id).toBe(1);
   });
 
@@ -88,6 +82,12 @@ describe('发起点菜页面测试', () => {
     
     expect(js).toContain('initiateMeal');
     expect(js).toContain('toggleDishSelection');
+    expect(js).toContain('API.dish.list(kitchenId');
+    expect(js).toContain('onUnload');
+    expect(js).toContain('API.meal.create');
+    expect(js).toContain('kitchenId');
+    expect(js).toContain('buildSchedulePayload');
+    expect(js).toContain('initMealSchedulePickers');
   });
 
   test('验证WXML展示已选菜品数', () => {
@@ -107,6 +107,7 @@ describe('发起点菜页面测试', () => {
     expect(wxml).toContain('dish-select-row--unselected');
     expect(wxml).toContain('dish-list-thumb');
     expect(wxml).toContain('dish-select-row__inner');
+    expect(wxml).toContain('dish-select-row__check');
   });
 
   test('验证发起点餐标题与按钮文案及无选中时禁用', () => {
@@ -114,7 +115,11 @@ describe('发起点菜页面测试', () => {
     const wxml = fs.readFileSync('pages/initiate-meal/initiate-meal.wxml', 'utf-8');
 
     expect(wxml).toContain("'编辑点餐' : '发起点餐'");
-    expect(wxml).toContain('发起点餐');
+    expect(wxml).toContain('确认发起点餐');
+    expect(wxml).toContain('用餐时间');
+    expect(wxml).toContain('class="meal-schedule-row__value">{{mealTimeDisplay}}');
+    expect(wxml).toContain('onMealDateChange');
+    expect(wxml).toContain('onMealTimeChange');
     expect(wxml).toContain('disabled="{{!selectedMealName || selectedDishes.length === 0}}"');
   });
 
@@ -126,5 +131,8 @@ describe('发起点菜页面测试', () => {
     expect(wxml).toContain('initiate-meal-scroll');
     expect(wxml).toContain('initiate-meal-footer');
     expect(wxml).toContain('btn--footer');
+    expect(wxml).toContain('btn--footer-complete');
+    expect(wxml).toContain('success_no_circle');
+    expect(wxml).toContain('initiate-footer-btn-inner');
   });
 });

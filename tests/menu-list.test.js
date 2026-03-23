@@ -152,9 +152,9 @@ describe('菜单列表页面测试', () => {
         data: { id: 100, name: '午餐菜单' }
       });
 
-      const result = await mockAPI.meal.create('午餐菜单', [1, 2]);
+      const result = await mockAPI.meal.create('午餐菜单', [1, 2], null);
       
-      expect(mockAPI.meal.create).toHaveBeenCalledWith('午餐菜单', [1, 2]);
+      expect(mockAPI.meal.create).toHaveBeenCalledWith('午餐菜单', [1, 2], null);
       expect(result.data.id).toBe(100);
     });
   });

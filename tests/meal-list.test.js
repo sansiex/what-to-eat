@@ -143,7 +143,24 @@ describe('点餐列表页测试', () => {
       expect(wxml).toContain('点餐');
       expect(wxml).toContain('goMealDetail');
       expect(wxml).toContain('createdAtDisplay');
+      expect(wxml).toContain('scheduledMealDisplay');
+      expect(wxml).toContain('meal-time--scheduled');
+      expect(wxml).toContain('用餐时间');
+      expect(wxml).not.toContain('发起人：');
+      expect(wxml).toContain('明天及以后用餐');
+      expect(wxml).toContain('今天用餐');
+      expect(wxml).toContain('历史点餐');
+      expect(wxml).toContain('mealsFuture');
+      expect(wxml).toContain('toggleSection');
+      expect(wxml).toContain('已经到底啦');
       expect(wxml).not.toMatch(/\{\{item\.name\}\}\s*\{\{item\.weekday\}\}/);
+    });
+
+    test('用餐时间行为黑色样式类', () => {
+      const fs = require('fs');
+      const wxss = fs.readFileSync('pages/meal-list/meal-list.wxss', 'utf-8');
+      expect(wxss).toMatch(/\.meal-time\.meal-time--scheduled/);
+      expect(wxss).toMatch(/#000000/);
     });
 
     test('验证JS包含必要方法', () => {
@@ -154,6 +171,12 @@ describe('点餐列表页测试', () => {
     expect(js).toContain('closeMeal');
     expect(js).toContain('goMealDetail');
     expect(js).toContain('createdAtDisplay');
+    expect(js).toContain('formatScheduledMealDisplayForOrderFood');
+    expect(js).toContain('scheduledMealDisplay');
+    expect(js).toContain('loadMoreHistory');
+    expect(js).toContain('partitionMealsByScheduledBeijingDate');
+    expect(js).toContain('mealEffectiveScheduledBeijingYmd');
+    expect(js).toContain('initDefaultKitchen');
   });
   });
 });

@@ -4,7 +4,7 @@
   <view class="section" wx:if="{{meal}}">
     <text class="meal-name">{{meal.name}}</text>
     <text class="meal-info">发起人：{{meal.creatorName || '未知'}}</text>
-    <text class="meal-info">发起时间：{{meal.createdAt}}</text>
+    <text class="meal-info">发起时间：{{meal.formattedCreatedAt}}</text>
   </view>
 
   <!-- 加载中 -->

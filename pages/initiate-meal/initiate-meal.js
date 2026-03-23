@@ -1,6 +1,14 @@
 // pages/initiate-meal/initiate-meal.js
 const { API } = require('../../utils/cloud-api.js')
 const { previewSingleDishImage } = require('../../utils/dish-preview.js')
+const {
+  buildMealDatePickerOptions,
+  buildMealTimeMultiRange,
+  getBeijingNowRoundedTo5Min,
+  getSuggestedTimePickerIndicesForMealName,
+  formatMealTimeDisplay,
+  parseScheduledAtFromApi
+} = require('../../utils/beijing-meal-schedule.js')
 
 Page({
   data: {
@@ -11,7 +19,15 @@ Page({
     selectAll: true,
     isEditMode: false,
     editingMealId: '',
-    defaultDishImage: '/images/dish-placeholder.png'
+    defaultDishImage: '/images/dish-placeholder.png',
+    mealDateLabels: [],
+    mealDateValues: [],
+    mealDateIndex: 0,
+    mealDateDisplay: '',
+    mealTimeRange: [[], []],
+    mealTimePickerValue: [12, 0],
+    mealTimeSpecified: false,
+    mealTimeDisplay: '未选择（非必填）'
   },
 
   onLoad(options) {
@@ -23,7 +39,7 @@ Page({
       // 从菜单编辑页「保存并发起点餐」进入
       this.loadFromMenu()
     } else {
-      // 加载菜品数据
+      this.initMealSchedulePickers(null)
       this.loadDishes()
     }
   },
@@ -32,6 +48,13 @@ Page({
     // 页面显示时重新加载菜品数据，确保获取最新数据
     if (!this.data.isEditMode && !this.data.fromMenuMode) {
       this.loadDishes()
+    }
+  },
+
+  /** 编辑模式下用户用左上角返回时清理全局编辑态（原底部「返回」按钮逻辑） */
+  onUnload() {
+    if (this.data.isEditMode) {
+      getApp().globalData.editingMeal = null
     }
   },
 
@@ -59,6 +82,7 @@ Page({
       selectedDishes,
       selectAll: true
     })
+    this.initMealSchedulePickers(null, menu.name)
     getApp().globalData.initiateFromMenu = null
   },
 
@@ -74,16 +98,18 @@ Page({
     console.log('加载编辑的餐食数据:', editingMeal)
 
     try {
-      // 获取所有菜品
-      const result = await API.dish.list()
+      const currentKitchen = getApp().globalData.currentKitchen
+      const kitchenId =
+        currentKitchen && currentKitchen.id != null ? Number(currentKitchen.id) : null
+      const result = await API.dish.list(kitchenId, '')
       const allDishes = result.data.list || []
 
       // 构建菜品选择状态
-      const mealDishIds = editingMeal.dishes.map(d => d.id)
+      const mealDishIds = editingMeal.dishes.map(d => Number(d.id))
       const defaultDishImage = this.data.defaultDishImage
       const dishesWithSelected = allDishes.map(dish => ({
         ...dish,
-        selected: mealDishIds.includes(dish.id),
+        selected: mealDishIds.includes(Number(dish.id)),
         imageUrl: dish.imageUrl || dish.image_url || '',
         displayImage: (dish.imageUrl || dish.image_url) || defaultDishImage,
         displayDescription: dish.description || '暂无描述'
@@ -98,6 +124,7 @@ Page({
         selectedDishes,
         selectAll: selectedDishes.length === allDishes.length && allDishes.length > 0
       })
+      this.initMealSchedulePickers(editingMeal)
     } catch (err) {
       console.error('加载编辑数据失败:', err)
       wx.showToast({ title: '加载失败', icon: 'none' })
@@ -106,7 +133,10 @@ Page({
 
   async loadDishes() {
     try {
-      const result = await API.dish.list()
+      const currentKitchen = getApp().globalData.currentKitchen
+      const kitchenId =
+        currentKitchen && currentKitchen.id != null ? Number(currentKitchen.id) : null
+      const result = await API.dish.list(kitchenId, '')
       const dishes = result.data.list || []
       console.log('加载的菜品数据:', dishes)
 
@@ -140,7 +170,116 @@ Page({
   },
 
   onMealNameInput(e) {
-    this.setData({ selectedMealName: e.detail.value })
+    const selectedMealName = e.detail.value
+    const patch = { selectedMealName }
+    if (!this.data.mealTimeSpecified) {
+      const suggested = getSuggestedTimePickerIndicesForMealName(selectedMealName)
+      const nowR = getBeijingNowRoundedTo5Min()
+      patch.mealTimePickerValue = suggested
+        ? [suggested.hourIndex, suggested.minuteIndex]
+        : [nowR.hourIndex, nowR.minuteIndex]
+    }
+    this.setData(patch)
+  },
+
+  /**
+   * @param {object|null} meal 编辑时带入 API 返回的 scheduledAt / scheduledTimeSpecified
+   * @param {string} [mealNameHint] 餐名（用于 setData 异步后仍能按菜单名推断默认时刻）
+   */
+  initMealSchedulePickers(meal, mealNameHint) {
+    const { labels, values } = buildMealDatePickerOptions(28)
+    const timeRange = buildMealTimeMultiRange()
+    const nowR = getBeijingNowRoundedTo5Min()
+    let mealDateIndex = 0
+    let mealTimeSpecified = false
+    let mealTimePickerValue = [nowR.hourIndex, nowR.minuteIndex]
+
+    const nameForHint =
+      mealNameHint != null && String(mealNameHint).trim() !== ''
+        ? String(mealNameHint).trim()
+        : (meal && meal.name) || this.data.selectedMealName || ''
+
+    const parsed = meal ? parseScheduledAtFromApi(meal.scheduledAt, meal.scheduledTimeSpecified) : null
+    if (parsed) {
+      const idx = values.indexOf(parsed.ymd)
+      if (idx >= 0) mealDateIndex = idx
+    }
+
+    if (parsed && parsed.timeSpecified) {
+      mealTimePickerValue = [parsed.hourIndex, parsed.minuteIndex]
+      mealTimeSpecified = true
+    } else {
+      const suggested = getSuggestedTimePickerIndicesForMealName(nameForHint)
+      mealTimePickerValue = suggested
+        ? [suggested.hourIndex, suggested.minuteIndex]
+        : [nowR.hourIndex, nowR.minuteIndex]
+      mealTimeSpecified = false
+    }
+
+    const mealTimeDisplay = mealTimeSpecified
+      ? formatMealTimeDisplay(mealTimePickerValue[0], mealTimePickerValue[1])
+      : '未选择（非必填）'
+
+    this.setData({
+      mealDateLabels: labels,
+      mealDateValues: values,
+      mealDateIndex,
+      mealDateDisplay: labels[mealDateIndex] || '',
+      mealTimeRange: timeRange,
+      mealTimePickerValue,
+      mealTimeSpecified,
+      mealTimeDisplay
+    })
+  },
+
+  onMealDateChange(e) {
+    const idx = Number(e.detail.value)
+    const labels = this.data.mealDateLabels
+    if (Number.isNaN(idx) || idx < 0 || idx >= labels.length) return
+    this.setData({
+      mealDateIndex: idx,
+      mealDateDisplay: labels[idx]
+    })
+  },
+
+  onMealTimeChange(e) {
+    const raw = e.detail.value
+    const hi = Number(raw[0])
+    const mi = Number(raw[1])
+    if (Number.isNaN(hi) || Number.isNaN(mi)) return
+    this.setData({
+      mealTimePickerValue: [hi, mi],
+      mealTimeSpecified: true,
+      mealTimeDisplay: formatMealTimeDisplay(hi, mi)
+    })
+  },
+
+  clearMealTime() {
+    const suggested = getSuggestedTimePickerIndicesForMealName(this.data.selectedMealName)
+    const nowR = getBeijingNowRoundedTo5Min()
+    this.setData({
+      mealTimeSpecified: false,
+      mealTimeDisplay: '未选择（非必填）',
+      mealTimePickerValue: suggested
+        ? [suggested.hourIndex, suggested.minuteIndex]
+        : [nowR.hourIndex, nowR.minuteIndex]
+    })
+  },
+
+  buildSchedulePayload() {
+    const {
+      mealDateValues,
+      mealDateIndex,
+      mealTimeSpecified,
+      mealTimePickerValue
+    } = this.data
+    const scheduledDate = mealDateValues[mealDateIndex]
+    return {
+      scheduledDate: scheduledDate || '',
+      scheduledTimeSpecified: !!mealTimeSpecified,
+      scheduledHour: mealTimePickerValue[0],
+      scheduledMinute: (mealTimePickerValue[1] || 0) * 5
+    }
   },
 
   toggleSelectAll() {
@@ -218,7 +357,12 @@ Page({
     try {
       // 调用云函数更新点餐
       const selectedDishIds = selectedDishDetails.map(d => d.id)
-      await API.meal.update(editingMealId, selectedMealName.trim(), selectedDishIds)
+      await API.meal.update(
+        editingMealId,
+        selectedMealName.trim(),
+        selectedDishIds,
+        this.buildSchedulePayload()
+      )
 
       // 清除编辑状态
       getApp().globalData.editingMeal = null
@@ -232,12 +376,6 @@ Page({
     } catch (err) {
       console.error('更新点餐失败:', err)
     }
-  },
-
-  // 返回（取消编辑）
-  goBack() {
-    getApp().globalData.editingMeal = null
-    wx.navigateBack()
   },
 
   previewDishImage(e) {
@@ -274,9 +412,17 @@ Page({
     wx.showLoading({ title: '正在创建点餐流程...' })
 
     try {
-      // 调用云函数创建点餐
+      // 与点餐列表一致：必须写入当前厨房，否则列表按 kitchenId 查询时看不到本条
+      const currentKitchen = getApp().globalData.currentKitchen
+      const kitchenId =
+        currentKitchen && currentKitchen.id != null ? Number(currentKitchen.id) : null
       const selectedDishIds = selectedDishDetails.map(d => d.id)
-      const result = await API.meal.create(selectedMealName.trim(), selectedDishIds)
+      const result = await API.meal.create(
+        selectedMealName.trim(),
+        selectedDishIds,
+        kitchenId,
+        this.buildSchedulePayload()
+      )
       const mealData = result.data
 
       console.log('创建点餐成功:', mealData)

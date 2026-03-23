@@ -1,6 +1,24 @@
 // pages/order-food/order-food.js
 const { API } = require('../../utils/cloud-api.js')
+const { formatScheduledMealDisplayForOrderFood } = require('../../utils/beijing-meal-schedule.js')
+const { formatMealCreatedAtBeijing } = require('../../utils/format-meal-created-at-beijing.js')
 const { isDishPlaceholderUrl } = require('../../utils/dish-preview.js')
+const { CATEGORIES: TAG_CATEGORIES } = require('../../utils/dish-tag-registry.js')
+const { formatTagView } = require('../../utils/dish-tag-view.js')
+
+/** 草稿标签 [{ categoryKey, tagCode }] → 与后端 myTags 同结构的展示字段 */
+function enrichMyTagsFromRegistry(list) {
+  return (list || []).map(t => {
+    const cat = TAG_CATEGORIES.find(c => c.key === t.categoryKey)
+    const tagDef = cat && cat.tags.find(x => x.code === t.tagCode)
+    return {
+      categoryKey: t.categoryKey,
+      tagCode: t.tagCode,
+      tagLabel: tagDef ? tagDef.label : t.tagCode,
+      colorKey: cat ? cat.colorKey : 'blue'
+    }
+  })
+}
 
 Page({
   data: {
@@ -13,16 +31,210 @@ Page({
     orderStats: [], // 订单统计
     updateTimestamp: Date.now(),
     viewMode: false, // 是否为查看模式（只读）
-    isInitiator: false // 是否是点餐发起人
+    isInitiator: false, // 是否是点餐发起人
+    expandedDishId: null,
+    tagRegistryCategories: TAG_CATEGORIES,
+    tagPickerVisible: false,
+    tagPickerActiveCategory: 'spiciness',
+    tagPickerOptions: [],
+    tagPickerSelectedCodes: [],
+    /** 弹窗内各分类已选 tagCode，与 myTags 同步 */
+    tagPickerByCategory: {},
+    tagPickerInitialByCategory: {},
+    /** 仅前端暂存：每道菜我的标签，点「下单」时与勾选一并提交 */
+    dishTagDraft: {}
   },
 
   onLoad() {
     // 检查是否为查看模式
     const viewMode = getApp().globalData.viewMode || false
-    this.setData({ viewMode })
+    this.setData({ viewMode, tagRegistryCategories: TAG_CATEGORIES })
 
     this.loadCurrentMeal()
     this.loadOrders()
+  },
+
+  noop() {},
+
+  mapDishesWithTags(dishes, draftMap) {
+    const draft = draftMap || this.data.dishTagDraft || {}
+    return (dishes || []).map(dish => {
+      const serverTd = dish.tagDisplay || { groups: [], myTags: [] }
+      const draftList = draft[dish.id] || []
+      const tagDisplay = {
+        groups: serverTd.groups || [],
+        myTags: enrichMyTagsFromRegistry(draftList)
+      }
+      return {
+        ...dish,
+        imageUrl: dish.imageUrl || dish.image_url || '',
+        displayImage: (dish.imageUrl || dish.image_url) || '/images/dish-placeholder.png',
+        displayDescription: dish.description || '暂无描述',
+        tagView: formatTagView(tagDisplay)
+      }
+    })
+  },
+
+  toggleDishExpand(e) {
+    const id = e.currentTarget.dataset.id
+    if (id == null) return
+    this.setData({
+      expandedDishId: this.data.expandedDishId === id ? null : id
+    })
+  },
+
+  /** 由当前菜 myTags 生成各分类已选列表 */
+  buildTagPickerStateFromMyTags(myTags) {
+    const by = {}
+    TAG_CATEGORIES.forEach(c => {
+      by[c.key] = []
+    })
+    for (const t of myTags || []) {
+      const k = t.categoryKey
+      if (!by[k]) by[k] = []
+      if (k === 'spiciness') {
+        by[k] = [t.tagCode]
+      } else if (!by[k].includes(t.tagCode)) {
+        by[k].push(t.tagCode)
+      }
+    }
+    return by
+  },
+
+  /** 右侧具体标签列表（带 selected，避免 WXML 里用 indexOf 在部分基础库不生效） */
+  buildTagPickerOptions(byCategory, activeKey) {
+    const cat = TAG_CATEGORIES.find(c => c.key === activeKey)
+    if (!cat) return []
+    const codes = byCategory[activeKey] || []
+    const set = new Set(codes)
+    return cat.tags.map(t => ({
+      code: t.code,
+      label: t.label,
+      selected: set.has(t.code)
+    }))
+  },
+
+  openTagPicker() {
+    if (this.data.viewMode || !this.data.expandedDishId) {
+      wx.showToast({ title: '请先展开菜品', icon: 'none' })
+      return
+    }
+    const dishId = this.data.expandedDishId
+    const draftList = (this.data.dishTagDraft && this.data.dishTagDraft[dishId]) || []
+    const by = this.buildTagPickerStateFromMyTags(enrichMyTagsFromRegistry(draftList))
+    const firstCat = TAG_CATEGORIES[0]
+    const firstKey = firstCat.key
+    const firstCodes = [...(by[firstKey] || [])]
+    const options = this.buildTagPickerOptions(by, firstKey)
+    this.setData({
+      tagPickerVisible: true,
+      tagPickerActiveCategory: firstKey,
+      tagPickerByCategory: by,
+      tagPickerInitialByCategory: JSON.parse(JSON.stringify(by)),
+      tagPickerOptions: options,
+      tagPickerSelectedCodes: firstKey === 'spiciness' ? (firstCodes[0] ? [firstCodes[0]] : []) : firstCodes
+    })
+  },
+
+  closeTagPicker() {
+    this.setData({
+      tagPickerVisible: false,
+      tagPickerActiveCategory: 'spiciness',
+      tagPickerSelectedCodes: [],
+      tagPickerOptions: [],
+      tagPickerByCategory: {},
+      tagPickerInitialByCategory: {}
+    })
+  },
+
+  selectTagPickerCategory(e) {
+    const key = e.currentTarget.dataset.catKey || e.currentTarget.dataset.key
+    const cat = TAG_CATEGORIES.find(c => c.key === key)
+    if (!cat) return
+    const codes = [...(this.data.tagPickerByCategory[key] || [])]
+    const by = this.data.tagPickerByCategory
+    this.setData({
+      tagPickerActiveCategory: key,
+      tagPickerOptions: this.buildTagPickerOptions(by, key),
+      tagPickerSelectedCodes: key === 'spiciness' ? (codes[0] ? [codes[0]] : []) : codes
+    })
+  },
+
+  togglePickerTag(e) {
+    const code = e.currentTarget.dataset.tagCode
+    const catKey = this.data.tagPickerActiveCategory
+    if (!code || !catKey) return
+    let codes = [...(this.data.tagPickerByCategory[catKey] || [])]
+    if (catKey === 'spiciness') {
+      const idx = codes.indexOf(code)
+      codes = idx >= 0 ? [] : [code]
+    } else {
+      const i = codes.indexOf(code)
+      if (i >= 0) codes.splice(i, 1)
+      else codes.push(code)
+    }
+    const nextBy = { ...this.data.tagPickerByCategory, [catKey]: codes }
+    this.setData({
+      tagPickerByCategory: nextBy,
+      tagPickerSelectedCodes: [...codes],
+      tagPickerOptions: this.buildTagPickerOptions(nextBy, catKey)
+    })
+  },
+
+  clearTagPickerSelection() {
+    const cleared = {}
+    TAG_CATEGORIES.forEach(c => {
+      cleared[c.key] = []
+    })
+    const active = this.data.tagPickerActiveCategory
+    this.setData({
+      tagPickerByCategory: cleared,
+      tagPickerSelectedCodes: [],
+      tagPickerOptions: this.buildTagPickerOptions(cleared, active)
+    })
+  },
+
+  confirmTagPicker() {
+    const dishId = this.data.expandedDishId
+    const final = this.data.tagPickerByCategory || {}
+    if (!dishId) {
+      this.closeTagPicker()
+      return
+    }
+    const flatList = []
+    TAG_CATEGORIES.forEach(cat => {
+      (final[cat.key] || []).forEach(code => {
+        flatList.push({ categoryKey: cat.key, tagCode: code })
+      })
+    })
+    const dishTagDraft = { ...this.data.dishTagDraft, [dishId]: flatList }
+    const kw = this.data.searchKeyword || ''
+    const dishes = this.data.currentMeal.dishes || []
+    const filtered = kw
+      ? dishes.filter(dish => dish.name.toLowerCase().includes(kw.toLowerCase()))
+      : dishes
+    const filteredDishes = this.mapDishesWithTags(filtered, dishTagDraft)
+    this.setData({ dishTagDraft, filteredDishes })
+    wx.showToast({ title: '已更新，下单时提交', icon: 'none' })
+    this.closeTagPicker()
+  },
+
+  removeMyDishTag(e) {
+    if (this.data.viewMode) return
+    const dishId = parseInt(e.currentTarget.dataset.dishId, 10)
+    const categoryKey = e.currentTarget.dataset.category
+    const tagCode = e.currentTarget.dataset.code
+    if (!dishId || !categoryKey || !tagCode) return
+    const list = [...((this.data.dishTagDraft && this.data.dishTagDraft[dishId]) || [])]
+    const next = list.filter(t => !(t.categoryKey === categoryKey && t.tagCode === tagCode))
+    const dishTagDraft = { ...this.data.dishTagDraft, [dishId]: next }
+    const kw = this.data.searchKeyword || ''
+    const dishes = this.data.currentMeal.dishes || []
+    const filtered = kw
+      ? dishes.filter(dish => dish.name.toLowerCase().includes(kw.toLowerCase()))
+      : dishes
+    const filteredDishes = this.mapDishesWithTags(filtered, dishTagDraft)
+    this.setData({ dishTagDraft, filteredDishes })
   },
 
   // 获取微信用户信息
@@ -84,32 +296,6 @@ Page({
   onHide() {
     // 离开页面时清除查看模式标记
     getApp().globalData.viewMode = false
-  },
-
-  // 格式化时间为北京时间
-  formatBeijingTime(isoString) {
-    console.log('formatBeijingTime被调用，输入:', isoString)
-    if (!isoString) {
-      console.log('输入为空，返回空字符串')
-      return ''
-    }
-    try {
-      const date = new Date(isoString)
-      console.log('解析的日期:', date)
-      // 转换为北京时间 (UTC+8)
-      const beijingTime = new Date(date.getTime() + 8 * 60 * 60 * 1000)
-      const year = beijingTime.getUTCFullYear()
-      const month = String(beijingTime.getUTCMonth() + 1).padStart(2, '0')
-      const day = String(beijingTime.getUTCDate()).padStart(2, '0')
-      const hours = String(beijingTime.getUTCHours()).padStart(2, '0')
-      const minutes = String(beijingTime.getUTCMinutes()).padStart(2, '0')
-      const result = `${year}-${month}-${day} ${hours}:${minutes}`
-      console.log('格式化结果:', result)
-      return result
-    } catch (e) {
-      console.log('格式化失败:', e)
-      return ''
-    }
   },
 
   // 加载当前餐食数据
@@ -176,21 +362,31 @@ Page({
         dishOrderersMap[dish.id] = orderers.length > 0 ? '已点：' + orderers.join('、') : '暂无点选'
       })
 
-      const dishesWithDisplay = currentMeal.dishes.map(dish => ({
-        ...dish,
-        imageUrl: dish.imageUrl || dish.image_url || '',
-        displayImage: (dish.imageUrl || dish.image_url) || '/images/dish-placeholder.png',
-        displayDescription: dish.description || '暂无描述'
-      }))
+      let dishTagDraft = {}
+      if (mealChanged) {
+        currentMeal.dishes.forEach(d => {
+          const mt = (d.tagDisplay && d.tagDisplay.myTags) || []
+          dishTagDraft[d.id] = mt.map(t => ({ categoryKey: t.categoryKey, tagCode: t.tagCode }))
+        })
+      } else {
+        dishTagDraft = { ...(this.data.dishTagDraft || {}) }
+      }
+
+      const dishesWithDisplay = this.mapDishesWithTags(currentMeal.dishes, dishTagDraft)
 
       // 格式化创建时间
-      const formattedCreatedAt = this.formatBeijingTime(currentMeal.createdAt)
-      console.log('格式化后的创建时间:', formattedCreatedAt)
+      const formattedCreatedAt = formatMealCreatedAtBeijing(currentMeal.createdAt, true)
+
+      const formattedScheduledMeal = formatScheduledMealDisplayForOrderFood(
+        currentMeal.scheduledAt,
+        currentMeal.scheduledTimeSpecified
+      )
 
       // 创建带有格式化时间的 currentMeal 副本
       const currentMealWithFormattedTime = {
         ...currentMeal,
-        formattedCreatedAt
+        formattedCreatedAt,
+        formattedScheduledMeal
       }
 
       // 判断当前用户是否是发起人（使用后端返回的 isCreator）
@@ -202,7 +398,8 @@ Page({
         userSelectedDishes,
         dishSelectionMap,
         dishOrderersMap,
-        isInitiator
+        isInitiator,
+        dishTagDraft
       })
 
       // 为发起人预生成分享令牌
@@ -290,15 +487,13 @@ Page({
     if (!this.data.currentMeal) return
 
     const dishes = this.data.currentMeal.dishes
-    const filteredDishes = dishes.filter(dish =>
+    const filtered = dishes.filter(dish =>
       dish.name.toLowerCase().includes(keyword.toLowerCase())
-    ).map(dish => ({
-      ...dish,
-      imageUrl: dish.imageUrl || dish.image_url || '',
-      displayImage: (dish.imageUrl || dish.image_url) || '/images/dish-placeholder.png',
-      displayDescription: dish.description || '暂无描述'
-    }))
-    this.setData({ filteredDishes })
+    )
+    const filteredDishes = this.mapDishesWithTags(filtered, this.data.dishTagDraft)
+    const idSet = new Set(filteredDishes.map(d => d.id))
+    const expandedDishId = idSet.has(this.data.expandedDishId) ? this.data.expandedDishId : null
+    this.setData({ filteredDishes, expandedDishId })
   },
 
   // 处理checkbox-group的change事件
@@ -380,8 +575,12 @@ Page({
     }
 
     try {
-      // 调用云函数下单
-      await API.order.create(this.data.currentMeal.id, this.data.userSelectedDishes)
+      const draft = this.data.dishTagDraft || {}
+      const dishTagsByDishId = {}
+      this.data.userSelectedDishes.forEach(id => {
+        dishTagsByDishId[id] = draft[id] || []
+      })
+      await API.order.create(this.data.currentMeal.id, this.data.userSelectedDishes, dishTagsByDishId)
 
       // 准备跳转到下单完成页面所需的数据
       getApp().globalData.orderCompleteData = {

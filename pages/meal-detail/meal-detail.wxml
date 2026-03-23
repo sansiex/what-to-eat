@@ -1,6 +1,5 @@
 <!-- pages/meal-detail/meal-detail.wxml -->
 <view class="container" wx:if="{{meal}}">
-  <!-- 点餐信息 -->
   <view class="meal-header">
     <text class="meal-name">{{meal.name}}</text>
     <view class="meal-header-right">
@@ -16,30 +15,48 @@
       </view>
     </view>
   </view>
+  <text wx:if="{{meal.formattedScheduledMeal}}" class="meal-scheduled-line">用餐时间：{{meal.formattedScheduledMeal}}</text>
   <view class="meal-meta">
     <text class="meta-item">发起人：{{meal.isCreator ? '我' : (meal.creatorName || '未知')}}</text>
     <text class="meta-item">发起时间：{{meal.formattedCreatedAt}}</text>
   </view>
 
-  <!-- 已点菜品 -->
   <view class="section" wx:if="{{orderedDishes.length > 0}}">
     <text class="section-title">已点菜品（{{orderedDishes.length}}）</text>
     <view class="dish-list">
-      <view wx:for="{{orderedDishes}}" wx:key="id" class="dish-item">
-        <image
-          src="{{item.displayImage}}"
-          mode="aspectFill"
-          class="dish-img"
-        />
-        <view class="dish-info">
-          <text class="dish-name">{{item.name}}</text>
-          <text class="dish-orderers">{{item.ordererText}}</text>
+      <view wx:for="{{orderedDishes}}" wx:key="id" class="dish-block">
+        <view class="dish-item dish-item--tap {{item.hasTagBadge ? 'dish-item--has-tag-badge' : ''}}" bindtap="toggleDishExpand" data-id="{{item.id}}">
+          <view class="dish-img-wrap">
+            <image
+              src="{{item.displayImage}}"
+              mode="aspectFill"
+              class="dish-img"
+              catchtap="previewDishImage"
+              data-url="{{item.displayImage}}"
+            />
+          </view>
+          <view class="dish-info">
+            <text class="dish-name">{{item.name}}</text>
+            <text class="dish-desc {{expandedDishId === item.id ? 'dish-desc--expanded' : 'dish-desc--collapsed'}}">{{item.displayDescription}}</text>
+            <text class="dish-orderers">{{item.ordererText}}</text>
+          </view>
+          <view wx:if="{{item.hasTagBadge}}" class="dish-tag-corner-badge">【TAG】</view>
+        </view>
+        <view wx:if="{{expandedDishId === item.id}}" class="dish-tag-panel" catchtap="noop">
+          <view wx:if="{{item.tagView.groups.length > 0}}" class="meal-detail-tag-block">
+            <block wx:for="{{item.tagView.groups}}" wx:key="categoryKey" wx:for-item="grp">
+              <view wx:for="{{grp.items}}" wx:key="tagLabel" wx:for-item="row" class="meal-detail-tag-line">
+                <text class="dish-tag-pill dish-tag-pill--{{grp.colorKey}}">{{row.tagLabel}}</text>
+                <text class="meal-detail-tag-users">{{row.usersText}}</text>
+              </view>
+            </block>
+          </view>
+          <view wx:else class="meal-detail-tag-empty">暂无标签</view>
         </view>
       </view>
     </view>
   </view>
 
-  <!-- 未点菜品（默认折叠，点击标题展开/收起） -->
   <view class="section" wx:if="{{unorderedDishes.length > 0}}">
     <view class="section-header-collapsible" bindtap="toggleUnorderedSection">
       <text class="section-title section-title--collapsible">未点菜品（{{unorderedDishes.length}}）</text>
@@ -47,26 +64,43 @@
       <text class="collapsible-arrow">{{unorderedSectionExpanded ? '▼' : '▶'}}</text>
     </view>
     <view class="dish-list" wx:if="{{unorderedSectionExpanded}}">
-      <view wx:for="{{unorderedDishes}}" wx:key="id" class="dish-item">
-        <image
-          src="{{item.displayImage}}"
-          mode="aspectFill"
-          class="dish-img"
-        />
-        <view class="dish-info">
-          <text class="dish-name">{{item.name}}</text>
-          <text class="dish-orderers">暂无点选</text>
+      <view wx:for="{{unorderedDishes}}" wx:key="id" class="dish-block">
+        <view class="dish-item dish-item--tap {{item.hasTagBadge ? 'dish-item--has-tag-badge' : ''}}" bindtap="toggleDishExpand" data-id="{{item.id}}">
+          <view class="dish-img-wrap">
+            <image
+              src="{{item.displayImage}}"
+              mode="aspectFill"
+              class="dish-img"
+              catchtap="previewDishImage"
+              data-url="{{item.displayImage}}"
+            />
+          </view>
+          <view class="dish-info">
+            <text class="dish-name">{{item.name}}</text>
+            <text class="dish-desc {{expandedDishId === item.id ? 'dish-desc--expanded' : 'dish-desc--collapsed'}}">{{item.displayDescription}}</text>
+            <text class="dish-orderers">暂无点选</text>
+          </view>
+          <view wx:if="{{item.hasTagBadge}}" class="dish-tag-corner-badge">【TAG】</view>
+        </view>
+        <view wx:if="{{expandedDishId === item.id}}" class="dish-tag-panel" catchtap="noop">
+          <view wx:if="{{item.tagView.groups.length > 0}}" class="meal-detail-tag-block">
+            <block wx:for="{{item.tagView.groups}}" wx:key="categoryKey" wx:for-item="grp">
+              <view wx:for="{{grp.items}}" wx:key="tagLabel" wx:for-item="row" class="meal-detail-tag-line">
+                <text class="dish-tag-pill dish-tag-pill--{{grp.colorKey}}">{{row.tagLabel}}</text>
+                <text class="meal-detail-tag-users">{{row.usersText}}</text>
+              </view>
+            </block>
+          </view>
+          <view wx:else class="meal-detail-tag-empty">暂无标签</view>
         </view>
       </view>
     </view>
   </view>
 
-  <!-- 空状态 -->
   <view wx:if="{{orderedDishes.length === 0 && unorderedDishes.length === 0}}" class="empty-state">
     <text>该点餐暂无菜品</text>
   </view>
 
-  <!-- 底部操作按钮 -->
   <view class="bottom-actions">
     <button
       wx:if="{{canManage && meal.status === 1}}"

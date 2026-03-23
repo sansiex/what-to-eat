@@ -156,9 +156,9 @@
 }
 
 .list-item__title {
-  font-size: 32rpx;
-  color: #1A1A1A;
-  font-weight: 500;
+  font-size: 38rpx;
+  color: #1a1a1a;
+  font-weight: 600;
 }
 
 .list-item__actions {

@@ -247,7 +247,7 @@
   align-items: center;
   padding: 10rpx 0;
   border-bottom: 1rpx solid #C8E6C9;
-  gap: 10rpx;
+  gap: 28rpx;
 }
 
 .dish-item.selected {
@@ -259,8 +259,8 @@
 }
 
 .dish-name {
-  font-size: 34rpx;
-  color: #1A1A1A;
+  font-size: 40rpx;
+  color: #1a1a1a;
   margin-left: 0;
   font-weight: 600;
 }
@@ -287,6 +287,13 @@
   border-radius: 12rpx;
   background: #C8E6C9;
   flex-shrink: 0;
+}
+
+/* 勾选框在列表项右侧 */
+.dish-item .dish-item-check {
+  flex-shrink: 0;
+  margin-left: 16rpx;
+  margin-right: 0;
 }
 
 /* 表单操作 - 固定在屏幕底部 */

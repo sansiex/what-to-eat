@@ -1,6 +1,7 @@
 // pages/order-complete/order-complete.js
 const { API } = require('../../utils/cloud-api.js')
 const { previewSingleDishImage } = require('../../utils/dish-preview.js')
+const { formatTagView } = require('../../utils/dish-tag-view.js')
 
 Page({
   data: {
@@ -8,7 +9,8 @@ Page({
     orderedDishes: [],
     unorderedDishes: [],
     isCreator: false,
-    shareToken: ''
+    shareToken: '',
+    expandedDishId: null
   },
 
   onLoad() {
@@ -21,8 +23,14 @@ Page({
     const { meal, allDishes, orderedDishIds, isCreator, shareToken } = data
 
     const orderedSet = new Set(orderedDishIds)
-    const orderedDishes = allDishes.filter(d => orderedSet.has(d.id))
-    const unorderedDishes = allDishes.filter(d => !orderedSet.has(d.id))
+    const mapDish = d => ({
+      ...d,
+      displayImage: d.displayImage || d.imageUrl || '/images/dish-placeholder.png',
+      displayDescription: d.displayDescription || d.description || '暂无描述',
+      tagView: formatTagView(d.tagDisplay)
+    })
+    const orderedDishes = allDishes.filter(d => orderedSet.has(d.id)).map(mapDish)
+    const unorderedDishes = allDishes.filter(d => !orderedSet.has(d.id)).map(mapDish)
 
     this.setData({
       meal,
@@ -34,6 +42,38 @@ Page({
 
     if (isCreator && !shareToken) {
       this.preGenerateShareToken(meal.id)
+    }
+
+    this.hydrateTagsFromServer(meal.id)
+  },
+
+  noop() {},
+
+  toggleDishExpand(e) {
+    const id = e.currentTarget.dataset.id
+    if (id == null) return
+    this.setData({
+      expandedDishId: this.data.expandedDishId === id ? null : id
+    })
+  },
+
+  async hydrateTagsFromServer(mealId) {
+    if (!mealId) return
+    try {
+      const res = await API.meal.get(mealId)
+      const dishMap = new Map((res.data.dishes || []).map(d => [d.id, d]))
+      const patch = list =>
+        list.map(d => {
+          const fresh = dishMap.get(d.id)
+          const tagDisplay = fresh && fresh.tagDisplay != null ? fresh.tagDisplay : d.tagDisplay
+          return { ...d, tagView: formatTagView(tagDisplay) }
+        })
+      this.setData({
+        orderedDishes: patch(this.data.orderedDishes),
+        unorderedDishes: patch(this.data.unorderedDishes)
+      })
+    } catch (e) {
+      console.warn('hydrateTagsFromServer', e)
     }
   },
 
@@ -55,6 +95,12 @@ Page({
 
   reOrder() {
     wx.navigateBack()
+  },
+
+  goMealList() {
+    wx.switchTab({
+      url: '/pages/meal-list/meal-list'
+    })
   },
 
   enterMyKitchen() {
