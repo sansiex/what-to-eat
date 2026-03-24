@@ -5,17 +5,55 @@
   min-height: 100vh;
 }
 
+/* 顶部：创建新菜单 + 菜品（同一行） */
+.menu-top-row {
+  display: flex;
+  flex-direction: row;
+  gap: 20rpx;
+  align-items: stretch;
+}
+
+.menu-top-card {
+  flex: 1;
+  min-width: 0;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 96rpx;
+}
+
+.menu-top-card:active {
+  opacity: 0.92;
+}
+
 /* 创建新菜单卡片 */
 .create-menu-card {
-  background: radial-gradient(ellipse at center, #fff 50%, #C8E6C9 100%) !important;
-  justify-content: center !important;
+  background: radial-gradient(ellipse at center, #fff 50%, #C8E6C9 100%);
   border: 2rpx dashed #81C784;
 }
 
 .create-menu-text {
-  font-size: 32rpx;
+  font-size: 30rpx;
   font-weight: 600;
-  color: #666;
+  color: #2e7d32;
+  text-align: center;
+}
+
+/* 菜品入口（与创建新菜单同排） */
+.dish-entry-card {
+  background: #fff;
+  border: 2rpx solid #A5D6A7;
+}
+
+.dish-entry-text {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #2e7d32;
+  text-align: center;
 }
 
 /* 菜单列表 */

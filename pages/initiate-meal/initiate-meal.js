@@ -1,5 +1,6 @@
 // pages/initiate-meal/initiate-meal.js
 const { API } = require('../../utils/cloud-api.js')
+const { requestMealOrderNotifySubscribe } = require('../../utils/subscribe-meal-order-notify.js')
 const { previewSingleDishImage } = require('../../utils/dish-preview.js')
 const {
   buildMealDatePickerOptions,
@@ -494,17 +495,16 @@ Page({
       // 存储当前点餐到全局数据
       getApp().globalData.currentMeal = mealData
 
+      wx.hideLoading()
+      // 发起者订阅：他人下单时可收到订阅消息（需配置模板 ID）
+      await requestMealOrderNotifySubscribe()
+
       // 跳转到点餐页面
       console.log('准备跳转到点餐页面')
       wx.navigateTo({
         url: '/pages/order-food/order-food',
-        success: function(res) {
-          console.log('跳转成功:', res)
-          wx.hideLoading()
-        },
         fail: function(res) {
           console.log('跳转失败:', res)
-          wx.hideLoading()
           wx.showToast({ title: '跳转失败，请重试', icon: 'none' })
         }
       })

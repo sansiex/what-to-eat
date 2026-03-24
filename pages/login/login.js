@@ -86,7 +86,11 @@ Page({
           console.log('解码后的 URL:', decodedUrl)
           
           // 判断是否是 tab 页面
-          const tabPages = ['/pages/menu-list/menu-list', '/pages/dish-list/dish-list', '/pages/meal-list/meal-list']
+          const tabPages = [
+            '/pages/menu-list/menu-list',
+            '/pages/meal-list/meal-list',
+            '/pages/kitchen-manage/kitchen-manage'
+          ]
           const isTabPage = tabPages.some(tab => decodedUrl.startsWith(tab))
           
           if (isTabPage) {

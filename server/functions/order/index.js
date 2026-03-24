@@ -3,8 +3,16 @@
  * 提供下单、取消订单、查询订单等功能
  */
 
+const cloud = require('wx-server-sdk');
 const { query, transaction, getUserId } = require('./utils/db');
 const { success, error, paramError, notFound } = require('./utils/response');
+const { notifyMealCreatorOnNewOrder } = require('./utils/subscribe-notify');
+
+try {
+  cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
+} catch (e) {
+  console.warn('wx-server-sdk init:', e && e.message);
+}
 const {
   isValidTag,
   buildDishTagDisplaysByDishId,
@@ -90,7 +98,7 @@ async function createOrder(data, context) {
   
   const userId = await getUserId(data, context);
 
-  return await transaction(async (connection) => {
+  const result = await transaction(async (connection) => {
     // 检查点餐活动是否存在且处于点餐中状态
     const [meal] = await connection.query(
       'SELECT id, status, user_id as creator_id FROM wte_meals WHERE id = ?',
@@ -175,6 +183,14 @@ async function createOrder(data, context) {
       }))
     }, '下单成功');
   });
+
+  if (result && result.success && result.data && result.data.mealId) {
+    notifyMealCreatorOnNewOrder(query, result.data.mealId, userId, null).catch((err) => {
+      console.warn('notifyMealCreatorOnNewOrder:', err && err.message);
+    });
+  }
+
+  return result;
 }
 
 /**
@@ -408,7 +424,7 @@ async function createAnonymousOrder(data, context) {
     return paramError('请输入您的姓名');
   }
 
-  return await transaction(async (connection) => {
+  const result = await transaction(async (connection) => {
     // 验证分享令牌是否有效
     const [shareRecord] = await connection.query(
       'SELECT id FROM wte_meal_shares WHERE share_token = ? AND meal_id = ? AND status = 1',
@@ -492,6 +508,14 @@ async function createAnonymousOrder(data, context) {
       userName: trimmedName
     }, '下单成功');
   });
+
+  if (result && result.success && result.data && result.data.userId != null) {
+    notifyMealCreatorOnNewOrder(query, mealId, result.data.userId, result.data.userName).catch((err) => {
+      console.warn('notifyMealCreatorOnNewOrder (anonymous):', err && err.message);
+    });
+  }
+
+  return result;
 }
 
 async function assertMealOpenWithDishTx(connection, mealId, dishId) {

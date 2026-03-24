@@ -1,13 +1,12 @@
 /**
  * App配置测试
- * 测试驱动开发 - 验证tab页重构
- * Tab页应包含：【菜单】，【菜品】，【点餐】，【厨房】
+ * Tab：【菜单】（含菜品入口）【点餐】【厨房】
  */
 
 const fs = require('fs');
 const path = require('path');
 
-describe('App配置测试 - Tab页重构', () => {
+describe('App配置测试 - Tab页', () => {
   let appConfig;
 
   beforeAll(() => {
@@ -22,8 +21,8 @@ describe('App配置测试 - Tab页重构', () => {
     expect(Array.isArray(appConfig.tabBar.list)).toBe(true);
   });
 
-  test('验证tabBar包含4个tab项', () => {
-    expect(appConfig.tabBar.list).toHaveLength(4);
+  test('验证tabBar包含3个tab项', () => {
+    expect(appConfig.tabBar.list).toHaveLength(3);
   });
 
   test('验证第一个tab是【菜单】', () => {
@@ -32,22 +31,20 @@ describe('App配置测试 - Tab页重构', () => {
     expect(firstTab.pagePath).toBe('pages/menu-list/menu-list');
   });
 
-  test('验证第二个tab是【菜品】', () => {
+  test('验证第二个tab是【点餐】', () => {
     const secondTab = appConfig.tabBar.list[1];
-    expect(secondTab.text).toBe('菜品');
-    expect(secondTab.pagePath).toBe('pages/dish-list/dish-list');
+    expect(secondTab.text).toBe('点餐');
+    expect(secondTab.pagePath).toBe('pages/meal-list/meal-list');
   });
 
-  test('验证第三个tab是【点餐】', () => {
+  test('验证第三个tab是【厨房】', () => {
     const thirdTab = appConfig.tabBar.list[2];
-    expect(thirdTab.text).toBe('点餐');
-    expect(thirdTab.pagePath).toBe('pages/meal-list/meal-list');
+    expect(thirdTab.text).toBe('厨房');
+    expect(thirdTab.pagePath).toBe('pages/kitchen-manage/kitchen-manage');
   });
 
-  test('验证第四个tab是【厨房】', () => {
-    const fourthTab = appConfig.tabBar.list[3];
-    expect(fourthTab.text).toBe('厨房');
-    expect(fourthTab.pagePath).toBe('pages/kitchen-manage/kitchen-manage');
+  test('验证pages配置包含菜品列表页（非Tab）', () => {
+    expect(appConfig.pages).toContain('pages/dish-list/dish-list');
   });
 
   test('验证pages配置包含所有必要页面', () => {

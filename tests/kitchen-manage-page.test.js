@@ -16,6 +16,8 @@ describe('kitchen-manage 页面', () => {
     expect(wxml).toContain('kitchen-meta-badge');
     expect(wxml).toContain('disabled="{{!isOwner}}"');
     expect(wxml).toContain('btn-invite-inline');
+    expect(wxml).toContain('参与制定菜单');
+    expect(wxml).toContain('邀请一位试试吧');
   });
 
   test('kitchen-switcher：选择面板不含退出厨房入口', () => {

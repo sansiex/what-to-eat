@@ -11,7 +11,10 @@
   <view class="section">
     <view class="section-title-row section-title-row--kitchen-name">
       <text class="section-title section-title--inline">厨房名称</text>
-      <view class="switch-kitchen-link" bindtap="openKitchenPicker">切换厨房</view>
+      <view class="kitchen-name-title-actions">
+        <text class="kitchen-meta-badge {{isOwner ? 'kitchen-meta-badge--owner' : 'kitchen-meta-badge--admin'}}">{{roleLabel}}</text>
+        <view class="switch-kitchen-link" bindtap="openKitchenPicker">切换厨房</view>
+      </view>
     </view>
     <view class="name-row">
       <input
@@ -27,12 +30,9 @@
         bindtap="saveName"
       >保存</button>
     </view>
-    <!-- 与选择厨房列表项一致：管理员左侧副标题「XX 的厨房」，右侧角色角标 -->
-    <view class="kitchen-meta-row">
-      <view class="kitchen-meta-main">
-        <text wx:if="{{kitchenMetaSubtitle}}" class="kitchen-meta-subtitle">{{kitchenMetaSubtitle}}</text>
-      </view>
-      <text class="kitchen-meta-badge {{isOwner ? 'kitchen-meta-badge--owner' : 'kitchen-meta-badge--admin'}}">{{roleLabel}}</text>
+    <!-- 副标题「XX 的厨房」（角色角标在标题行「切换厨房」左侧） -->
+    <view wx:if="{{kitchenMetaSubtitle}}" class="kitchen-meta-row">
+      <text class="kitchen-meta-subtitle">{{kitchenMetaSubtitle}}</text>
     </view>
   </view>
 
@@ -47,9 +47,9 @@
       >+ 邀请管理员</button>
     </view>
 
-    <view wx:if="{{members.length === 0}}" class="empty-state">
-      <text wx:if="{{isOwner}}">暂无管理员，点击右上方邀请</text>
-      <text wx:else>暂无管理员</text>
+    <view wx:if="{{members.length === 0}}" class="empty-state empty-state--admin-intro">
+      <text wx:if="{{isOwner}}">管理员可以协助厨房主人一起管理厨房，参与制定菜单，发起点餐等工作。邀请一位试试吧~</text>
+      <text wx:else>管理员可以协助厨房主人一起管理厨房，参与制定菜单，发起点餐等工作。当前暂无管理员。</text>
     </view>
 
     <view wx:else class="member-list">

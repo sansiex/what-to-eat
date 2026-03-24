@@ -8,6 +8,7 @@
   "license": "ISC",
   "dependencies": {
     "@cloudbase/node-sdk": "latest",
-    "mysql2": "^3.6.0"
+    "mysql2": "^3.6.0",
+    "wx-server-sdk": "~2.6.3"
   }
 }

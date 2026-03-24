@@ -14,7 +14,11 @@ Page({
     dishDescriptionInput: '',
     dishImageUrl: '',
     isUploadingImage: false,
-    defaultDishImage: '/images/dish-placeholder.png'
+    defaultDishImage: '/images/dish-placeholder.png',
+    /** 添加菜品弹窗：可选菜单（多选后加入） */
+    addDialogMenus: [],
+    addDialogHasChecked: false,
+    addDialogMenuPickerOpen: false
   },
 
   onLoad() {
@@ -40,7 +44,76 @@ Page({
       editingDishId: null,
       dishNameInput: '',
       dishDescriptionInput: '',
-      dishImageUrl: ''
+      dishImageUrl: '',
+      addDialogMenus: [],
+      addDialogHasChecked: false,
+      addDialogMenuPickerOpen: false
+    })
+    this.loadMenusForAddDialog()
+  },
+
+  async loadMenusForAddDialog() {
+    const currentKitchen = getApp().globalData.currentKitchen
+    if (!currentKitchen || currentKitchen.id == null) {
+      this.setData({
+        addDialogMenus: [],
+        addDialogHasChecked: false,
+        addDialogMenuPickerOpen: false
+      })
+      return
+    }
+    try {
+      const res = await API.menu.list(currentKitchen.id)
+      const list = (res.data && res.data.list) || []
+      this.setData({
+        addDialogMenus: list.map((m) => ({
+          id: m.id,
+          name: m.name || '未命名菜单',
+          checked: false
+        })),
+        addDialogHasChecked: false,
+        addDialogMenuPickerOpen: false
+      })
+    } catch (e) {
+      console.warn('加载菜单列表失败', e)
+      this.setData({
+        addDialogMenus: [],
+        addDialogHasChecked: false,
+        addDialogMenuPickerOpen: false
+      })
+    }
+  },
+
+  toggleAddDialogMenuPicker() {
+    if (!(this.data.addDialogMenus || []).length) return
+    this.setData({
+      addDialogMenuPickerOpen: !this.data.addDialogMenuPickerOpen
+    })
+  },
+
+  noopAddDialogMenu() {},
+
+  toggleAddDialogMenu(e) {
+    const id = Number(e.currentTarget.dataset.id)
+    if (!id) return
+    const addDialogMenus = (this.data.addDialogMenus || []).map((m) =>
+      m.id === id ? { ...m, checked: !m.checked } : m
+    )
+    this.setData({
+      addDialogMenus,
+      addDialogHasChecked: addDialogMenus.some((m) => m.checked)
+    })
+  },
+
+  uncheckAddDialogMenu(e) {
+    const id = Number(e.currentTarget.dataset.id)
+    if (!id) return
+    const addDialogMenus = (this.data.addDialogMenus || []).map((m) =>
+      m.id === id ? { ...m, checked: false } : m
+    )
+    this.setData({
+      addDialogMenus,
+      addDialogHasChecked: addDialogMenus.some((m) => m.checked)
     })
   },
 
@@ -59,7 +132,10 @@ Page({
       editingDishId: dishId,
       dishNameInput: dish.name || '',
       dishDescriptionInput: dish.description || '',
-      dishImageUrl: dish.imageUrl || ''
+      dishImageUrl: dish.imageUrl || '',
+      addDialogMenus: [],
+      addDialogHasChecked: false,
+      addDialogMenuPickerOpen: false
     })
   },
 
@@ -71,7 +147,10 @@ Page({
       editingDishId: null,
       dishNameInput: '',
       dishDescriptionInput: '',
-      dishImageUrl: ''
+      dishImageUrl: '',
+      addDialogMenus: [],
+      addDialogHasChecked: false,
+      addDialogMenuPickerOpen: false
     })
   },
 
@@ -155,13 +234,53 @@ Page({
         await API.dish.update(editingDishId, trimmedName, trimmedDescription, dishImageUrl)
         wx.showToast({ title: '更新成功', icon: 'success' })
       } else {
-        await API.dish.create(trimmedName, trimmedDescription, dishImageUrl)
+        const currentKitchen = getApp().globalData.currentKitchen
+        const kitchenId = currentKitchen && currentKitchen.id != null ? currentKitchen.id : null
+        const createResult = await API.dish.create(
+          trimmedName,
+          trimmedDescription,
+          dishImageUrl,
+          kitchenId
+        )
+        const newDishId = createResult.data && createResult.data.id
+        const newDishIdNum = newDishId != null ? Number(newDishId) : null
+        const selectedMenus = (this.data.addDialogMenus || []).filter((m) => m.checked)
+        if (newDishIdNum && selectedMenus.length > 0) {
+          wx.showLoading({ title: '加入菜单…', mask: true })
+          try {
+            for (const m of selectedMenus) {
+              const g = await API.menu.get(m.id)
+              const menu = g.data
+              if (!menu) continue
+              const ids = (menu.dishes || []).map((d) => Number(d.id))
+              if (ids.includes(newDishIdNum)) continue
+              await API.menu.update({
+                id: m.id,
+                name: menu.name,
+                dishIds: [...ids, newDishIdNum]
+              })
+            }
+          } catch (joinErr) {
+            console.error('加入菜单失败', joinErr)
+            wx.hideLoading()
+            wx.showToast({
+              title: '菜品已创建，部分菜单未更新',
+              icon: 'none',
+              duration: 2500
+            })
+            this.hideDishDialog()
+            this.loadDishes()
+            return
+          }
+          wx.hideLoading()
+        }
         wx.showToast({ title: '添加成功', icon: 'success' })
       }
       this.hideDishDialog()
       this.loadDishes()
     } catch (err) {
       console.error('保存菜品失败:', err)
+      wx.hideLoading()
       wx.showToast({ title: '保存失败', icon: 'none' })
     }
   },

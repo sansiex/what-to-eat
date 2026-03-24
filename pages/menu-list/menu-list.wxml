@@ -2,8 +2,13 @@
 <view class="container">
   <!-- 菜单列表 -->
   <view class="menu-list">
-    <view class="menu-card create-menu-card" bindtap="createMenu">
-      <text class="create-menu-text">创建新菜单</text>
+    <view class="menu-top-row">
+      <view class="menu-top-card create-menu-card" bindtap="createMenu">
+        <text class="create-menu-text">创建新菜单</text>
+      </view>
+      <view class="menu-top-card dish-entry-card" bindtap="goDishList">
+        <text class="dish-entry-text">菜品</text>
+      </view>
     </view>
 
     <view wx:for="{{menus}}" wx:key="id" class="menu-card" bindtap="editMenu" data-id="{{item.id}}">

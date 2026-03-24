@@ -82,6 +82,13 @@ Page({
     })
   },
 
+  // 进入菜品库（原底部「菜品」Tab）
+  goDishList() {
+    wx.navigateTo({
+      url: '/pages/dish-list/dish-list'
+    })
+  },
+
   editMenu(e) {
     const menuId = e.currentTarget.dataset.id
     const menu = this.data.menus.find(m => m.id === menuId)

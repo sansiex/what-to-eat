@@ -46,6 +46,7 @@ describe('meal-detail 页面', () => {
     expect(js).toContain('hasTagBadge');
     expect(js).toContain('formatScheduledMealDisplayForOrderFood');
     expect(js).toContain('formattedScheduledMeal');
+    expect(js).toContain('requestMealOrderNotifySubscribe');
   });
 
   test('WXSS：折叠头部样式', () => {

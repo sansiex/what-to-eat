@@ -104,6 +104,14 @@ describe('菜单列表页面增强测试', () => {
       }
     });
 
+    test('测试 goDishList 跳转菜品列表', () => {
+      if (pageInstance.goDishList) {
+        pageInstance.goDishList();
+        expect(wx.navigateTo).toHaveBeenCalledWith({
+          url: '/pages/dish-list/dish-list'
+        });
+      }
+    });
   });
 
   describe('发起点餐测试', () => {

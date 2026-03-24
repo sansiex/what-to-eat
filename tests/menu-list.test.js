@@ -175,6 +175,15 @@ describe('菜单列表页面测试', () => {
     });
   });
 
+  describe('菜品入口', () => {
+    test('测试进入菜品列表 navigateTo', () => {
+      mockWx.navigateTo({ url: '/pages/dish-list/dish-list' });
+      expect(mockWx.navigateTo).toHaveBeenCalledWith({
+        url: '/pages/dish-list/dish-list'
+      });
+    });
+  });
+
   describe('WXML结构验证', () => {
     test('验证页面文件存在', () => {
       const fs = require('fs');
@@ -190,6 +199,9 @@ describe('菜单列表页面测试', () => {
       const wxml = fs.readFileSync('pages/menu-list/menu-list.wxml', 'utf-8');
 
       expect(wxml).toContain('创建新菜单');
+      expect(wxml).toContain('菜品');
+      expect(wxml).toContain('goDishList');
+      expect(wxml).toContain('menu-top-row');
       expect(wxml).toContain('editMenu');
       expect(wxml).toContain('goInitiateMeal');
     });
@@ -200,6 +212,7 @@ describe('菜单列表页面测试', () => {
 
       expect(js).toContain('loadMenus');
       expect(js).toContain('createMenu');
+      expect(js).toContain('goDishList');
       expect(js).toContain('editMenu');
       expect(js).toContain('goInitiateMeal');
     });

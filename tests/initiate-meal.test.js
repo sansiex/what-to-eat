@@ -90,6 +90,7 @@ describe('发起点菜页面测试', () => {
     expect(js).toContain('initMealSchedulePickers');
     expect(js).toContain('createDefaultMealSchedulePickerData');
     expect(js).toContain('refreshPickerBindDataForIOS');
+    expect(js).toContain('requestMealOrderNotifySubscribe');
   });
 
   test('验证WXML展示已选菜品数', () => {

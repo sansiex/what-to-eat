@@ -2,7 +2,9 @@
 const { API } = require('../../utils/cloud-api.js')
 const {
   partitionMealsByScheduledBeijingDate,
-  mealEffectiveScheduledBeijingYmd
+  mealEffectiveScheduledBeijingYmd,
+  partitionMealsByBeijingCalendar,
+  getMealListBeijingBoundaries
 } = require('../../utils/beijing-day.js')
 const { formatScheduledMealDisplayForOrderFood } = require('../../utils/beijing-meal-schedule.js')
 const { formatMealCreatedAtBeijing } = require('../../utils/format-meal-created-at-beijing.js')
@@ -12,18 +14,50 @@ const MEAL_LIST_PAGE_SIZE = 500
 /** 「加载更多」追加页大小 */
 const MEAL_LIST_MORE_SIZE = 100
 
+/** 点餐列表排序方式（缓存） */
+const MEAL_LIST_SORT_MODE_KEY = 'wte_meal_list_sort_mode'
+/** 按用餐时间（原默认分区） */
+const SORT_SCHEDULED = 'scheduled'
+/** 按发起时间：今天 / 昨天 / 历史 */
+const SORT_CREATED = 'created'
+const SORT_MODE_PICKER_LABELS = ['按发起时间排列', '按用餐时间排列']
+
+function readStoredSortMode() {
+  try {
+    const v = wx.getStorageSync(MEAL_LIST_SORT_MODE_KEY)
+    if (v === SORT_CREATED || v === SORT_SCHEDULED) return v
+  } catch (e) {
+    /* ignore */
+  }
+  return SORT_SCHEDULED
+}
+
+function writeStoredSortMode(mode) {
+  try {
+    wx.setStorageSync(MEAL_LIST_SORT_MODE_KEY, mode)
+  } catch (e) {
+    /* ignore */
+  }
+}
+
+function sortModeToPickerIndex(mode) {
+  return mode === SORT_CREATED ? 0 : 1
+}
+
 Page({
   data: {
-    /** 用餐日期为明天及以后（北京时间） */
-    mealsFuture: [],
-    /** 用餐日期为今天 */
-    mealsToday: [],
-    /** 用餐日期早于今天 */
-    mealsHistory: [],
+    sortMode: SORT_SCHEDULED,
+    sortModeIndex: 1,
+    sortModePickerRange: SORT_MODE_PICKER_LABELS,
+    sortModePickerDisplay: SORT_MODE_PICKER_LABELS[1],
+    mealSections: [],
     sectionExpanded: {
       future: true,
       today: true,
-      history: false
+      history: false,
+      cToday: true,
+      cYesterday: true,
+      cHistory: false
     },
     historyPage: 1,
     historyTotal: 0,
@@ -31,11 +65,17 @@ Page({
     historyNoMore: false,
     hasAnyMeal: false,
     shareTokenMap: {},
-    /** 已拉取的原始列表（用于追加分页后重新分区） */
     _mealListRawBuffer: []
   },
 
   onLoad() {
+    const sortMode = readStoredSortMode()
+    const sortModeIndex = sortModeToPickerIndex(sortMode)
+    this.setData({
+      sortMode,
+      sortModeIndex,
+      sortModePickerDisplay: SORT_MODE_PICKER_LABELS[sortModeIndex]
+    })
     this.loadMeals(true)
   },
 
@@ -44,7 +84,8 @@ Page({
   },
 
   onReachBottom() {
-    if (!this.data.sectionExpanded.history) return
+    const histKey = this.data.sortMode === SORT_SCHEDULED ? 'history' : 'cHistory'
+    if (!this.data.sectionExpanded[histKey]) return
     if (this.data.historyLoading || this.data.historyNoMore) return
     const buf = this.data._mealListRawBuffer || []
     const total = this.data.historyTotal || 0
@@ -53,6 +94,19 @@ Page({
       return
     }
     this.loadMoreHistory()
+  },
+
+  onSortModeChange(e) {
+    const idx = Number(e.detail.value)
+    if (Number.isNaN(idx) || idx === this.data.sortModeIndex) return
+    const mode = idx === 0 ? SORT_CREATED : SORT_SCHEDULED
+    writeStoredSortMode(mode)
+    this.setData({
+      sortMode: mode,
+      sortModeIndex: idx,
+      sortModePickerDisplay: SORT_MODE_PICKER_LABELS[idx]
+    })
+    this._repartitionFromBuffer(true)
   },
 
   mapMealRow(meal, canManageMeals) {
@@ -75,12 +129,26 @@ Page({
   },
 
   findMealById(mealId) {
-    const { mealsFuture, mealsToday, mealsHistory } = this.data
-    const all = [...mealsFuture, ...mealsToday, ...mealsHistory]
-    return all.find(m => m.id === mealId)
+    const sections = this.data.mealSections || []
+    for (let i = 0; i < sections.length; i++) {
+      const list = sections[i].list || []
+      const m = list.find((x) => x.id === mealId)
+      if (m) return m
+    }
+    return null
   },
 
-  _mapAndSortBuckets(rawFuture, rawToday, rawHistory, canManageMeals) {
+  _partitionRaw(sortMode, rawList) {
+    if (sortMode === SORT_SCHEDULED) {
+      const { future, today, history } = partitionMealsByScheduledBeijingDate(rawList)
+      return { rawA: future, rawB: today, rawC: history }
+    }
+    const boundaries = getMealListBeijingBoundaries()
+    const { today, yesterday, history } = partitionMealsByBeijingCalendar(rawList, boundaries)
+    return { rawA: today, rawB: yesterday, rawC: history }
+  },
+
+  _mapAndSortThreeBuckets(sortMode, rawA, rawB, rawC, canManageMeals) {
     const createdDesc = (a, b) => {
       const ta = new Date(a.createdAt || a.created_at || 0).getTime()
       const tb = new Date(b.createdAt || b.created_at || 0).getTime()
@@ -98,11 +166,163 @@ Page({
       if (ya !== yb) return (yb || '').localeCompare(ya || '')
       return createdDesc(a, b)
     }
-    return {
-      mealsFuture: rawFuture.map(m => this.mapMealRow(m, canManageMeals)).sort(futureSort),
-      mealsToday: rawToday.map(m => this.mapMealRow(m, canManageMeals)).sort(createdDesc),
-      mealsHistory: rawHistory.map(m => this.mapMealRow(m, canManageMeals)).sort(historySort)
+    const mapRow = (m) => this.mapMealRow(m, canManageMeals)
+    if (sortMode === SORT_SCHEDULED) {
+      return {
+        bucket0: rawA.map(mapRow).sort(futureSort),
+        bucket1: rawB.map(mapRow).sort(createdDesc),
+        bucket2: rawC.map(mapRow).sort(historySort)
+      }
     }
+    return {
+      bucket0: rawA.map(mapRow).sort(createdDesc),
+      bucket1: rawB.map(mapRow).sort(createdDesc),
+      bucket2: rawC.map(mapRow).sort(createdDesc)
+    }
+  },
+
+  _computeExpandDefaults(b0, b1, b2, total) {
+    const emptyTopTwo = b0.length === 0 && b1.length === 0
+    const expandHist = emptyTopTwo && (total > 0 || b2.length > 0)
+    return {
+      future: !expandHist,
+      today: !expandHist,
+      history: expandHist,
+      cToday: !expandHist,
+      cYesterday: !expandHist,
+      cHistory: expandHist
+    }
+  },
+
+  _buildMealSections(sortMode, bucket0, bucket1, bucket2, historyTotal, sectionExpanded) {
+    const rows =
+      sortMode === SORT_SCHEDULED
+        ? [
+            {
+              key: 'future',
+              title: '明天及以后用餐',
+              emptyText: '暂无未来用餐的点餐',
+              useTotal: false,
+              isHistory: false
+            },
+            {
+              key: 'today',
+              title: '今天用餐',
+              emptyText: '暂无今天用餐的点餐',
+              useTotal: false,
+              isHistory: false
+            },
+            {
+              key: 'history',
+              title: '历史点餐',
+              emptyText: '暂无历史点餐',
+              useTotal: true,
+              isHistory: true
+            }
+          ]
+        : [
+            {
+              key: 'cToday',
+              title: '今天的点餐',
+              emptyText: '暂无今天的点餐',
+              useTotal: false,
+              isHistory: false
+            },
+            {
+              key: 'cYesterday',
+              title: '昨天的点餐',
+              emptyText: '暂无昨天的点餐',
+              useTotal: false,
+              isHistory: false
+            },
+            {
+              key: 'cHistory',
+              title: '历史点餐',
+              emptyText: '暂无历史点餐',
+              useTotal: true,
+              isHistory: true
+            }
+          ]
+    const lists = [bucket0, bucket1, bucket2]
+    return rows.map((row, i) => ({
+      key: row.key,
+      title: row.title,
+      emptyText: row.emptyText,
+      isHistory: row.isHistory,
+      list: lists[i],
+      count: row.useTotal ? historyTotal : lists[i].length,
+      expanded: !!sectionExpanded[row.key]
+    }))
+  },
+
+  _flattenMealsFromSections(mealSections) {
+    const out = []
+    for (let i = 0; i < (mealSections || []).length; i++) {
+      const list = mealSections[i].list || []
+      for (let j = 0; j < list.length; j++) out.push(list[j])
+    }
+    return out
+  },
+
+  _applyRawList(rawList, total, canManageMeals, resetExpand) {
+    const sortMode = this.data.sortMode
+    const { rawA, rawB, rawC } = this._partitionRaw(sortMode, rawList)
+    const { bucket0, bucket1, bucket2 } = this._mapAndSortThreeBuckets(
+      sortMode,
+      rawA,
+      rawB,
+      rawC,
+      canManageMeals
+    )
+
+    let sectionExpanded = this.data.sectionExpanded
+    if (resetExpand) {
+      sectionExpanded = this._computeExpandDefaults(bucket0, bucket1, bucket2, total)
+    }
+
+    const mealSections = this._buildMealSections(
+      sortMode,
+      bucket0,
+      bucket1,
+      bucket2,
+      total,
+      sectionExpanded
+    )
+
+    const hasAnyMeal =
+      bucket0.length > 0 ||
+      bucket1.length > 0 ||
+      bucket2.length > 0 ||
+      total > 0
+
+    return {
+      mealSections,
+      sectionExpanded,
+      hasAnyMeal,
+      flatMeals: this._flattenMealsFromSections(mealSections)
+    }
+  },
+
+  async _repartitionFromBuffer(resetExpand) {
+    const currentKitchen = getApp().globalData.currentKitchen
+    const kitchenId = currentKitchen ? currentKitchen.id : null
+    if (!kitchenId) return
+
+    const rawList = this.data._mealListRawBuffer || []
+    const total =
+      this.data.historyTotal != null ? Number(this.data.historyTotal) : rawList.length
+    const role = currentKitchen && currentKitchen.role
+    const canManageMeals = role === 'owner' || role === 'admin'
+
+    const { mealSections, sectionExpanded, hasAnyMeal, flatMeals } = this._applyRawList(
+      rawList,
+      total,
+      canManageMeals,
+      resetExpand
+    )
+
+    this.setData({ mealSections, sectionExpanded, hasAnyMeal })
+    this.preGenerateShareTokens(flatMeals)
   },
 
   async loadMeals(resetHistory) {
@@ -115,13 +335,13 @@ Page({
       const kitchenId = currentKitchen ? currentKitchen.id : null
       if (!kitchenId) {
         this.setData({
-          mealsFuture: [],
-          mealsToday: [],
-          mealsHistory: [],
+          mealSections: [],
           hasAnyMeal: false,
           historyTotal: 0,
           historyNoMore: true,
-          _mealListRawBuffer: []
+          _mealListRawBuffer: [],
+          historyPage: 1,
+          historyLoading: false
         })
         return
       }
@@ -137,47 +357,27 @@ Page({
       const total =
         listRes.data.total != null ? Number(listRes.data.total) : rawList.length
 
-      const { future: rawF, today: rawT, history: rawH } =
-        partitionMealsByScheduledBeijingDate(rawList)
-
-      const { mealsFuture, mealsToday, mealsHistory } = this._mapAndSortBuckets(
-        rawF,
-        rawT,
-        rawH,
-        canManageMeals
+      const { mealSections, sectionExpanded, hasAnyMeal, flatMeals } = this._applyRawList(
+        rawList,
+        total,
+        canManageMeals,
+        true
       )
-
-      const noFuture = mealsFuture.length === 0
-      const noToday = mealsToday.length === 0
-      const expandHistoryDefault =
-        noFuture && noToday && (total > 0 || mealsHistory.length > 0)
-
-      const hasAnyMeal =
-        mealsFuture.length > 0 ||
-        mealsToday.length > 0 ||
-        mealsHistory.length > 0 ||
-        total > 0
 
       const fetchedAll = rawList.length >= total
 
       this.setData({
         _mealListRawBuffer: rawList,
-        mealsFuture,
-        mealsToday,
-        mealsHistory,
+        mealSections,
+        sectionExpanded,
         historyPage: 1,
         historyTotal: total,
         historyLoading: false,
         historyNoMore: fetchedAll || total === 0,
-        hasAnyMeal,
-        sectionExpanded: {
-          future: !expandHistoryDefault,
-          today: !expandHistoryDefault,
-          history: expandHistoryDefault
-        }
+        hasAnyMeal
       })
 
-      this.preGenerateShareTokens([...mealsFuture, ...mealsToday, ...mealsHistory])
+      this.preGenerateShareTokens(flatMeals)
     } catch (err) {
       console.error('加载点餐列表失败:', err)
     }
@@ -211,30 +411,27 @@ Page({
       const total =
         result.data.total != null ? Number(result.data.total) : historyTotal
       const merged = buf.concat(chunk)
-      const { future: rawF, today: rawT, history: rawH } =
-        partitionMealsByScheduledBeijingDate(merged)
 
-      const { mealsFuture, mealsToday, mealsHistory } = this._mapAndSortBuckets(
-        rawF,
-        rawT,
-        rawH,
-        canManageMeals
+      const { mealSections, sectionExpanded, flatMeals } = this._applyRawList(
+        merged,
+        total,
+        canManageMeals,
+        false
       )
 
       const fetchedAll = merged.length >= total || chunk.length === 0
 
       this.setData({
         _mealListRawBuffer: merged,
-        mealsFuture,
-        mealsToday,
-        mealsHistory,
+        mealSections,
+        sectionExpanded,
         historyPage: nextPage,
         historyTotal: total,
         historyNoMore: fetchedAll,
         historyLoading: false
       })
       if (chunk.length > 0) {
-        this.preGenerateShareTokens([...mealsFuture, ...mealsToday, ...mealsHistory])
+        this.preGenerateShareTokens(flatMeals)
       }
     } catch (e) {
       console.error('加载历史点餐失败:', e)
@@ -247,11 +444,17 @@ Page({
     if (!key) return
     const sectionExpanded = { ...this.data.sectionExpanded }
     sectionExpanded[key] = !sectionExpanded[key]
-    this.setData({ sectionExpanded })
+
+    const mealSections = (this.data.mealSections || []).map((s) => ({
+      ...s,
+      expanded: !!sectionExpanded[s.key]
+    }))
+
+    this.setData({ sectionExpanded, mealSections })
   },
 
   async preGenerateShareTokens(meals) {
-    const myActiveMeals = meals.filter(m => m.canManageMeals && m.status === 'ordering')
+    const myActiveMeals = meals.filter((m) => m.canManageMeals && m.status === 'ordering')
     const tokenMap = this.data.shareTokenMap || {}
     for (let i = 0; i < myActiveMeals.length; i++) {
       const meal = myActiveMeals[i]

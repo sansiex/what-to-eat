@@ -124,6 +124,7 @@ const dishes = result.data.list
 - [ ] utils/response.js 存在且正确
 - [ ] package.json 包含 mysql2 依赖
 - [ ] 数据库连接通过云开发控制台 / SCF 环境变量配置 `DB_HOST`、`DB_PORT`、`DB_USER`、`DB_PASSWORD`、`DB_NAME`（勿写入仓库）
+- [ ] **下单通知（订阅消息）**：`order` 云函数配置 `WTE_SUBSCRIBE_TMPL_ORDER`（公众平台订阅消息模板 ID，需含 `thing1`/`thing2`/`thing3`）；小程序 `utils/subscribe-config.js` 中 **`MEAL_ORDER_NOTIFY_TMPL_ID`** 与之一致；可选 `WTE_MINIPROGRAM_STATE=developer` 用于体验版。他人下单成功后向发起者 `openid` 推送，点击消息打开 `pages/meal-detail/meal-detail?mealId=…`。
 
 ### 部署后验证
 - [ ] dish 云函数: 增删改查菜品
@@ -147,7 +148,11 @@ const dishes = result.data.list
 
 ## 功能模块说明
 
-底部 Tab：**菜单** → **菜品** → **点餐** → **厨房**（厨房管理、切换厨房）。各业务页顶部不再展示厨房选择条，改在厨房管理页通过「切换厨房」操作。
+底部 Tab：**菜单** → **点餐** → **厨房**（厨房管理、切换厨房）。**菜品库**从菜单页顶部与「创建新菜单」同行的 **「菜品」** 进入（`navigateTo` 原菜品列表页）。各业务页顶部不再展示厨房选择条，改在厨房管理页通过「切换厨房」操作。
+
+### 下单通知（订阅消息）
+- 成员在点餐页或分享页下单成功后，`order` 云函数向**该点餐发起者**发送一条订阅消息（发起者需曾在发起点餐成功时或管理态打开点餐详情时授权订阅；一次性模板每授权一次通常可发一条）。
+- 消息跳转页：`pages/meal-detail/meal-detail?mealId=<id>`。
 
 ### 1. 菜品管理 (pages/index)
 - 添加、编辑、删除菜品

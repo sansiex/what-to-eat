@@ -145,14 +145,16 @@ describe('点餐列表页测试', () => {
       expect(wxml).toContain('createdAtDisplay');
       expect(wxml).toContain('scheduledMealDisplay');
       expect(wxml).toContain('meal-time--scheduled');
+      expect(wxml).toContain('meal-time--created-lead');
+      expect(wxml).toContain('sortMode === \'scheduled\'');
       expect(wxml).toContain('用餐时间');
       expect(wxml).not.toContain('发起人：');
-      expect(wxml).toContain('明天及以后用餐');
-      expect(wxml).toContain('今天用餐');
-      expect(wxml).toContain('历史点餐');
-      expect(wxml).toContain('mealsFuture');
-      expect(wxml).toContain('toggleSection');
+      expect(wxml).toContain('{{sec.title}}');
       expect(wxml).toContain('已经到底啦');
+      expect(wxml).toContain('mealSections');
+      expect(wxml).toContain('onSortModeChange');
+      expect(wxml).toContain('sortModePickerRange');
+      expect(wxml).toContain('toggleSection');
       expect(wxml).not.toMatch(/\{\{item\.name\}\}\s*\{\{item\.weekday\}\}/);
     });
 
@@ -175,6 +177,16 @@ describe('点餐列表页测试', () => {
     expect(js).toContain('scheduledMealDisplay');
     expect(js).toContain('loadMoreHistory');
     expect(js).toContain('partitionMealsByScheduledBeijingDate');
+    expect(js).toContain('partitionMealsByBeijingCalendar');
+    expect(js).toContain('getMealListBeijingBoundaries');
+    expect(js).toContain('wte_meal_list_sort_mode');
+    expect(js).toContain('onSortModeChange');
+    expect(js).toContain('按用餐时间排列');
+    expect(js).toContain('按发起时间排列');
+    expect(js).toContain('明天及以后用餐');
+    expect(js).toContain('今天用餐');
+    expect(js).toContain('今天的点餐');
+    expect(js).toContain('昨天的点餐');
     expect(js).toContain('mealEffectiveScheduledBeijingYmd');
     expect(js).toContain('initDefaultKitchen');
   });

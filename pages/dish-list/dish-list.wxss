@@ -146,10 +146,22 @@
   background: #fff;
   border-radius: 20rpx;
   width: 92vw;
+  max-height: 88vh;
   padding: 24rpx;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+/* 弹窗中部可滚动，避免长描述把标题、按钮顶出屏幕（须设明确高度 scroll-y 才稳定） */
+.dialog-scroll {
+  flex: 1;
+  min-height: 0;
+  height: 58vh;
+  max-height: 58vh;
+  box-sizing: border-box;
 }
 
 /* 删除图标：弹窗右上角 */
@@ -165,6 +177,7 @@
 /* 标题 */
 .dialog-title {
   display: block;
+  flex-shrink: 0;
   text-align: center;
   font-size: 36rpx;
   font-weight: 600;
@@ -236,9 +249,18 @@
   margin-top: 16rpx;
 }
 
+/* 描述：固定高度，长文在框内滚动（勿用 auto-height 撑满整屏） */
+.form-input--textarea {
+  display: block;
+  min-height: 200rpx;
+  height: 200rpx;
+  max-height: 200rpx;
+}
+
 /* 底部按钮 */
 .dialog-actions {
   display: flex;
+  flex-shrink: 0;
   gap: 16rpx;
   margin-top: 24rpx;
 }
@@ -261,4 +283,207 @@
 .dialog-btn-confirm {
   background: linear-gradient(135deg, #66BB6A 0%, #81C784 100%);
   color: #fff;
+}
+
+/* 添加菜品：可选加入多个菜单（与上方表单同宽、左对齐） */
+.add-to-menus-section {
+  margin-top: 20rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid #e8f5e9;
+  width: 100%;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.add-to-menus-label {
+  width: 100%;
+  text-align: left;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 12rpx;
+  box-sizing: border-box;
+  align-self: flex-start;
+}
+
+.add-to-menus-empty {
+  padding: 16rpx 0;
+  font-size: 24rpx;
+  color: #999;
+  line-height: 1.5;
+  text-align: left;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 菜单多选：输入框 + 下拉 */
+.menu-select-wrap {
+  position: relative;
+  z-index: 5;
+  width: 100%;
+  align-self: stretch;
+  box-sizing: border-box;
+}
+
+.menu-select-input {
+  width: 100%;
+  min-height: 88rpx;
+  padding: 18rpx 20rpx;
+  font-size: 28rpx;
+  border: 1rpx solid #c8e6c9;
+  border-radius: 12rpx;
+  background-color: #fff;
+  box-sizing: border-box;
+  overflow: visible;
+  align-self: stretch;
+}
+
+.menu-select-input--open {
+  border-color: #66bb6a;
+  box-shadow: 0 0 0 2rpx rgba(102, 187, 106, 0.2);
+}
+
+.menu-select-input-inner {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12rpx;
+  width: 100%;
+  min-height: 52rpx;
+  box-sizing: border-box;
+}
+
+.menu-select-chips {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: flex-start;
+  gap: 10rpx;
+}
+
+.menu-select-placeholder {
+  font-size: 28rpx;
+  color: #bbb;
+  line-height: 44rpx;
+  text-align: left;
+  width: 100%;
+}
+
+.menu-chip {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  max-width: 100%;
+  padding: 6rpx 8rpx 6rpx 14rpx;
+  background: #e8f5e9;
+  border: 1rpx solid #a5d6a7;
+  border-radius: 8rpx;
+  box-sizing: border-box;
+}
+
+.menu-chip-name {
+  font-size: 24rpx;
+  color: #2e7d32;
+  max-width: 280rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-chip-x {
+  margin-left: 8rpx;
+  padding: 0 8rpx;
+  font-size: 28rpx;
+  line-height: 1;
+  color: #666;
+  font-weight: 600;
+}
+
+.menu-select-caret {
+  flex-shrink: 0;
+  font-size: 20rpx;
+  color: #81c784;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+
+.menu-select-input--open .menu-select-caret {
+  transform: rotate(180deg);
+}
+
+.menu-select-dropdown {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 8rpx);
+  max-height: 320rpx;
+  background: #fff;
+  border: 1rpx solid #c8e6c9;
+  border-radius: 12rpx;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.08);
+  z-index: 30;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.menu-select-dropdown-scroll {
+  max-height: 320rpx;
+}
+
+.menu-dropdown-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 16rpx 16rpx;
+  border-bottom: 1rpx solid #f1f8f4;
+}
+
+.menu-dropdown-row:last-child {
+  border-bottom: none;
+}
+
+.menu-dropdown-row:active {
+  background: #f1f8f4;
+}
+
+.menu-checkbox-icon {
+  width: 36rpx;
+  height: 36rpx;
+  border: 2rpx solid #81c784;
+  border-radius: 8rpx;
+  margin-right: 16rpx;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.menu-checkbox-icon--checked {
+  background: linear-gradient(135deg, #66bb6a 0%, #81c784 100%);
+  border-color: #66bb6a;
+  position: relative;
+}
+
+.menu-checkbox-icon--checked::after {
+  content: '';
+  position: absolute;
+  left: 8rpx;
+  top: 4rpx;
+  width: 10rpx;
+  height: 18rpx;
+  border: solid #fff;
+  border-width: 0 4rpx 4rpx 0;
+  transform: rotate(45deg);
+}
+
+.menu-checkbox-text {
+  font-size: 28rpx;
+  color: #333;
+  flex: 1;
+  min-width: 0;
 }

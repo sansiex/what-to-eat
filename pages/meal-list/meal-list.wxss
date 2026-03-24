@@ -4,6 +4,48 @@
   min-height: 100vh;
 }
 
+/* 顶部排序：左侧下拉 */
+.meal-list-toolbar {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.meal-sort-picker {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8rpx;
+  max-width: 100%;
+  padding: 12rpx 20rpx;
+  font-size: 26rpx;
+  color: #2e7d32;
+  font-weight: 600;
+  background: #fff;
+  border: 1rpx solid #c8e6c9;
+  border-radius: 12rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+  box-sizing: border-box;
+}
+
+.meal-sort-picker__text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.meal-sort-picker__caret {
+  flex-shrink: 0;
+  font-size: 18rpx;
+  color: #81c784;
+  line-height: 1;
+}
+
 /* 空状态 */
 .empty-state {
   display: flex;
@@ -31,38 +73,15 @@
   gap: 20rpx;
 }
 
+/* 点餐中与已收单共用卡片样式，仅右上角状态标签区分 */
 .meal-item {
   border-radius: 16rpx;
   padding: 30rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
-  cursor: pointer;
-  border-left: 6rpx solid transparent;
-}
-
-/* 点餐中：绿色强调，更鲜活 */
-.meal-item-ordering {
   background-color: #fff;
-  border-left-color: #4CAF50;
+  border-left: 6rpx solid #4caf50;
   box-shadow: 0 2rpx 12rpx rgba(76, 175, 80, 0.15);
-}
-
-.meal-item-ordering .meal-name {
-  color: #1A1A1A;
-}
-
-/* 已收单：灰色调，视觉弱化 */
-.meal-item-closed {
-  background-color: #F5F5F5;
-  border-left-color: #9E9E9E;
-}
-
-.meal-item-closed .meal-name {
-  color: #757575;
-}
-
-.meal-item-closed .meal-time:not(.meal-time--scheduled),
-.meal-item-closed .meal-dishes {
-  color: #9E9E9E;
+  cursor: pointer;
+  box-sizing: border-box;
 }
 
 .meal-info {
@@ -170,9 +189,29 @@
   margin-bottom: 8rpx;
 }
 
-/* 用餐时间：黑色（与发起时间灰色区分；已收单卡片也保持黑色） */
+/* 按用餐时间排列：用餐时间黑色并加大 */
 .meal-time.meal-time--scheduled {
   color: #000000;
+}
+
+.meal-item--sort-scheduled .meal-time.meal-time--scheduled {
+  font-size: 32rpx;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+/* 按发起时间排列：发起时间在前、黑、大；用餐时间灰 */
+.meal-item--sort-created .meal-time--created-lead {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #000000;
+  line-height: 1.45;
+}
+
+.meal-item--sort-created .meal-time--scheduled-muted {
+  color: #888888;
+  font-size: 26rpx;
+  font-weight: 400;
 }
 
 .meal-dishes {

@@ -1,5 +1,6 @@
 // pages/meal-detail/meal-detail.js
 const { API } = require('../../utils/cloud-api.js')
+const { requestMealOrderNotifySubscribe } = require('../../utils/subscribe-meal-order-notify.js')
 const { isDishPlaceholderUrl } = require('../../utils/dish-preview.js')
 const { formatTagView } = require('../../utils/dish-tag-view.js')
 const { formatScheduledMealDisplayForOrderFood } = require('../../utils/beijing-meal-schedule.js')
@@ -132,6 +133,7 @@ Page({
       })
 
       if (canManage && meal.status === 1) {
+        requestMealOrderNotifySubscribe()
         this.preGenerateShareToken(mealId)
       }
     } catch (err) {

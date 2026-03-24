@@ -28,12 +28,6 @@
         "selectedIconPath": "images/tab-menu-active.png"
       },
       {
-        "pagePath": "pages/dish-list/dish-list",
-        "text": "菜品",
-        "iconPath": "images/tab-dish.png",
-        "selectedIconPath": "images/tab-dish-active.png"
-      },
-      {
         "pagePath": "pages/meal-list/meal-list",
         "text": "点餐",
         "iconPath": "images/tab-meal.png",

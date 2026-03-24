@@ -1,6 +1,20 @@
 <!-- pages/meal-list/meal-list.wxml -->
 <view class="container">
 
+  <view class="meal-list-toolbar">
+    <picker
+      mode="selector"
+      range="{{sortModePickerRange}}"
+      value="{{sortModeIndex}}"
+      bindchange="onSortModeChange"
+    >
+      <view class="meal-sort-picker">
+        <text class="meal-sort-picker__text">{{sortModePickerDisplay}}</text>
+        <text class="meal-sort-picker__caret">▼</text>
+      </view>
+    </picker>
+  </view>
+
   <view wx:if="{{!hasAnyMeal}}" class="empty-state">
     <text class="empty-text">暂无点餐记录</text>
     <text class="empty-subtext">点击底部"开始点餐"发起新的点餐</text>
@@ -8,92 +22,46 @@
 
   <view wx:else class="meal-sections">
 
-    <view class="meal-section">
-      <view class="meal-section__header" bindtap="toggleSection" data-key="future">
-        <text class="meal-section__title">明天及以后用餐（{{mealsFuture.length}}）</text>
-        <text class="meal-section__arrow">{{sectionExpanded.future ? '▼' : '▶'}}</text>
+    <view
+      wx:for="{{mealSections}}"
+      wx:for-item="sec"
+      wx:key="key"
+      class="meal-section {{sec.isHistory ? 'meal-section--history' : ''}}"
+    >
+      <view class="meal-section__header" bindtap="toggleSection" data-key="{{sec.key}}">
+        <text class="meal-section__title">{{sec.title}}（{{sec.count}}）</text>
+        <text class="meal-section__arrow">{{sec.expanded ? '▼' : '▶'}}</text>
       </view>
-      <view wx:if="{{sectionExpanded.future}}" class="meal-section__body">
-        <view wx:if="{{mealsFuture.length === 0}}" class="meal-section__empty">暂无未来用餐的点餐</view>
+      <view wx:if="{{sec.expanded}}" class="meal-section__body">
+        <view wx:if="{{sec.list.length === 0 && !(sec.isHistory && historyLoading)}}" class="meal-section__empty">{{sec.emptyText}}</view>
         <view
-          wx:for="{{mealsFuture}}"
+          wx:for="{{sec.list}}"
+          wx:for-item="meal"
           wx:key="id"
-          class="meal-item {{item.status === 'ordering' ? 'meal-item-ordering' : 'meal-item-closed'}}"
+          class="meal-item {{sortMode === 'scheduled' ? 'meal-item--sort-scheduled' : 'meal-item--sort-created'}}"
           bindtap="goMealDetail"
-          data-id="{{item.id}}"
+          data-id="{{meal.id}}"
         >
           <view class="meal-info">
             <view class="meal-header">
-              <text class="meal-name">{{item.name}}</text>
-              <view class="status-badge {{item.status === 'ordering' ? 'status-ordering' : 'status-closed'}}">
-                {{item.status === 'ordering' ? '点餐中' : '已收单'}}
+              <text class="meal-name">{{meal.name}}</text>
+              <view class="status-badge {{meal.status === 'ordering' ? 'status-ordering' : 'status-closed'}}">
+                {{meal.status === 'ordering' ? '点餐中' : '已收单'}}
               </view>
             </view>
-            <text wx:if="{{item.scheduledMealDisplay}}" class="meal-time meal-time--scheduled">用餐时间：{{item.scheduledMealDisplay}}</text>
-            <text class="meal-time">发起时间：{{item.createdAtDisplay}}</text>
-            <text wx:if="{{item.status === 'closed'}}" class="meal-dishes">已点菜品数：{{item.orderedDishCount || 0}} 道</text>
+            <block wx:if="{{sortMode === 'scheduled'}}">
+              <text wx:if="{{meal.scheduledMealDisplay}}" class="meal-time meal-time--scheduled">用餐时间：{{meal.scheduledMealDisplay}}</text>
+              <text class="meal-time">发起时间：{{meal.createdAtDisplay}}</text>
+            </block>
+            <block wx:else>
+              <text class="meal-time meal-time--created-lead">发起时间：{{meal.createdAtDisplay}}</text>
+              <text wx:if="{{meal.scheduledMealDisplay}}" class="meal-time meal-time--scheduled-muted">用餐时间：{{meal.scheduledMealDisplay}}</text>
+            </block>
+            <text wx:if="{{meal.status === 'closed'}}" class="meal-dishes">已点菜品数：{{meal.orderedDishCount || 0}} 道</text>
           </view>
         </view>
-      </view>
-    </view>
-
-    <view class="meal-section">
-      <view class="meal-section__header" bindtap="toggleSection" data-key="today">
-        <text class="meal-section__title">今天用餐（{{mealsToday.length}}）</text>
-        <text class="meal-section__arrow">{{sectionExpanded.today ? '▼' : '▶'}}</text>
-      </view>
-      <view wx:if="{{sectionExpanded.today}}" class="meal-section__body">
-        <view wx:if="{{mealsToday.length === 0}}" class="meal-section__empty">暂无今天用餐的点餐</view>
-        <view
-          wx:for="{{mealsToday}}"
-          wx:key="id"
-          class="meal-item {{item.status === 'ordering' ? 'meal-item-ordering' : 'meal-item-closed'}}"
-          bindtap="goMealDetail"
-          data-id="{{item.id}}"
-        >
-          <view class="meal-info">
-            <view class="meal-header">
-              <text class="meal-name">{{item.name}}</text>
-              <view class="status-badge {{item.status === 'ordering' ? 'status-ordering' : 'status-closed'}}">
-                {{item.status === 'ordering' ? '点餐中' : '已收单'}}
-              </view>
-            </view>
-            <text wx:if="{{item.scheduledMealDisplay}}" class="meal-time meal-time--scheduled">用餐时间：{{item.scheduledMealDisplay}}</text>
-            <text class="meal-time">发起时间：{{item.createdAtDisplay}}</text>
-            <text wx:if="{{item.status === 'closed'}}" class="meal-dishes">已点菜品数：{{item.orderedDishCount || 0}} 道</text>
-          </view>
-        </view>
-      </view>
-    </view>
-
-    <view class="meal-section meal-section--history">
-      <view class="meal-section__header" bindtap="toggleSection" data-key="history">
-        <text class="meal-section__title">历史点餐（{{historyTotal}}）</text>
-        <text class="meal-section__arrow">{{sectionExpanded.history ? '▼' : '▶'}}</text>
-      </view>
-      <view wx:if="{{sectionExpanded.history}}" class="meal-section__body">
-        <view wx:if="{{mealsHistory.length === 0 && !historyLoading}}" class="meal-section__empty">暂无历史点餐</view>
-        <view
-          wx:for="{{mealsHistory}}"
-          wx:key="id"
-          class="meal-item {{item.status === 'ordering' ? 'meal-item-ordering' : 'meal-item-closed'}}"
-          bindtap="goMealDetail"
-          data-id="{{item.id}}"
-        >
-          <view class="meal-info">
-            <view class="meal-header">
-              <text class="meal-name">{{item.name}}</text>
-              <view class="status-badge {{item.status === 'ordering' ? 'status-ordering' : 'status-closed'}}">
-                {{item.status === 'ordering' ? '点餐中' : '已收单'}}
-              </view>
-            </view>
-            <text wx:if="{{item.scheduledMealDisplay}}" class="meal-time meal-time--scheduled">用餐时间：{{item.scheduledMealDisplay}}</text>
-            <text class="meal-time">发起时间：{{item.createdAtDisplay}}</text>
-            <text wx:if="{{item.status === 'closed'}}" class="meal-dishes">已点菜品数：{{item.orderedDishCount || 0}} 道</text>
-          </view>
-        </view>
-        <view wx:if="{{historyLoading}}" class="history-loading">加载中…</view>
-        <view wx:if="{{sectionExpanded.history && historyNoMore && mealsHistory.length > 0}}" class="history-end">已经到底啦~</view>
+        <view wx:if="{{sec.isHistory && historyLoading}}" class="history-loading">加载中…</view>
+        <view wx:if="{{sec.isHistory && sec.expanded && historyNoMore && sec.list.length > 0}}" class="history-end">已经到底啦~</view>
       </view>
     </view>
 

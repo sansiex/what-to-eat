@@ -172,8 +172,8 @@ describe('App配置测试 - Tab页重构', () => {
     expect(appConfig.tabBar.list).toBeDefined();
   });
 
-  test('验证tabBar包含4个tab项', () => {
-    expect(appConfig.tabBar.list).toHaveLength(4);
+  test('验证tabBar包含3个tab项', () => {
+    expect(appConfig.tabBar.list).toHaveLength(3);
   });
 
   test('验证第一个tab是【菜单】', () => {
@@ -181,19 +181,14 @@ describe('App配置测试 - Tab页重构', () => {
     expect(appConfig.tabBar.list[0].pagePath).toBe('pages/menu-list/menu-list');
   });
 
-  test('验证第二个tab是【菜品】', () => {
-    expect(appConfig.tabBar.list[1].text).toBe('菜品');
-    expect(appConfig.tabBar.list[1].pagePath).toBe('pages/dish-list/dish-list');
+  test('验证第二个tab是【点餐】', () => {
+    expect(appConfig.tabBar.list[1].text).toBe('点餐');
+    expect(appConfig.tabBar.list[1].pagePath).toBe('pages/meal-list/meal-list');
   });
 
-  test('验证第三个tab是【点餐】', () => {
-    expect(appConfig.tabBar.list[2].text).toBe('点餐');
-    expect(appConfig.tabBar.list[2].pagePath).toBe('pages/meal-list/meal-list');
-  });
-
-  test('验证第四个tab是【厨房】', () => {
-    expect(appConfig.tabBar.list[3].text).toBe('厨房');
-    expect(appConfig.tabBar.list[3].pagePath).toBe('pages/kitchen-manage/kitchen-manage');
+  test('验证第三个tab是【厨房】', () => {
+    expect(appConfig.tabBar.list[2].text).toBe('厨房');
+    expect(appConfig.tabBar.list[2].pagePath).toBe('pages/kitchen-manage/kitchen-manage');
   });
 
   test('验证pages配置包含所有必要页面', () => {
@@ -290,24 +285,18 @@ describe('菜单列表页面功能测试', () => {
     expect(menuListJs).toContain('editMenu');
   });
 
-  test('验证deleteMenu方法存在', () => {
-    expect(menuListJs).toContain('deleteMenu');
+  test('验证goDishList方法存在', () => {
+    expect(menuListJs).toContain('goDishList');
   });
 
   test('验证goInitiateMeal方法存在', () => {
     expect(menuListJs).toContain('goInitiateMeal');
   });
 
-  test('验证WXML包含创建菜单按钮', () => {
-    expect(menuListWxml).toContain('创建菜单');
-  });
-
-  test('验证WXML包含编辑按钮', () => {
-    expect(menuListWxml).toContain('编辑');
-  });
-
-  test('验证WXML包含删除按钮', () => {
-    expect(menuListWxml).toContain('删除');
+  test('验证WXML包含创建新菜单与菜品入口', () => {
+    expect(menuListWxml).toContain('创建新菜单');
+    expect(menuListWxml).toContain('菜品');
+    expect(menuListWxml).toContain('goDishList');
   });
 
   test('验证WXML包含发起点餐按钮', () => {
@@ -365,8 +354,13 @@ describe('菜品列表页面功能测试', () => {
     expect(dishListJs).toContain('showAddDialog');
   });
 
-  test('验证addDish方法存在', () => {
-    expect(dishListJs).toContain('addDish');
+  test('验证添加菜品时可加载菜单多选', () => {
+    expect(dishListJs).toContain('loadMenusForAddDialog');
+    expect(dishListJs).toContain('addDialogMenus');
+  });
+
+  test('验证submitDish方法存在', () => {
+    expect(dishListJs).toContain('submitDish');
   });
 
   test('验证deleteDish方法存在', () => {

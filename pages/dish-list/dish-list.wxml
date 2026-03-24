@@ -46,46 +46,100 @@
       />
       <text class="dialog-title">{{dialogMode === 'edit' ? '编辑菜品' : '添加菜品'}}</text>
 
-      <view class="upload-section">
-        <image
-          class="upload-preview"
-          src="{{dishImageUrl || defaultDishImage}}"
-          mode="aspectFill"
-          catchtap="previewDishImage"
-          data-url="{{dishImageUrl}}"
+      <scroll-view
+        class="dialog-scroll"
+        scroll-y
+        enhanced
+        show-scrollbar="{{true}}"
+      >
+        <view class="upload-section">
+          <image
+            class="upload-preview"
+            src="{{dishImageUrl || defaultDishImage}}"
+            mode="aspectFill"
+            catchtap="previewDishImage"
+            data-url="{{dishImageUrl}}"
+          />
+          <view class="upload-actions">
+            <button
+              class="btn btn-small"
+              bindtap="chooseDishImage"
+              loading="{{isUploadingImage}}"
+            >
+              {{dishImageUrl ? '更换图片' : '上传图片'}}
+            </button>
+            <button
+              wx:if="{{dishImageUrl}}"
+              class="btn btn-small btn-danger"
+              bindtap="removeDishImage"
+            >
+              移除图片
+            </button>
+          </view>
+        </view>
+
+        <input 
+          class="form-input" 
+          placeholder="请输入菜品名称" 
+          bindinput="onDishNameInput"
+          value="{{dishNameInput}}"
         />
-        <view class="upload-actions">
-          <button
-            class="btn btn-small"
-            bindtap="chooseDishImage"
-            loading="{{isUploadingImage}}"
+        <textarea
+          class="form-input form-input--textarea" 
+          placeholder="请输入菜品描述（可选，最多80字）" 
+          bindinput="onDishDescInput"
+          value="{{dishDescriptionInput}}"
+          maxlength="80"
+        />
+
+        <view wx:if="{{dialogMode === 'add'}}" class="add-to-menus-section">
+        <view class="add-to-menus-label">同时加入菜单（可多选）</view>
+        <view wx:if="{{addDialogMenus.length === 0}}" class="add-to-menus-empty">
+          <text>暂无菜单，请先在「菜单」页创建；或确认已选择厨房</text>
+        </view>
+        <view wx:else class="menu-select-wrap">
+          <view
+            class="menu-select-input {{addDialogMenuPickerOpen ? 'menu-select-input--open' : ''}}"
+            bindtap="toggleAddDialogMenuPicker"
           >
-            {{dishImageUrl ? '更换图片' : '上传图片'}}
-          </button>
-          <button
-            wx:if="{{dishImageUrl}}"
-            class="btn btn-small btn-danger"
-            bindtap="removeDishImage"
-          >
-            移除图片
-          </button>
+            <view class="menu-select-input-inner">
+              <view class="menu-select-chips">
+                <block wx:for="{{addDialogMenus}}" wx:key="id">
+                  <view
+                    wx:if="{{item.checked}}"
+                    class="menu-chip"
+                    catchtap="noopAddDialogMenu"
+                  >
+                    <text class="menu-chip-name">{{item.name}}</text>
+                    <view
+                      class="menu-chip-x"
+                      catchtap="uncheckAddDialogMenu"
+                      data-id="{{item.id}}"
+                    >×</view>
+                  </view>
+                </block>
+                <text wx:if="{{!addDialogHasChecked}}" class="menu-select-placeholder">请选择菜单</text>
+              </view>
+              <text class="menu-select-caret">▼</text>
+            </view>
+          </view>
+          <view wx:if="{{addDialogMenuPickerOpen}}" class="menu-select-dropdown">
+            <scroll-view class="menu-select-dropdown-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+              <view
+                wx:for="{{addDialogMenus}}"
+                wx:key="id"
+                class="menu-dropdown-row"
+                catchtap="toggleAddDialogMenu"
+                data-id="{{item.id}}"
+              >
+                <view class="menu-checkbox-icon {{item.checked ? 'menu-checkbox-icon--checked' : ''}}" />
+                <text class="menu-checkbox-text">{{item.name}}</text>
+              </view>
+            </scroll-view>
+          </view>
         </view>
       </view>
-
-      <input 
-        class="form-input" 
-        placeholder="请输入菜品名称" 
-        bindinput="onDishNameInput"
-        value="{{dishNameInput}}"
-      />
-      <textarea
-        class="form-input" 
-        placeholder="请输入菜品描述（可选，最多80字）" 
-        bindinput="onDishDescInput"
-        value="{{dishDescriptionInput}}"
-        maxlength="80"
-        auto-height
-      />
+      </scroll-view>
 
       <view class="dialog-actions">
         <view class="dialog-btn dialog-btn-cancel" bindtap="hideDishDialog">取消</view>
