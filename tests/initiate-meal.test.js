@@ -88,6 +88,7 @@ describe('发起点菜页面测试', () => {
     expect(js).toContain('kitchenId');
     expect(js).toContain('buildSchedulePayload');
     expect(js).toContain('initMealSchedulePickers');
+    expect(js).toContain('createDefaultMealSchedulePickerData');
   });
 
   test('验证WXML展示已选菜品数', () => {
@@ -110,11 +111,14 @@ describe('发起点菜页面测试', () => {
     expect(wxml).toContain('dish-select-row__check');
   });
 
-  test('验证发起点餐标题与按钮文案及无选中时禁用', () => {
+  test('验证发起点餐表单标签与按钮文案及无选中时禁用', () => {
     const fs = require('fs');
     const wxml = fs.readFileSync('pages/initiate-meal/initiate-meal.wxml', 'utf-8');
 
-    expect(wxml).toContain("'编辑点餐' : '发起点餐'");
+    expect(wxml).toContain('initiate-form-section-label');
+    expect(wxml).toContain('>餐名<');
+    expect(wxml).toContain('>用餐时间<');
+    expect(wxml).toContain('>菜品选择<');
     expect(wxml).toContain('确认发起点餐');
     expect(wxml).toContain('用餐时间');
     expect(wxml).toContain('class="meal-schedule-row__value">{{mealTimeDisplay}}');

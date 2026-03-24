@@ -10,6 +10,43 @@ const {
   parseScheduledAtFromApi
 } = require('../../utils/beijing-meal-schedule.js')
 
+/** multiSelector 的 value 必须在各列范围内，否则 iOS 上滚轮空白 */
+function clampMealTimePickerValue(pair, timeRange) {
+  const hCol = (timeRange && timeRange[0]) || []
+  const mCol = (timeRange && timeRange[1]) || []
+  const hMax = Math.max(0, hCol.length - 1)
+  const mMax = Math.max(0, mCol.length - 1)
+  let h = Number(pair[0])
+  let m = Number(pair[1])
+  if (Number.isNaN(h)) h = 0
+  if (Number.isNaN(m)) m = 0
+  return [Math.min(hMax, Math.max(0, h)), Math.min(mMax, Math.max(0, m))]
+}
+
+/**
+ * iOS 上 picker 首屏若 range 为空或与 value 不匹配会整段空白；
+ * 必须在首次渲染前就有完整的 range 与合法 value（与 initMealSchedulePickers 逻辑一致）。
+ */
+function createDefaultMealSchedulePickerData() {
+  const { labels, values } = buildMealDatePickerOptions(28)
+  const timeRange = buildMealTimeMultiRange()
+  const nowR = getBeijingNowRoundedTo5Min()
+  const mealTimePickerValue = clampMealTimePickerValue(
+    [nowR.hourIndex, nowR.minuteIndex],
+    timeRange
+  )
+  return {
+    mealDateLabels: labels,
+    mealDateValues: values,
+    mealDateIndex: 0,
+    mealDateDisplay: labels[0] || '请选择日期',
+    mealTimeRange: timeRange,
+    mealTimePickerValue,
+    mealTimeSpecified: false,
+    mealTimeDisplay: '未选择（非必填）'
+  }
+}
+
 Page({
   data: {
     selectedMealName: '',
@@ -20,19 +57,13 @@ Page({
     isEditMode: false,
     editingMealId: '',
     defaultDishImage: '/images/dish-placeholder.png',
-    mealDateLabels: [],
-    mealDateValues: [],
-    mealDateIndex: 0,
-    mealDateDisplay: '',
-    mealTimeRange: [[], []],
-    mealTimePickerValue: [12, 0],
-    mealTimeSpecified: false,
-    mealTimeDisplay: '未选择（非必填）'
+    ...createDefaultMealSchedulePickerData()
   },
 
   onLoad(options) {
     // 检查是否是编辑模式
     if (options && options.mode === 'edit') {
+      wx.setNavigationBarTitle({ title: '编辑点餐' })
       this.setData({ isEditMode: true })
       this.loadEditingMeal()
     } else if (options && options.fromMenu === '1') {
@@ -216,17 +247,20 @@ Page({
       mealTimeSpecified = false
     }
 
+    const safeTimeValue = clampMealTimePickerValue(mealTimePickerValue, timeRange)
     const mealTimeDisplay = mealTimeSpecified
-      ? formatMealTimeDisplay(mealTimePickerValue[0], mealTimePickerValue[1])
+      ? formatMealTimeDisplay(safeTimeValue[0], safeTimeValue[1])
       : '未选择（非必填）'
+    const safeDateIndex =
+      mealDateIndex >= 0 && mealDateIndex < labels.length ? mealDateIndex : 0
 
     this.setData({
       mealDateLabels: labels,
       mealDateValues: values,
-      mealDateIndex,
-      mealDateDisplay: labels[mealDateIndex] || '',
+      mealDateIndex: safeDateIndex,
+      mealDateDisplay: labels[safeDateIndex] || '请选择日期',
       mealTimeRange: timeRange,
-      mealTimePickerValue,
+      mealTimePickerValue: safeTimeValue,
       mealTimeSpecified,
       mealTimeDisplay
     })

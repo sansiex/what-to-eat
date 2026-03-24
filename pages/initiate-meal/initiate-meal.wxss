@@ -29,17 +29,18 @@ page {
   margin-bottom: 0;
 }
 
+/* 餐名 / 用餐时间 / 菜品选择 区块标题（略大于原 28rpx，便于扫读） */
+.initiate-form-section-label {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 12rpx;
+}
+
 /* 用餐时间：与餐名、菜品选择同级，不再单独套一层色块框 */
 .meal-schedule-section {
   margin-bottom: 24rpx;
-}
-
-.meal-schedule-title {
-  display: block;
-  font-size: 28rpx;
-  font-weight: 600;
-  color: #000000;
-  margin-bottom: 12rpx;
 }
 
 .meal-schedule-picker-block {
@@ -211,15 +212,6 @@ button:active {
   border-radius: 12rpx;
   background-color: #fff;
   box-sizing: border-box;
-}
-
-/* 菜品选择标题（与菜单编辑页「选择菜品」同级字号） */
-.initiate-dish-select-label {
-  display: block;
-  font-size: 28rpx;
-  font-weight: 600;
-  color: #1a1a1a;
-  margin-bottom: 12rpx;
 }
 
 /* 已选数量 + 全选：与菜单编辑页 tab 工具条一致，全选为蓝色文字链 */

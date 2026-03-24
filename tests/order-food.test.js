@@ -144,6 +144,9 @@ describe('点餐页面测试', () => {
     // 分享按钮应使用微信原生分享能力（与 meal-list 一致）
     expect(wxml).toContain('open-type="share"');
     expect(wxml).toContain('order-food-footer');
+    expect(wxml).toContain('order-food-footer__btn-inner');
+    expect(wxml).toContain('/images/icon-order.png');
+    expect(wxml).toContain('/images/icon-share.png');
     expect(wxml).toContain('bindtap="placeOrder"');
     expect(wxml).toContain('toggleDishExpand');
     expect(wxml).toContain('tag-picker-mask');

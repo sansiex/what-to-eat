@@ -68,12 +68,28 @@
   font-weight: 600;
   border-radius: 12rpx;
   border: none;
-  padding: 22rpx 0;
+  padding: 20rpx 0;
   line-height: 1.3;
+  color: #fff;
 }
 
 .order-food-footer__btn::after {
   border: none;
+}
+
+/* 与点餐详情页底部按钮一致：图标 + 文案横排居中 */
+.order-food-footer__btn-inner {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+}
+
+.order-food-footer__icon {
+  width: 40rpx;
+  height: 40rpx;
+  flex-shrink: 0;
 }
 
 .order-food-footer__btn--primary {
@@ -81,8 +97,9 @@
   color: #fff;
 }
 
+/* 与 meal-detail .btn-share 同色与同款图标 */
 .order-food-footer__btn--share {
-  background: #576b95;
+  background: linear-gradient(135deg, #e53935 0%, #ee5a6f 100%);
   color: #fff;
 }
 

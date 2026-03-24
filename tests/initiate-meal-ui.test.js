@@ -61,7 +61,7 @@ describe('发起点餐页面UI测试 - 餐名按钮高亮', () => {
       expect(wxml).toContain('value="{{selectedMealName}}"');
       expect(wxml).toContain('selected-dish-count');
       expect(wxml).toContain('selectedDishes.length');
-      expect(wxml).toContain('initiate-dish-select-label');
+      expect(wxml).toContain('initiate-form-section-label');
       expect(wxml).toContain('initiate-select-toolbar');
       expect(wxml).toContain('section-action');
       expect(wxml).not.toContain('默认全选');
@@ -71,6 +71,7 @@ describe('发起点餐页面UI测试 - 餐名按钮高亮', () => {
       const fs = require('fs');
       const wxss = fs.readFileSync('pages/initiate-meal/initiate-meal.wxss', 'utf-8');
 
+      expect(wxss).toMatch(/\.initiate-form-section-label/);
       expect(wxss).toMatch(/\.meal-name-input/);
       expect(wxss).toMatch(/\.selected-dish-count/);
       expect(wxss).toMatch(/\.initiate-select-toolbar/);

@@ -174,14 +174,24 @@
   </view>
 
   <view wx:if="{{currentMeal && !viewMode}}" class="order-food-footer">
-    <button class="order-food-footer__btn order-food-footer__btn--primary" bindtap="placeOrder">下单</button>
+    <button class="order-food-footer__btn order-food-footer__btn--primary" bindtap="placeOrder">
+      <view class="order-food-footer__btn-inner">
+        <image class="order-food-footer__icon" src="/images/icon-order.png" mode="aspectFit" />
+        <text>下单</text>
+      </view>
+    </button>
     <button
       wx:if="{{isInitiator}}"
       class="order-food-footer__btn order-food-footer__btn--share"
       open-type="share"
       data-id="{{currentMeal.id}}"
       data-name="{{currentMeal.name}}"
-    >分享</button>
+    >
+      <view class="order-food-footer__btn-inner">
+        <image class="order-food-footer__icon" src="/images/icon-share.png" mode="aspectFit" />
+        <text>分享</text>
+      </view>
+    </button>
   </view>
 
   <!-- 标签选择：左侧分类 + 右侧具体标签 -->
