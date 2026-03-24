@@ -19,7 +19,8 @@ server/
 │   ├── dish/           # 菜品管理云函数
 │   ├── meal/           # 点餐管理云函数
 │   ├── order/          # 订单管理云函数
-│   └── user/           # 用户管理云函数
+│   ├── user/           # 用户管理云函数
+│   └── debug/          # 调试云函数（脚本经 HTTP 调用，勿对小程序暴露）
 ├── tests/               # 单元测试
 │   ├── setup.js       # 测试环境配置
 │   ├── dish.test.js   # 菜品管理测试
@@ -121,6 +122,8 @@ npm run test:watch
 
 ### 环境变量
 
+云函数内 `utils/db.js` **仅从**下列环境变量读取连接信息（无默认值）；请在微信云开发控制台或 SCF 为 **每个** 云函数单独配置，勿再写入仓库内的 `config.json`。
+
 ```bash
 DB_HOST=localhost      # 数据库主机
 DB_PORT=3306          # 数据库端口
@@ -128,6 +131,10 @@ DB_USER=root          # 数据库用户
 DB_PASSWORD=          # 数据库密码
 DB_NAME=what_to_eat   # 数据库名称
 ```
+
+### 调试云函数 `debug`
+
+根目录 **`scripts/`**（除 **`scripts/migrations/`**）不入库（见仓库根 `.gitignore`）。需要命令行时请在本地自建调用逻辑，或通过云开发控制台测试 `debug`；须配置 **`WTE_DEBUG_SECRET`**，HTTP 调用方式与小程序 CloudBase 网关一致（`Authorization: Bearer <API Key>`，请求体含 `action` / `data.secret`）。
 
 ## 部署
 
@@ -147,7 +154,7 @@ mysql -u root -p < ddl/wte_orders.sql
 
 ```bash
 # 部署所有云函数
-node scripts/deploy.js
+node server/scripts/deploy.js
 
 # 或使用腾讯云CLI直接部署
 tcb fn deploy dish

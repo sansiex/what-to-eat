@@ -1,1 +1,6 @@
 node_modules
+
+# 本地脚本不入库（数据库迁移 SQL 仍保留在 scripts/migrations/）
+/scripts/*
+!/scripts/migrations/
+!/scripts/migrations/**

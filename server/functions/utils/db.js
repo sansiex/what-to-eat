@@ -5,14 +5,28 @@
 
 const mysql = require('mysql2/promise');
 
-// 数据库配置 - 优先使用环境变量，否则使用默认配置
-// 注意：使用公网地址访问 MySQL
+function requiredEnv(name) {
+  const v = process.env[name];
+  if (v == null || String(v).trim() === '') {
+    throw new Error(
+      `[db] Missing required environment variable: ${name}. Configure DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME for this cloud function.`
+    );
+  }
+  return String(v).trim();
+}
+
+const port = parseInt(requiredEnv('DB_PORT'), 10);
+if (!Number.isFinite(port) || port <= 0) {
+  throw new Error('[db] DB_PORT must be a positive integer');
+}
+
+// 数据库配置仅从环境变量读取（勿在仓库中写死连接信息）
 const dbConfig = {
-  host: process.env.DB_HOST || 'sh-cynosdbmysql-grp-ltto3044.sql.tencentcdb.com',
-  port: parseInt(process.env.DB_PORT || '29764'),
-  user: process.env.DB_USER || 'mpfunctions',
-  password: process.env.DB_PASSWORD || 'Func8675309',
-  database: process.env.DB_NAME || 'dev-0gtpuq9p785f5498',
+  host: requiredEnv('DB_HOST'),
+  port,
+  user: requiredEnv('DB_USER'),
+  password: requiredEnv('DB_PASSWORD'),
+  database: requiredEnv('DB_NAME'),
   // 连接池配置
   waitForConnections: true,
   connectionLimit: 10,

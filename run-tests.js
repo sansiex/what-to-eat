@@ -266,6 +266,11 @@ describe('云函数文件存在性测试', () => {
   test('验证menu云函数utils/response.js存在', () => {
     expect(fs.existsSync('server/functions/menu/utils/response.js')).toBeTruthy();
   });
+
+  test('验证debug云函数存在（本地调试脚本在 .gitignore 中，不入库）', () => {
+    expect(fs.existsSync('server/functions/debug/index.js')).toBeTruthy();
+    expect(fs.existsSync('server/functions/debug/utils/db.js')).toBeTruthy();
+  });
 });
 
 // 运行菜单列表页面功能测试

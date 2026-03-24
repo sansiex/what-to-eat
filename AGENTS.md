@@ -112,13 +112,10 @@ const dishes = result.data.list
 1. **编写minium单元测试** → 2. **运行测试（预期失败）** → 3. **编写/修改代码** → 4. **运行测试（预期通过）** → 5. **重构优化**
 2. 所有前端单元测试代码都放在tests目录下
 
-### 数据库检查脚本
-```bash
-# 检查数据库数据
-node scripts/check-db.js
-node scripts/check-orders.js
-node scripts/check-orders-detail.js
-```
+### 数据库检查 / 运维
+- **不再直连 MySQL**。请先部署 `server/functions/debug` 云函数，配置与其它函数相同的 `DB_*` 以及 **`WTE_DEBUG_SECRET`**。
+- 根目录 **`scripts/`**（除 **`scripts/migrations/`** 下的 SQL）已列入 **`.gitignore`**，不在仓库中维护；克隆后如需命令行调试请自建脚本，或在微信开发者工具里测试云函数 `debug`（`action` 如 `ping`、`listActions`、`checkDb` 等，并传入与云端一致的 `secret`）。
+- 若自建 HTTP 调用：与小程序网关相同，需环境变量 **`WTE_CLOUD_HTTP_BASE`**、**`WTE_CLOUD_HTTP_API_KEY`**，请求体为 `{ "action": "<action>", "data": { "secret": "<WTE_DEBUG_SECRET>", ... } }`。
 
 ## 部署检查清单
 
@@ -126,7 +123,7 @@ node scripts/check-orders-detail.js
 - [ ] utils/db.js 使用 pool.query()
 - [ ] utils/response.js 存在且正确
 - [ ] package.json 包含 mysql2 依赖
-- [ ] 数据库配置使用公网地址
+- [ ] 数据库连接通过云开发控制台 / SCF 环境变量配置 `DB_HOST`、`DB_PORT`、`DB_USER`、`DB_PASSWORD`、`DB_NAME`（勿写入仓库）
 
 ### 部署后验证
 - [ ] dish 云函数: 增删改查菜品
@@ -136,13 +133,9 @@ node scripts/check-orders-detail.js
 
 ## 开发环境配置
 
-### 数据库连接信息
-```
-Host: sh-cynosdbmysql-grp-ltto3044.sql.tencentcdb.com
-Port: 29764
-User: mpfunctions / readonly
-Database: dev-0gtpuq9p785f5498
-```
+### 数据库连接（勿在仓库保存密码）
+- 云函数：在微信云开发或 SCF 中为每个函数配置环境变量 `DB_HOST`、`DB_PORT`、`DB_USER`、`DB_PASSWORD`、`DB_NAME`。
+- 本地自建调试脚本：仅在机器上配置上述变量，**不要**把真实连接信息提交到 Git。
 
 ### 小程序配置
 ```json

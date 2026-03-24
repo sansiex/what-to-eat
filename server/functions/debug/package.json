@@ -1,0 +1,11 @@
+{
+  "name": "debug",
+  "version": "1.0.0",
+  "description": "调试/运维：原 scripts 直连数据库能力，仅密钥+环境变量可用",
+  "main": "index.js",
+  "scripts": {},
+  "license": "ISC",
+  "dependencies": {
+    "mysql2": "^3.6.0"
+  }
+}

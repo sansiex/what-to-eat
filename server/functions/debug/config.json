@@ -1,0 +1,10 @@
+{
+  "name": "debug",
+  "version": "1.0.0",
+  "description": "调试云函数（需配置 WTE_DEBUG_SECRET 与 DB_*，勿对小程序端暴露）",
+  "runtime": "Nodejs18",
+  "handler": "index.main",
+  "memorySize": 128,
+  "timeout": 60,
+  "triggers": []
+}
