@@ -5,12 +5,18 @@ page {
   background: #E8F5E9;
 }
 
-/* 整页：上滚动 + 底栏贴屏幕底 */
+/* 整页：上表单（含 picker，勿放 scroll-view 内）+ 中间滚动菜品 + 底栏 */
 .page-initiate-meal {
   height: 100%;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+}
+
+/* 餐名、日期/时间选择器：固定在上部，避免 iOS 在 scroll-view 内 picker 空白 */
+.initiate-meal-form-top {
+  flex-shrink: 0;
+  width: 100%;
 }
 
 .initiate-meal-scroll {
@@ -19,6 +25,10 @@ page {
   min-height: 0;
   width: 100%;
   box-sizing: border-box;
+}
+
+.initiate-meal-scroll-inner {
+  padding-bottom: 8rpx;
 }
 
 .initiate-meal-body {

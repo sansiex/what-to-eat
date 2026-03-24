@@ -100,6 +100,7 @@ describe('发起点餐页面UI测试 - 餐名按钮高亮', () => {
       const wxss = fs.readFileSync('pages/initiate-meal/initiate-meal.wxss', 'utf-8');
 
       expect(wxss).toMatch(/\.page-initiate-meal/);
+      expect(wxss).toMatch(/\.initiate-meal-form-top/);
       expect(wxss).toMatch(/\.initiate-meal-scroll/);
       expect(wxss).toMatch(/\.initiate-meal-footer/);
     });

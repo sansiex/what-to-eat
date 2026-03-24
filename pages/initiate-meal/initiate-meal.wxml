@@ -1,6 +1,7 @@
 <!-- pages/initiate-meal/initiate-meal.wxml -->
+<!-- iOS：原生 picker 放在 scroll-view 内易出现展示/滚轮空白，餐名与日期时间选择器固定在滚动区外 -->
 <view class="page-initiate-meal">
-  <scroll-view scroll-y class="initiate-meal-scroll" enable-back-to-top="{{true}}">
+  <view class="initiate-meal-form-top">
     <view class="container initiate-meal-body">
       <view class="section section--scroll">
         <!-- 餐名输入 -->
@@ -17,7 +18,13 @@
         <!-- 用餐时间：日期/时刻均为北京时间，见 AGENTS.md -->
         <view class="meal-schedule-section">
           <text class="initiate-form-section-label">用餐时间</text>
-          <picker class="meal-schedule-picker-block" mode="selector" range="{{mealDateLabels}}" value="{{mealDateIndex}}" bindchange="onMealDateChange">
+          <picker
+            class="meal-schedule-picker-block"
+            mode="selector"
+            range="{{mealDateLabels}}"
+            value="{{mealDateIndex}}"
+            bindchange="onMealDateChange"
+          >
             <view class="meal-schedule-row">
               <text class="meal-schedule-row__label">日期</text>
               <text class="meal-schedule-row__value">{{mealDateDisplay}}</text>
@@ -41,7 +48,13 @@
             <text wx:if="{{mealTimeSpecified}}" class="meal-schedule-clear" catchtap="clearMealTime">清除</text>
           </view>
         </view>
-        
+      </view>
+    </view>
+  </view>
+
+  <scroll-view scroll-y class="initiate-meal-scroll" enable-back-to-top="{{true}}">
+    <view class="container initiate-meal-body initiate-meal-scroll-inner">
+      <view class="section section--scroll">
         <!-- 菜品选择 -->
         <view>
           <text class="initiate-form-section-label">菜品选择</text>
@@ -55,33 +68,33 @@
               <text class="selected-dish-count">已选 {{selectedDishes.length}} 道菜</text>
               <view class="section-action" bindtap="toggleSelectAll">{{selectAll ? '全不选' : '全选'}}</view>
             </view>
-            <view 
-              wx:for="{{dishes}}" 
-              wx:key="{{item.id}}" 
+            <view
+              wx:for="{{dishes}}"
+              wx:key="{{item.id}}"
               class="list-item dish-select-row {{item.selected ? 'dish-select-row--selected' : 'dish-select-row--unselected'}}"
             >
-          <view class="dish-select-row__inner">
-            <image
-              class="dish-list-thumb"
-              src="{{item.displayImage}}"
-              mode="aspectFill"
-              catchtap="previewDishImage"
-              data-url="{{item.displayImage}}"
-            />
-            <view class="dish-select-row__text">
-              <text class="list-item__title">{{item.name}}</text>
-              <text class="list-item__desc dish-select-row__desc">{{item.displayDescription}}</text>
-            </view>
-            <view class="dish-select-row__check-wrap">
-              <checkbox
-                class="checkbox dish-select-row__check"
-                value="{{item.id}}"
-                checked="{{item.selected}}"
-                bindtap="toggleDishSelection"
-                data-id="{{item.id}}"
-              />
-            </view>
-          </view>
+              <view class="dish-select-row__inner">
+                <image
+                  class="dish-list-thumb"
+                  src="{{item.displayImage}}"
+                  mode="aspectFill"
+                  catchtap="previewDishImage"
+                  data-url="{{item.displayImage}}"
+                />
+                <view class="dish-select-row__text">
+                  <text class="list-item__title">{{item.name}}</text>
+                  <text class="list-item__desc dish-select-row__desc">{{item.displayDescription}}</text>
+                </view>
+                <view class="dish-select-row__check-wrap">
+                  <checkbox
+                    class="checkbox dish-select-row__check"
+                    value="{{item.id}}"
+                    checked="{{item.selected}}"
+                    bindtap="toggleDishSelection"
+                    data-id="{{item.id}}"
+                  />
+                </view>
+              </view>
             </view>
           </view>
         </view>
@@ -108,11 +121,12 @@
         </view>
       </button>
     </view>
-    <button 
+    <button
       wx:else
-      class="btn btn--footer" 
+      class="btn btn--footer"
       bindtap="initiateMeal"
-      disabled="{{!selectedMealName || selectedDishes.length === 0}}">
+      disabled="{{!selectedMealName || selectedDishes.length === 0}}"
+    >
       确认发起点餐
     </button>
   </view>

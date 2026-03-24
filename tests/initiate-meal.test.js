@@ -89,6 +89,7 @@ describe('发起点菜页面测试', () => {
     expect(js).toContain('buildSchedulePayload');
     expect(js).toContain('initMealSchedulePickers');
     expect(js).toContain('createDefaultMealSchedulePickerData');
+    expect(js).toContain('refreshPickerBindDataForIOS');
   });
 
   test('验证WXML展示已选菜品数', () => {
@@ -132,6 +133,7 @@ describe('发起点菜页面测试', () => {
     const wxml = fs.readFileSync('pages/initiate-meal/initiate-meal.wxml', 'utf-8');
 
     expect(wxml).toContain('page-initiate-meal');
+    expect(wxml).toContain('initiate-meal-form-top');
     expect(wxml).toContain('initiate-meal-scroll');
     expect(wxml).toContain('initiate-meal-footer');
     expect(wxml).toContain('btn--footer');

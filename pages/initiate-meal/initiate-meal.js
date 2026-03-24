@@ -82,6 +82,33 @@ Page({
     }
   },
 
+  onReady() {
+    this.refreshPickerBindDataForIOS()
+  },
+
+  /**
+   * iOS：picker 偶发需首屏后重新 setData 一份 range/value（新数组引用）才能显示选项；
+   * 且不应把 picker 放在 scroll-view 内（见 wxml 结构）。
+   */
+  refreshPickerBindDataForIOS() {
+    const d = this.data
+    if (!d.mealDateLabels || d.mealDateLabels.length === 0) return
+    const tr0 = d.mealTimeRange && d.mealTimeRange[0]
+    const tr1 = d.mealTimeRange && d.mealTimeRange[1]
+    wx.nextTick(() => {
+      this.setData({
+        mealDateLabels: [...d.mealDateLabels],
+        mealDateValues: [...(d.mealDateValues || [])],
+        mealTimeRange: [tr0 ? [...tr0] : [], tr1 ? [...tr1] : []],
+        mealDateIndex: Number(d.mealDateIndex) || 0,
+        mealTimePickerValue: [
+          Number(d.mealTimePickerValue[0]) || 0,
+          Number(d.mealTimePickerValue[1]) || 0
+        ]
+      })
+    })
+  },
+
   /** 编辑模式下用户用左上角返回时清理全局编辑态（原底部「返回」按钮逻辑） */
   onUnload() {
     if (this.data.isEditMode) {
@@ -254,16 +281,19 @@ Page({
     const safeDateIndex =
       mealDateIndex >= 0 && mealDateIndex < labels.length ? mealDateIndex : 0
 
-    this.setData({
-      mealDateLabels: labels,
-      mealDateValues: values,
-      mealDateIndex: safeDateIndex,
-      mealDateDisplay: labels[safeDateIndex] || '请选择日期',
-      mealTimeRange: timeRange,
-      mealTimePickerValue: safeTimeValue,
-      mealTimeSpecified,
-      mealTimeDisplay
-    })
+    this.setData(
+      {
+        mealDateLabels: labels,
+        mealDateValues: values,
+        mealDateIndex: safeDateIndex,
+        mealDateDisplay: labels[safeDateIndex] || '请选择日期',
+        mealTimeRange: timeRange,
+        mealTimePickerValue: safeTimeValue,
+        mealTimeSpecified,
+        mealTimeDisplay
+      },
+      () => this.refreshPickerBindDataForIOS()
+    )
   },
 
   onMealDateChange(e) {

@@ -95,6 +95,7 @@ const dishes = result.data.list
 - **本小程序中所有与用户相关的日期、时间的输入与展示，一律使用北京时间（UTC+8）。** 界面上默认**不要**在文案末尾追加「（北京时间）」等字样；以日期、时刻本身的换算与约定体现时区即可。
 - **展示**：与云端约定的无时区字符串（如 `YYYY-MM-DD`、`YYYY-MM-DD HH:mm`）按**北京时间墙钟**理解；若接口返回带 `Z` 或 `±` 偏移的 ISO 8601，必须先换算为北京时间再格式化展示。
 - **输入**：发起点餐的用餐日期/时刻、**点餐列表分区**（明天及以后用餐 / 今天用餐 / 历史点餐）均以**用餐日期的北京日历日**为界；无 `scheduledAt` 时回退为发起日的北京日历日（见 `utils/beijing-day.js` 的 `partitionMealsByScheduledBeijingDate`）；用餐时间展示见 `utils/beijing-meal-schedule.js`；发起时间见 `utils/format-meal-created-at-beijing.js`。
+- **iOS 与 `picker`**：真机 iOS 上，**原生 `picker` 不要放在 `scroll-view` 内**，否则易出现选项空白、滚轮不渲染；发起点餐页将日期/时间选择区放在 `scroll-view` 外（见 `pages/initiate-meal/initiate-meal.wxml`），并在 `onReady` / `initMealSchedulePickers` 完成后用 `refreshPickerBindDataForIOS` 再刷一层绑定数据以规避首帧异常。
 - **云函数**：`meal` 等与排期、今日日期相关的逻辑应与小程序一致，按北京时间处理。`scheduled_at` 经 mysql2 读入为 `Date` 时，**不可用 `getHours()` 等依赖进程时区的字段拼 API 字符串**（SCF 多为 `TZ=UTC`，会少 8 小时）；应使用与前端一致的「UTC 毫秒 +8h 再取 `getUTC*()`」方式，见 `server/functions/meal/utils/schedule-format.js` 的 `formatScheduledForApi`。
 
 ## 测试规范
