@@ -4,22 +4,41 @@
   <view class="menu-list">
     <view class="menu-top-row">
       <view class="menu-top-card create-menu-card" bindtap="createMenu">
-        <text class="create-menu-text">创建新菜单</text>
+        <image
+          class="menu-top-card__icon"
+          src="/images/tab-menu-active.png"
+          mode="aspectFit"
+        />
+        <text class="create-menu-text">制作新菜单</text>
       </view>
       <view class="menu-top-card dish-entry-card" bindtap="goDishList">
+        <image
+          class="menu-top-card__icon"
+          src="/images/tab-dish-active.png"
+          mode="aspectFit"
+        />
         <text class="dish-entry-text">菜品</text>
       </view>
     </view>
 
-    <view wx:for="{{menus}}" wx:key="id" class="menu-card" bindtap="editMenu" data-id="{{item.id}}">
-      <view class="menu-info">
-        <text class="menu-name">{{item.name}}</text>
-        <text class="menu-count">{{item.dishCount}} 道菜</text>
-      </view>
-      <view class="menu-start-meal-btn" catchtap="goInitiateMeal" data-id="{{item.id}}">
-        <image class="menu-start-meal-btn__icon" src="/images/icon-start-meal.png" mode="aspectFit" />
-        <text class="menu-start-meal-btn__text">发起点餐</text>
-      </view>
+    <view wx:if="{{listLoading}}" class="list-loading">
+      <view class="list-loading-spinner" />
+      <text class="list-loading-text">加载中...</text>
     </view>
+    <block wx:else>
+      <view wx:if="{{menus.length === 0}}" class="menu-list-empty-hint">
+        <text class="menu-list-empty-hint__text">点击【制作新菜单】制作一个菜单吧，有菜单就可以发给大家点餐了</text>
+      </view>
+      <view wx:for="{{menus}}" wx:key="id" class="menu-card" bindtap="editMenu" data-id="{{item.id}}">
+        <view class="menu-info">
+          <text class="menu-name">{{item.name}}</text>
+          <text class="menu-count">{{item.dishCount}} 道菜</text>
+        </view>
+        <view class="menu-start-meal-btn" catchtap="goInitiateMeal" data-id="{{item.id}}">
+          <image class="menu-start-meal-btn__icon" src="/images/icon-start-meal.png" mode="aspectFit" />
+          <text class="menu-start-meal-btn__text">发起点餐</text>
+        </view>
+      </view>
+    </block>
   </view>
 </view>

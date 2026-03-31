@@ -187,3 +187,57 @@ page {
   color: #fff;
   box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.25);
 }
+
+/* 列表页：数据加载中（转圈 + 文案） */
+.list-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 40rpx 80rpx;
+  gap: 28rpx;
+}
+
+.list-loading--inline {
+  flex-direction: row;
+  padding: 28rpx 16rpx 36rpx;
+  gap: 20rpx;
+  justify-content: center;
+}
+
+.list-loading--compact {
+  flex-direction: row;
+  padding: 40rpx 24rpx;
+  gap: 20rpx;
+  justify-content: center;
+}
+
+.list-loading-spinner {
+  width: 48rpx;
+  height: 48rpx;
+  border: 4rpx solid #e8f5e9;
+  border-top-color: #66bb6a;
+  border-radius: 50%;
+  animation: list-loading-spin 0.75s linear infinite;
+}
+
+.list-loading-spinner--sm {
+  width: 36rpx;
+  height: 36rpx;
+  border-width: 3rpx;
+}
+
+@keyframes list-loading-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.list-loading-text {
+  font-size: 28rpx;
+  color: #888;
+}

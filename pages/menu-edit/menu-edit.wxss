@@ -1,9 +1,16 @@
 /* pages/menu-edit/menu-edit.wxss */
 
-.container {
-  padding: 20rpx;
-  padding-bottom: 180rpx;
+.container.page-menu-edit {
   min-height: 100vh;
+  box-sizing: border-box;
+  padding: 20rpx;
+  padding-bottom: calc(180rpx + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+}
+
+.form-section--menu-meta {
+  flex-shrink: 0;
 }
 
 .page-header {
@@ -11,6 +18,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30rpx;
+  flex-shrink: 0;
 }
 
 .page-title {
@@ -31,6 +39,39 @@
   padding: 24rpx;
   margin-bottom: 20rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+}
+
+/* 选择菜品：占满除菜单名称与底栏外的剩余高度 */
+.form-section--dishes {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0;
+}
+
+.menu-edit-dish-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-edit-dish-empty-fill {
+  flex: 1;
+  min-height: 200rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* scroll-view 在 flex 子项内需 height:0+flex:1 才能撑满剩余区域 */
+.dishes-list-scroll-inner {
+  flex: 1;
+  min-height: 0;
+  height: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .form-label {
@@ -139,65 +180,26 @@
   box-sizing: border-box;
 }
 
-/* 菜品 Tab：在菜单中 / 不在菜单中 */
-.dish-tabs {
-  display: flex;
-  gap: 12rpx;
-  margin-bottom: 20rpx;
-}
-
-.dish-tab {
-  flex: 1;
+/* 说明与全选同一行 */
+.menu-edit-hint-row {
   display: flex;
   flex-direction: row;
-  flex-wrap: nowrap;
   align-items: center;
-  justify-content: center;
-  padding: 12rpx 16rpx;
-  background: #E8F5E9;
-  border-radius: 10rpx;
-  border: 2rpx solid transparent;
-  box-sizing: border-box;
-}
-
-.dish-tab--active {
-  background: #fff;
-  border-color: #81C784;
-  box-shadow: 0 4rpx 14rpx rgba(76, 175, 80, 0.2);
-}
-
-.dish-tab__label {
-  font-size: 26rpx;
-  font-weight: 600;
-  color: #757575;
-  line-height: 1.2;
-}
-
-.dish-tab--active .dish-tab__label {
-  color: #2E7D32;
-}
-
-.dish-tab__count {
-  font-size: 26rpx;
-  font-weight: 600;
-  color: #9E9E9E;
-  line-height: 1.2;
-  margin-left: 4rpx;
-}
-
-.dish-tab--active .dish-tab__count {
-  color: #43A047;
-}
-
-.dishes-tab-panel {
-  min-height: 80rpx;
-}
-
-.tab-panel-toolbar {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
   margin-bottom: 12rpx;
+}
+
+.menu-edit-dish-hint {
+  flex: 1;
+  min-width: 0;
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.45;
+}
+
+.menu-edit-hint-row__action {
+  flex-shrink: 0;
 }
 
 .section-header {
@@ -225,7 +227,7 @@
   font-size: 26rpx;
 }
 
-/* 菜品列表（单 Tab 展示，可适当加高） */
+/* 旧：固定高度列表（已改为 scroll-view 撑满） */
 .dishes-list {
   max-height: 400rpx;
   overflow-y: auto;
@@ -311,6 +313,19 @@
 
 .form-actions .btn {
   flex: 1;
+}
+
+.menu-edit-submit-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  width: 100%;
+}
+
+.menu-edit-submit-icon {
+  flex-shrink: 0;
+  vertical-align: middle;
 }
 
 .btn-save-and-initiate {

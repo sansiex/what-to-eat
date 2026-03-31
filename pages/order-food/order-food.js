@@ -5,6 +5,7 @@ const { formatMealCreatedAtBeijing } = require('../../utils/format-meal-created-
 const { isDishPlaceholderUrl } = require('../../utils/dish-preview.js')
 const { CATEGORIES: TAG_CATEGORIES } = require('../../utils/dish-tag-registry.js')
 const { formatTagView } = require('../../utils/dish-tag-view.js')
+const { showExitOrEnterKitchenModal, MEAL_LIMIT_MSG } = require('../../utils/enter-my-kitchen.js')
 
 /** 草稿标签 [{ categoryKey, tagCode }] → 与后端 myTags 同结构的展示字段 */
 function enrichMyTagsFromRegistry(list) {
@@ -22,6 +23,8 @@ function enrichMyTagsFromRegistry(list) {
 
 Page({
   data: {
+    /** 正在拉取点餐详情（发起点餐跳转后首屏等） */
+    mealLoading: false,
     currentMeal: null,
     searchKeyword: '',
     filteredDishes: [],
@@ -42,13 +45,17 @@ Page({
     tagPickerByCategory: {},
     tagPickerInitialByCategory: {},
     /** 仅前端暂存：每道菜我的标签，点「下单」时与勾选一并提交 */
-    dishTagDraft: {}
+    dishTagDraft: {},
+    /** 参与人数已满 15，不可再发起分享 */
+    shareBlocked: false
   },
 
   onLoad() {
     // 检查是否为查看模式
     const viewMode = getApp().globalData.viewMode || false
-    this.setData({ viewMode, tagRegistryCategories: TAG_CATEGORIES })
+    const globalMeal = getApp().globalData.currentMeal
+    const mealLoading = !!(globalMeal && globalMeal.id)
+    this.setData({ viewMode, tagRegistryCategories: TAG_CATEGORIES, mealLoading })
 
     this.loadCurrentMeal()
     this.loadOrders()
@@ -304,9 +311,11 @@ Page({
     console.log('globalData中的餐食:', globalMeal)
 
     if (!globalMeal) {
-      this.setData({ currentMeal: null })
+      this.setData({ currentMeal: null, mealLoading: false })
       return
     }
+
+    this.setData({ mealLoading: true })
 
     try {
       // 从云函数获取完整的餐食详情（包含菜品列表）
@@ -319,7 +328,7 @@ Page({
 
       if (!currentMeal.dishes || currentMeal.dishes.length === 0) {
         wx.showToast({ title: '该点餐没有关联菜品', icon: 'none' })
-        this.setData({ currentMeal: null })
+        this.setData({ currentMeal: null, mealLoading: false })
         return
       }
 
@@ -392,6 +401,23 @@ Page({
       // 判断当前用户是否是发起人（使用后端返回的 isCreator）
       const isInitiator = !!currentMeal.isCreator
 
+      const participantLimit =
+        currentMeal.participantLimit != null ? currentMeal.participantLimit : 15
+      const participantCount =
+        currentMeal.participantCount != null ? currentMeal.participantCount : 0
+      const shareBlocked = participantCount >= participantLimit
+
+      if (!this.data.viewMode) {
+        try {
+          const rp = await API.meal.recordParticipant(currentMeal.id)
+          if (rp.data && rp.data.participantLimitReached) {
+            showExitOrEnterKitchenModal(MEAL_LIMIT_MSG)
+          }
+        } catch (e) {
+          console.warn('recordParticipant', e)
+        }
+      }
+
       this.setData({
         currentMeal: currentMealWithFormattedTime,
         filteredDishes: dishesWithDisplay,
@@ -399,11 +425,13 @@ Page({
         dishSelectionMap,
         dishOrderersMap,
         isInitiator,
-        dishTagDraft
+        dishTagDraft,
+        mealLoading: false,
+        shareBlocked
       })
 
-      // 为发起人预生成分享令牌
-      if (isInitiator) {
+      // 为发起人预生成分享令牌（参与人数未满时）
+      if (isInitiator && !shareBlocked) {
         this.preGenerateShareToken(currentMeal.id)
       }
 
@@ -412,7 +440,7 @@ Page({
     } catch (err) {
       console.error('加载餐食详情失败:', err)
       wx.showToast({ title: '加载餐食失败', icon: 'none' })
-      this.setData({ currentMeal: null })
+      this.setData({ currentMeal: null, mealLoading: false })
     }
   },
 
@@ -607,6 +635,13 @@ Page({
     } catch (e) {
       console.warn('预生成分享令牌失败:', e)
     }
+  },
+
+  onShareBlockedTap() {
+    wx.showModal({
+      content: '参与点餐人数达到上限，无法继续分享',
+      showCancel: false
+    })
   },
 
   previewDishImage(e) {

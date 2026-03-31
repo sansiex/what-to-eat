@@ -33,6 +33,19 @@
   margin-top: 6rpx;
 }
 
+/* 发起人：点餐信息下方引导分享 */
+.order-food-initiator-hint {
+  margin: -8rpx 0 16rpx;
+  padding: 0 8rpx;
+}
+
+.order-food-initiator-hint__text {
+  display: block;
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.55;
+}
+
 .order-food-root {
   min-height: 100vh;
   padding-bottom: calc(140rpx + env(safe-area-inset-bottom));
@@ -45,6 +58,31 @@
 
 .order-food-dish-section {
   margin-bottom: 32rpx;
+}
+
+/* 搜索与下方白卡间距略收（仍保留区分） */
+.order-food-page .search-bar {
+  margin-bottom: 16rpx;
+}
+
+/* 菜品列表上方：随页面上滚后吸顶在导航栏下方 */
+.order-food-selected-hint {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  /* 抵消 .section 的 padding-top，避免「已勾选」行上方大块留白 */
+  margin: -32rpx -32rpx 8rpx;
+  padding: 8rpx 32rpx 10rpx;
+  background: #fff;
+  border-bottom: 1rpx solid #e8f5e9;
+  border-radius: 16rpx 16rpx 0 0;
+}
+
+.order-food-selected-hint__text {
+  font-size: 24rpx;
+  color: #666;
+  line-height: 1.25;
 }
 
 .order-food-footer {

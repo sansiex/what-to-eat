@@ -155,6 +155,8 @@ describe('点餐列表页测试', () => {
       expect(wxml).toContain('onSortModeChange');
       expect(wxml).toContain('sortModePickerRange');
       expect(wxml).toContain('toggleSection');
+      expect(wxml).toContain('listLoading');
+      expect(wxml).toContain('list-loading-spinner');
       expect(wxml).not.toMatch(/\{\{item\.name\}\}\s*\{\{item\.weekday\}\}/);
     });
 

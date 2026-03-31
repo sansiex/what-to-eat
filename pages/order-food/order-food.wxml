@@ -13,7 +13,14 @@
       <text wx:if="{{viewMode}}" class="order-food-meal-view-hint">已收单</text>
     </view>
 
-    <view class="search-bar" wx:if="{{!viewMode}}">
+    <view
+      wx:if="{{currentMeal && isInitiator && !viewMode}}"
+      class="order-food-initiator-hint"
+    >
+      <text class="order-food-initiator-hint__text">这是你发起的点餐，点击下方【分享】按钮分享给其他用户点餐吧</text>
+    </view>
+
+    <view class="search-bar" wx:if="{{!viewMode && currentMeal}}">
       <text class="search-icon">🔍</text>
       <input
         class="search-input"
@@ -24,7 +31,12 @@
     </view>
 
     <view class="section order-food-dish-section">
-      <view wx:if="{{!currentMeal}}" style="padding: 40rpx 0; text-align: center; color: #999;">
+      <view wx:if="{{mealLoading}}" class="list-loading">
+        <view class="list-loading-spinner" />
+        <text class="list-loading-text">加载中...</text>
+      </view>
+
+      <view wx:elif="{{!currentMeal}}" style="padding: 40rpx 0; text-align: center; color: #999;">
         暂无发起的餐食，请先发起一餐
       </view>
 
@@ -33,6 +45,9 @@
       </view>
 
       <view wx:else>
+        <view wx:if="{{!viewMode}}" class="order-food-selected-hint">
+          <text class="order-food-selected-hint__text">已勾选 {{userSelectedDishes.length}} 个菜品</text>
+        </view>
         <checkbox-group wx:if="{{!viewMode}}" bindchange="onCheckboxChange">
           <block wx:for="{{filteredDishes}}" wx:key="id">
             <view class="list-item order-food-dish-item {{dishSelectionMap[item.id] ? 'order-food-dish-item--selected' : 'order-food-dish-item--unselected'}}">
@@ -181,11 +196,21 @@
       </view>
     </button>
     <button
-      wx:if="{{isInitiator}}"
+      wx:if="{{isInitiator && !shareBlocked}}"
       class="order-food-footer__btn order-food-footer__btn--share"
       open-type="share"
       data-id="{{currentMeal.id}}"
       data-name="{{currentMeal.name}}"
+    >
+      <view class="order-food-footer__btn-inner">
+        <image class="order-food-footer__icon" src="/images/icon-share.png" mode="aspectFit" />
+        <text>分享</text>
+      </view>
+    </button>
+    <button
+      wx:if="{{isInitiator && shareBlocked}}"
+      class="order-food-footer__btn order-food-footer__btn--share"
+      bindtap="onShareBlockedTap"
     >
       <view class="order-food-footer__btn-inner">
         <image class="order-food-footer__icon" src="/images/icon-share.png" mode="aspectFit" />

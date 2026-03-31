@@ -63,6 +63,8 @@ Page({
     historyTotal: 0,
     historyLoading: false,
     historyNoMore: false,
+    /** 首屏/刷新整表加载中 */
+    listLoading: true,
     hasAnyMeal: false,
     shareTokenMap: {},
     _mealListRawBuffer: []
@@ -341,10 +343,13 @@ Page({
           historyNoMore: true,
           _mealListRawBuffer: [],
           historyPage: 1,
-          historyLoading: false
+          historyLoading: false,
+          listLoading: false
         })
         return
       }
+
+      this.setData({ listLoading: true })
 
       const role = currentKitchen && currentKitchen.role
       const canManageMeals = role === 'owner' || role === 'admin'
@@ -374,12 +379,14 @@ Page({
         historyTotal: total,
         historyLoading: false,
         historyNoMore: fetchedAll || total === 0,
-        hasAnyMeal
+        hasAnyMeal,
+        listLoading: false
       })
 
       this.preGenerateShareTokens(flatMeals)
     } catch (err) {
       console.error('加载点餐列表失败:', err)
+      this.setData({ listLoading: false })
     }
   },
 
@@ -605,7 +612,15 @@ Page({
       })
     } catch (err) {
       console.error('生成分享链接失败:', err)
-      wx.showToast({ title: '分享失败', icon: 'none' })
+      const msg = (err && err.message) || ''
+      if (msg.indexOf('达到上限') >= 0) {
+        wx.showModal({
+          content: '参与点餐人数达到上限，无法继续分享',
+          showCancel: false
+        })
+      } else {
+        wx.showToast({ title: '分享失败', icon: 'none' })
+      }
     }
   },
 

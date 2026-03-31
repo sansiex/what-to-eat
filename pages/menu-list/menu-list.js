@@ -3,7 +3,8 @@ const { API } = require('../../utils/cloud-api.js')
 
 Page({
   data: {
-    menus: []
+    menus: [],
+    listLoading: true
   },
 
   onLoad() {
@@ -17,9 +18,7 @@ Page({
   // 加载菜单列表
   async loadMenus() {
     try {
-      wx.showLoading({ title: '加载中...' })
-      // 先同步更新一次，保证页面快速响应（也便于测试环境断言）
-      this.setData({ menus: [] })
+      this.setData({ listLoading: true, menus: [] })
 
       // 获取当前厨房
       let currentKitchen = getApp().globalData.currentKitchen
@@ -63,14 +62,12 @@ Page({
         dishCount: menu.dishes ? menu.dishes.length : 0
       }))
 
-      this.setData({ menus: menusWithCount })
+      this.setData({ menus: menusWithCount, listLoading: false })
       getApp().globalData._menuListCache = menusWithCount
-      wx.hideLoading()
     } catch (err) {
-      wx.hideLoading()
       console.error('加载菜单列表失败:', err)
       // 静默处理错误，避免影响用户体验
-      this.setData({ menus: [] })
+      this.setData({ menus: [], listLoading: false })
     }
   },
 

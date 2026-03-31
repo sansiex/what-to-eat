@@ -6,6 +6,7 @@ const { uploadDishImage } = require('../../utils/cos-upload.js')
 Page({
   data: {
     dishes: [],
+    listLoading: true,
     keyword: '',
     showDishDialog: false,
     dialogMode: 'add',
@@ -325,6 +326,7 @@ Page({
   },
 
   async loadDishes() {
+    this.setData({ listLoading: true })
     try {
       const { keyword } = this.data
       const currentKitchen = getApp().globalData.currentKitchen
@@ -333,9 +335,10 @@ Page({
       const rawList = result.data.list || []
       console.log('[loadDishes] raw list from API:', JSON.stringify(rawList.map(d => ({ id: d.id, name: d.name, image_url: d.image_url, imageUrl: d.imageUrl }))))
       const dishes = rawList.map(d => this.normalizeDish(d))
-      this.setData({ dishes })
+      this.setData({ dishes, listLoading: false })
     } catch (err) {
       console.error('加载菜品失败:', err)
+      this.setData({ listLoading: false })
       wx.showToast({ title: '加载失败', icon: 'none' })
     }
   }

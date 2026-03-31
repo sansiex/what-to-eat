@@ -22,6 +22,7 @@ Page({
     unorderedSectionExpanded: false,
     canManage: false,
     shareToken: '',
+    shareBlocked: false,
     expandedDishId: null
   },
 
@@ -110,6 +111,10 @@ Page({
 
       const canManage = meal.isCreator || (meal.kitchenRole === 'owner' || meal.kitchenRole === 'admin')
 
+      const participantLimit = meal.participantLimit != null ? meal.participantLimit : 15
+      const participantCount = meal.participantCount != null ? meal.participantCount : 0
+      const shareBlocked = participantCount >= participantLimit
+
       const formattedScheduledMeal = formatScheduledMealDisplayForOrderFood(
         meal.scheduledAt,
         meal.scheduledTimeSpecified
@@ -129,10 +134,11 @@ Page({
         orderedDishes,
         unorderedDishes,
         unorderedSectionExpanded,
-        canManage
+        canManage,
+        shareBlocked
       })
 
-      if (canManage && meal.status === 1) {
+      if (canManage && meal.status === 1 && !shareBlocked) {
         requestMealOrderNotifySubscribe()
         this.preGenerateShareToken(mealId)
       }
@@ -150,6 +156,13 @@ Page({
     } catch (e) {
       console.warn('预生成分享令牌失败:', e)
     }
+  },
+
+  onShareBlockedTap() {
+    wx.showModal({
+      content: '参与点餐人数达到上限，无法继续分享',
+      showCancel: false
+    })
   },
 
   // 修改（编辑）

@@ -293,8 +293,8 @@ describe('菜单列表页面功能测试', () => {
     expect(menuListJs).toContain('goInitiateMeal');
   });
 
-  test('验证WXML包含创建新菜单与菜品入口', () => {
-    expect(menuListWxml).toContain('创建新菜单');
+  test('验证WXML包含制作新菜单与菜品入口', () => {
+    expect(menuListWxml).toContain('制作新菜单');
     expect(menuListWxml).toContain('菜品');
     expect(menuListWxml).toContain('goDishList');
   });

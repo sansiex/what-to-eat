@@ -13,16 +13,10 @@ Page({
   data: {
     isEditMode: false,
     menuName: '',
-    /** 菜品分区 Tab：'in' 在菜单中（默认），'out' 不在菜单中 */
-    dishTab: 'in',
     allDishes: [],
     filteredDishes: [],
-    dishesInMenu: [],
-    dishesNotInMenu: [],
-    dishListAssignment: {}, // 菜品所属列表，'in' | 'out'，切换勾选时不改变，仅保存后刷新
-    /** 当前 Tab 列表是否已全部勾选（用于全选/全不选按钮文案） */
-    inMenuAllSelected: false,
-    notInMenuAllSelected: false,
+    /** 当前筛选列表是否已全部勾选（全选/全不选） */
+    listAllSelected: false,
     selectedDishIds: [],
     searchKeyword: '',
     showAddDishDialog: false,
@@ -65,7 +59,7 @@ Page({
   // 加载所有菜品
   async loadAllDishes() {
     try {
-      // 必须与菜单列表使用同一厨房，否则拉错菜品库，编辑页「在菜单中」全空
+      // 必须与菜单列表使用同一厨房，否则拉错菜品库
       const currentKitchen = getApp().globalData.currentKitchen
       const kitchenIdForDishes =
         currentKitchen && currentKitchen.id != null ? currentKitchen.id : null
@@ -95,19 +89,11 @@ Page({
           displayDescription: dish.description || '暂无描述'
         }
       })
-      const dishListAssignment = {}
-      dishesWithSelected.forEach(d => {
-        dishListAssignment[d.id] = d.selected ? 'in' : 'out'
-      })
-      const { dishesInMenu, dishesNotInMenu } = this.splitDishesByAssignment(dishesWithSelected, dishListAssignment)
-      const flags = this._listSelectAllFlags(dishesInMenu, dishesNotInMenu)
       this.setData({
         allDishes: dishesWithSelected,
         filteredDishes: dishesWithSelected,
-        dishListAssignment,
-        dishesInMenu,
-        dishesNotInMenu,
-        ...flags
+        listAllSelected:
+          dishesWithSelected.length > 0 && dishesWithSelected.every(d => d.selected)
       })
     } catch (err) {
       console.error('加载菜品失败:', err)
@@ -126,73 +112,36 @@ Page({
     this.setData({ menuName: tag })
   },
 
-  switchDishTab(e) {
-    const tab = e.currentTarget.dataset.tab
-    if (tab === 'in' || tab === 'out') {
-      this.setData({ dishTab: tab })
-    }
-  },
-
-  splitDishesByAssignment(dishes, assignment) {
-    const dishesInMenu = dishes.filter(d => assignment[normalizeDishId(d.id)] === 'in')
-    const dishesNotInMenu = dishes.filter(d => assignment[normalizeDishId(d.id)] === 'out')
-    return { dishesInMenu, dishesNotInMenu }
-  },
-
-  _listSelectAllFlags(dishesInMenu, dishesNotInMenu) {
-    return {
-      inMenuAllSelected: dishesInMenu.length > 0 && dishesInMenu.every(d => d.selected),
-      notInMenuAllSelected: dishesNotInMenu.length > 0 && dishesNotInMenu.every(d => d.selected)
-    }
-  },
-
   _applySelection(newSelectedIds) {
-    const { allDishes, filteredDishes } = this.data
+    const { allDishes } = this.data
+    const kw = (this.data.searchKeyword || '').toLowerCase()
     const sel = new Set(newSelectedIds.map(id => normalizeDishId(id)))
-    const updateDishes = dishes =>
-      dishes.map(dish => ({
-        ...dish,
-        selected: sel.has(normalizeDishId(dish.id))
-      }))
-    const { dishesInMenu, dishesNotInMenu } = this.updateSelectionInLists(newSelectedIds)
+    const updatedAll = allDishes.map(dish => ({
+      ...dish,
+      selected: sel.has(normalizeDishId(dish.id))
+    }))
+    const filtered = updatedAll.filter(dish => dish.name.toLowerCase().includes(kw))
     this.setData({
-      allDishes: updateDishes(allDishes),
-      filteredDishes: updateDishes(filteredDishes),
-      dishesInMenu,
-      dishesNotInMenu,
+      allDishes: updatedAll,
+      filteredDishes: filtered,
       selectedDishIds: newSelectedIds,
-      ...this._listSelectAllFlags(dishesInMenu, dishesNotInMenu)
+      listAllSelected: filtered.length > 0 && filtered.every(d => d.selected)
     })
-  },
-
-  // 更新列表中菜品的 selected 状态（不移动菜品）
-  updateSelectionInLists(newSelectedIds) {
-    const { dishesInMenu, dishesNotInMenu } = this.data
-    const setIds = new Set(newSelectedIds.map(id => normalizeDishId(id)))
-    const updateSelected = (list) =>
-      list.map(d => ({ ...d, selected: setIds.has(normalizeDishId(d.id)) }))
-    return {
-      dishesInMenu: updateSelected(dishesInMenu),
-      dishesNotInMenu: updateSelected(dishesNotInMenu)
-    }
   },
 
   // 搜索菜品
   onSearch(e) {
     const keyword = e.detail.value.toLowerCase()
-    const { allDishes, dishListAssignment } = this.data
+    const { allDishes } = this.data
 
     const filtered = allDishes.filter(dish =>
       dish.name.toLowerCase().includes(keyword)
     )
-    const { dishesInMenu, dishesNotInMenu } = this.splitDishesByAssignment(filtered, dishListAssignment)
 
     this.setData({
       searchKeyword: keyword,
       filteredDishes: filtered,
-      dishesInMenu,
-      dishesNotInMenu,
-      ...this._listSelectAllFlags(dishesInMenu, dishesNotInMenu)
+      listAllSelected: filtered.length > 0 && filtered.every(d => d.selected)
     })
   },
 
@@ -209,34 +158,18 @@ Page({
     this._applySelection(newSelectedIds)
   },
 
-  // 在菜单中：已全选则全不选，否则全选
-  toggleSelectAllInMenu() {
-    const { dishesInMenu, selectedDishIds } = this.data
-    if (dishesInMenu.length === 0) return
-    const allSelected = dishesInMenu.every(d => d.selected)
+  // 当前筛选列表全选 / 全不选
+  toggleSelectAllFiltered() {
+    const { filteredDishes, selectedDishIds } = this.data
+    if (filteredDishes.length === 0) return
+    const allSelected = filteredDishes.every(d => d.selected)
+    const filteredIdSet = new Set(filteredDishes.map(d => normalizeDishId(d.id)))
     if (allSelected) {
-      const idsToRemove = new Set(dishesInMenu.map(d => normalizeDishId(d.id)))
       this._applySelection(
-        selectedDishIds.filter(id => !idsToRemove.has(normalizeDishId(id)))
+        selectedDishIds.filter(id => !filteredIdSet.has(normalizeDishId(id)))
       )
     } else {
-      const idsToAdd = dishesInMenu.map(d => normalizeDishId(d.id))
-      this._applySelection([...new Set([...selectedDishIds, ...idsToAdd])])
-    }
-  },
-
-  // 不在菜单中：已全选则全不选，否则全选
-  toggleSelectAllNotInMenu() {
-    const { dishesNotInMenu, selectedDishIds } = this.data
-    if (dishesNotInMenu.length === 0) return
-    const allSelected = dishesNotInMenu.every(d => d.selected)
-    if (allSelected) {
-      const idsToRemove = new Set(dishesNotInMenu.map(d => normalizeDishId(d.id)))
-      this._applySelection(
-        selectedDishIds.filter(id => !idsToRemove.has(normalizeDishId(id)))
-      )
-    } else {
-      const idsToAdd = dishesNotInMenu.map(d => normalizeDishId(d.id))
+      const idsToAdd = [...filteredIdSet]
       this._applySelection([...new Set([...selectedDishIds, ...idsToAdd])])
     }
   },
@@ -340,7 +273,7 @@ Page({
       wx.hideLoading()
       
       // 添加到列表并选中（优先使用本地已知的图片URL，再回退到后端返回值）
-      const { allDishes, filteredDishes, selectedDishIds, defaultDishImage } = this.data
+      const { allDishes, selectedDishIds, defaultDishImage } = this.data
       const imageUrl = newDishImageUrl || newDish.imageUrl || newDish.image_url || ''
       console.log('[confirmAddDish] imageUrl resolved:', imageUrl, '| newDishImageUrl:', newDishImageUrl, '| backend:', newDish.image_url, newDish.imageUrl)
       const dishWithSelected = {
@@ -353,22 +286,19 @@ Page({
       }
       
       const newAllDishes = [...allDishes, dishWithSelected]
-      const newFilteredDishes = [...filteredDishes, dishWithSelected]
+      const kw = (this.data.searchKeyword || '').toLowerCase()
+      const newFilteredDishes = newAllDishes.filter(d => d.name.toLowerCase().includes(kw))
       const newSelectedIds = [...selectedDishIds, newDish.id]
-      const newAssignment = { ...this.data.dishListAssignment, [newDish.id]: 'in' }
-      const { dishesInMenu, dishesNotInMenu } = this.splitDishesByAssignment(newFilteredDishes, newAssignment)
       this.setData({
         allDishes: newAllDishes,
         filteredDishes: newFilteredDishes,
-        dishListAssignment: newAssignment,
-        dishesInMenu,
-        dishesNotInMenu,
         selectedDishIds: newSelectedIds,
         showAddDishDialog: false,
         newDishName: '',
         newDishDescription: '',
         newDishImageUrl: '',
-        ...this._listSelectAllFlags(dishesInMenu, dishesNotInMenu)
+        listAllSelected:
+          newFilteredDishes.length > 0 && newFilteredDishes.every(d => d.selected)
       })
       
       wx.showToast({ title: '添加成功', icon: 'success' })

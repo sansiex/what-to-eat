@@ -25,14 +25,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/75</span>
+                <span class='fraction'>0/74</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/47</span>
+                <span class='fraction'>0/45</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/72</span>
+                <span class='fraction'>0/71</span>
             </div>
         
             
@@ -300,6 +300,8 @@
 <a name='L235'></a><a href='#L235'>235</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -317,6 +319,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -367,11 +370,24 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -390,6 +406,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -509,30 +529,12 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// pages/share-meal/share-meal.js
 const { API } = <span class="cstat-no" title="statement not covered" >require('../../utils/cloud-api.js')</span>
+const { showExitOrEnterKitchenModal, MEAL_LIMIT_MSG, enterMyKitchenTab } = <span class="cstat-no" title="statement not covered" >require('../../utils/enter-my-kitchen.js')</span>
+const { formatMealCreatedAtBeijing } = <span class="cstat-no" title="statement not covered" >require('../../utils/format-meal-created-at-beijing.js')</span>
 const { previewSingleDishImage } = <span class="cstat-no" title="statement not covered" >require('../../utils/dish-preview.js')</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >Page({</span>
@@ -546,7 +548,8 @@ const { previewSingleDishImage } = <span class="cstat-no" title="statement not c
     userName: '',
     hasOrdered: false,
     showNameInput: false,
-    showEnterKitchenButton: false
+    showEnterKitchenButton: false,
+    participantLimitReached: false
   },
 &nbsp;
 <span class="fstat-no" title="function not covered" >  on</span>Load(options) {
@@ -604,7 +607,20 @@ const { previewSingleDishImage } = <span class="cstat-no" title="statement not c
 &nbsp;
       const meal = <span class="cstat-no" title="statement not covered" >result.data</span>
 <span class="cstat-no" title="statement not covered" >      console.log('Loaded meal data:', meal)</span>
-      
+&nbsp;
+<span class="cstat-no" title="statement not covered" >      if (meal.participantLimitReached) {</span>
+<span class="cstat-no" title="statement not covered" >        showExitOrEnterKitchenModal(MEAL_LIMIT_MSG)</span>
+<span class="cstat-no" title="statement not covered" >        this.setData({</span>
+          meal: {
+            ...meal,
+            formattedCreatedAt: formatMealCreatedAtBeijing(meal.createdAt)
+          },
+          dishes: [],
+          participantLimitReached: true
+        })
+<span class="cstat-no" title="statement not covered" >        return</span>
+      }
+&nbsp;
       // 默认选中所有菜品
       const selectedDishes = <span class="cstat-no" title="statement not covered" >meal.dishes.map(<span class="fstat-no" title="function not covered" >d </span>=&gt; <span class="cstat-no" title="statement not covered" >d.id)</span></span>
       const dishSelectionMap = <span class="cstat-no" title="statement not covered" >{}</span>
@@ -624,10 +640,14 @@ const { previewSingleDishImage } = <span class="cstat-no" title="statement not c
       }))
 &nbsp;
 <span class="cstat-no" title="statement not covered" >      this.setData({</span>
-        meal: meal,
+        meal: {
+          ...meal,
+          formattedCreatedAt: formatMealCreatedAtBeijing(meal.createdAt)
+        },
         dishes: dishes,
         selectedDishes,
-        dishSelectionMap
+        dishSelectionMap,
+        participantLimitReached: false
       })
     } catch (err) {
 <span class="cstat-no" title="statement not covered" >      console.error('加载分享点餐失败:', err)</span>
@@ -742,27 +762,7 @@ const { previewSingleDishImage } = <span class="cstat-no" title="statement not c
 &nbsp;
   // 进入我的厨房
 <span class="fstat-no" title="function not covered" >  as</span>ync enterMyKitchen() {
-<span class="cstat-no" title="statement not covered" >    try {</span>
-      // 检查是否已有厨房
-      const result = <span class="cstat-no" title="statement not covered" >await API.kitchen.list()</span>
-      const kitchens = <span class="cstat-no" title="statement not covered" >result.data.list || []</span>
-&nbsp;
-<span class="cstat-no" title="statement not covered" >      if (kitchens.length === 0) {</span>
-        // 创建默认厨房
-<span class="cstat-no" title="statement not covered" >        await API.kitchen.create('我的厨房')</span>
-      }
-&nbsp;
-      // 跳转到首页
-<span class="cstat-no" title="statement not covered" >      wx.switchTab({</span>
-        url: '/pages/index/index'
-      })
-    } catch (err) {
-<span class="cstat-no" title="statement not covered" >      console.error('进入厨房失败:', err)</span>
-<span class="cstat-no" title="statement not covered" >      wx.showToast({</span>
-        title: '进入失败，请重试',
-        icon: 'none'
-      })
-    }
+<span class="cstat-no" title="statement not covered" >    await enterMyKitchenTab()</span>
   }
 })
 &nbsp;</pre></td></tr></table></pre>
@@ -772,7 +772,7 @@ const { previewSingleDishImage } = <span class="cstat-no" title="statement not c
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-23T18:14:25.065Z
+                at 2026-03-31T06:30:42.276Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

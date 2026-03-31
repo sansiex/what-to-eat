@@ -1,5 +1,6 @@
 // pages/share-meal/share-meal.js
 const { API } = require('../../utils/cloud-api.js')
+const { showExitOrEnterKitchenModal, MEAL_LIMIT_MSG, enterMyKitchenTab } = require('../../utils/enter-my-kitchen.js')
 const { formatMealCreatedAtBeijing } = require('../../utils/format-meal-created-at-beijing.js')
 const { previewSingleDishImage } = require('../../utils/dish-preview.js')
 
@@ -14,7 +15,8 @@ Page({
     userName: '',
     hasOrdered: false,
     showNameInput: false,
-    showEnterKitchenButton: false
+    showEnterKitchenButton: false,
+    participantLimitReached: false
   },
 
   onLoad(options) {
@@ -72,7 +74,20 @@ Page({
 
       const meal = result.data
       console.log('Loaded meal data:', meal)
-      
+
+      if (meal.participantLimitReached) {
+        showExitOrEnterKitchenModal(MEAL_LIMIT_MSG)
+        this.setData({
+          meal: {
+            ...meal,
+            formattedCreatedAt: formatMealCreatedAtBeijing(meal.createdAt)
+          },
+          dishes: [],
+          participantLimitReached: true
+        })
+        return
+      }
+
       // 默认选中所有菜品
       const selectedDishes = meal.dishes.map(d => d.id)
       const dishSelectionMap = {}
@@ -98,7 +113,8 @@ Page({
         },
         dishes: dishes,
         selectedDishes,
-        dishSelectionMap
+        dishSelectionMap,
+        participantLimitReached: false
       })
     } catch (err) {
       console.error('加载分享点餐失败:', err)
@@ -213,26 +229,6 @@ Page({
 
   // 进入我的厨房
   async enterMyKitchen() {
-    try {
-      // 检查是否已有厨房
-      const result = await API.kitchen.list()
-      const kitchens = result.data.list || []
-
-      if (kitchens.length === 0) {
-        // 创建默认厨房
-        await API.kitchen.create('我的厨房')
-      }
-
-      // 跳转到首页
-      wx.switchTab({
-        url: '/pages/index/index'
-      })
-    } catch (err) {
-      console.error('进入厨房失败:', err)
-      wx.showToast({
-        title: '进入失败，请重试',
-        icon: 'none'
-      })
-    }
+    await enterMyKitchenTab()
   }
 })

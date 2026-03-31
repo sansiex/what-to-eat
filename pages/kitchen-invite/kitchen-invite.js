@@ -1,5 +1,6 @@
 // pages/kitchen-invite/kitchen-invite.js
 const { API } = require('../../utils/cloud-api.js')
+const { showExitOrEnterKitchenModal, ADMIN_LIMIT_MSG } = require('../../utils/enter-my-kitchen.js')
 
 Page({
   data: {
@@ -31,10 +32,14 @@ Page({
     try {
       const result = await API.kitchen.getInviteInfo(this.data.token)
       if (result.success) {
+        const info = result.data
         this.setData({
           loading: false,
-          inviteInfo: result.data
+          inviteInfo: info
         })
+        if (info.adminLimitReached && !info.isAlreadyMember) {
+          showExitOrEnterKitchenModal(ADMIN_LIMIT_MSG)
+        }
       } else {
         this.setData({
           loading: false,
@@ -77,6 +82,10 @@ Page({
       }
     } catch (err) {
       console.error('加入厨房失败:', err)
+      const msg = (err && err.message) || ''
+      if (msg.indexOf('管理员') >= 0 && msg.indexOf('上限') >= 0) {
+        showExitOrEnterKitchenModal(ADMIN_LIMIT_MSG)
+      }
     } finally {
       this.setData({ joining: false })
     }

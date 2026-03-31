@@ -29,7 +29,15 @@
     </block>
 
     <block wx:else>
-      <button class="btn-primary" bindtap="acceptInvite" loading="{{joining}}">加入厨房</button>
+      <button
+        wx:if="{{!inviteInfo.adminLimitReached}}"
+        class="btn-primary"
+        bindtap="acceptInvite"
+        loading="{{joining}}"
+      >加入厨房</button>
+      <view wx:else class="invite-limit-hint">
+        <text class="error-text">管理员数量已满，无法接受邀请</text>
+      </view>
     </block>
   </view>
 </view>

@@ -95,6 +95,11 @@ const API = {
     // 恢复点餐（将已收单的点餐恢复为点餐中状态）
     reopen(id) {
       return callHttpFunction('meal', 'reopen', { id })
+    },
+
+    /** 记录当前用户参与点餐（非厨房人员计入 15 人上限） */
+    recordParticipant(mealId) {
+      return callHttpFunction('meal', 'recordParticipant', { mealId })
     }
   },
 

@@ -88,6 +88,7 @@ function initSchema() {
       scheduled_at DATETIME,
       scheduled_time_specified INTEGER NOT NULL DEFAULT 0,
       status INTEGER DEFAULT 1,
+      participant_user_ids TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       closed_at DATETIME
@@ -206,7 +207,14 @@ function testQuery(sql, params = []) {
  */
 function cleanupTestData() {
   const database = getTestDB();
-  const tables = ['wte_orders', 'wte_meal_dishes', 'wte_meals', 'wte_dishes', 'wte_kitchens', 'wte_users'];
+  const tables = [
+    'wte_orders',
+    'wte_meal_dishes',
+    'wte_meals',
+    'wte_dishes',
+    'wte_kitchens',
+    'wte_users'
+  ];
   for (const table of tables) {
     database.exec(`DELETE FROM ${table}`);
   }

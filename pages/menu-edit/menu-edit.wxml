@@ -1,7 +1,7 @@
 <!-- pages/menu-edit/menu-edit.wxml -->
-<view class="container">
+<view class="container page-menu-edit">
   <view class="page-header">
-    <text class="page-title">{{isEditMode ? '编辑菜单' : '创建菜单'}}</text>
+    <text class="page-title">{{isEditMode ? '编辑菜单' : '制作菜单'}}</text>
     <image
       wx:if="{{isEditMode}}"
       class="header-delete-icon"
@@ -12,7 +12,7 @@
   </view>
 
   <!-- 菜单名称 -->
-  <view class="form-section">
+  <view class="form-section form-section--menu-meta">
     <text class="form-label">菜单名称</text>
     <!-- 快捷输入标签 -->
     <view class="quick-tags">
@@ -30,52 +30,46 @@
     />
   </view>
 
-  <!-- 菜品选择 -->
-  <view class="form-section">
+  <!-- 菜品选择：撑满标题与底栏之间剩余高度 -->
+  <view class="form-section form-section--dishes">
     <text class="form-label">选择菜品</text>
-    
-    <!-- 搜索和新增 -->
-    <view class="header-actions">
-      <input 
-        class="search-input" 
-        placeholder="搜索菜品" 
-        bindinput="onSearch"
-        value="{{searchKeyword}}"
-      />
-      <view class="btn-add-dish" bindtap="showAddDishDialog">新增菜品</view>
-    </view>
 
-    <!-- Tab：在菜单中 / 不在菜单中 -->
-    <view class="dish-tabs">
-      <view
-        class="dish-tab {{dishTab === 'in' ? 'dish-tab--active' : ''}}"
-        bindtap="switchDishTab"
-        data-tab="in"
-      >
-        <text class="dish-tab__label">在菜单中</text>
-        <text class="dish-tab__count">（{{dishesInMenu.length}}）</text>
+    <view class="menu-edit-dish-body">
+      <!-- 搜索和新增 -->
+      <view class="header-actions">
+        <input 
+          class="search-input" 
+          placeholder="搜索菜品" 
+          bindinput="onSearch"
+          value="{{searchKeyword}}"
+        />
+        <view class="btn-add-dish" bindtap="showAddDishDialog">新增菜品</view>
       </view>
-      <view
-        class="dish-tab {{dishTab === 'out' ? 'dish-tab--active' : ''}}"
-        bindtap="switchDishTab"
-        data-tab="out"
-      >
-        <text class="dish-tab__label">不在菜单中</text>
-        <text class="dish-tab__count">（{{dishesNotInMenu.length}}）</text>
-      </view>
-    </view>
 
-    <!-- 在菜单中 -->
-    <view wx:if="{{dishTab === 'in'}}" class="dishes-tab-panel">
-      <view wx:if="{{dishesInMenu.length > 0}}" class="tab-panel-toolbar">
-        <view class="section-action" bindtap="toggleSelectAllInMenu">{{inMenuAllSelected ? '全不选' : '全选'}}</view>
-      </view>
-      <view wx:if="{{dishesInMenu.length === 0}}" class="empty-tip-small">
-        <text>暂无，可切换到「不在菜单中」勾选添加</text>
-      </view>
-      <view wx:else class="dishes-list dishes-list--tab">
+      <view wx:if="{{allDishes.length > 0}}" class="menu-edit-hint-row">
+        <text class="menu-edit-dish-hint">勾选需要加入菜单的菜品（已勾选 {{selectedDishIds.length}}）</text>
         <view
-          wx:for="{{dishesInMenu}}"
+          wx:if="{{filteredDishes.length > 0}}"
+          class="section-action menu-edit-hint-row__action"
+          bindtap="toggleSelectAllFiltered"
+        >{{listAllSelected ? '全不选' : '全选'}}</view>
+      </view>
+
+      <view wx:if="{{allDishes.length === 0}}" class="empty-tip-small menu-edit-dish-empty-fill">
+        <text>暂无菜品，请先在首页添加</text>
+      </view>
+      <view wx:elif="{{filteredDishes.length === 0}}" class="empty-tip-small menu-edit-dish-empty-fill">
+        <text>没有找到匹配的菜品</text>
+      </view>
+      <scroll-view
+        wx:else
+        class="dishes-list-scroll-inner"
+        scroll-y
+        enhanced
+        show-scrollbar="{{true}}"
+      >
+        <view
+          wx:for="{{filteredDishes}}"
           wx:key="id"
           class="dish-item {{item.selected ? 'selected' : ''}}"
           bindtap="toggleDishSelection"
@@ -88,40 +82,23 @@
           </view>
           <checkbox class="dish-item-check" checked="{{item.selected}}" />
         </view>
-      </view>
-    </view>
-
-    <!-- 不在菜单中 -->
-    <view wx:if="{{dishTab === 'out'}}" class="dishes-tab-panel">
-      <view wx:if="{{dishesNotInMenu.length > 0}}" class="tab-panel-toolbar">
-        <view class="section-action" bindtap="toggleSelectAllNotInMenu">{{notInMenuAllSelected ? '全不选' : '全选'}}</view>
-      </view>
-      <view wx:if="{{dishesNotInMenu.length === 0}}" class="empty-tip-small">
-        <text>全部已加入菜单</text>
-      </view>
-      <view wx:else class="dishes-list dishes-list--tab">
-        <view
-          wx:for="{{dishesNotInMenu}}"
-          wx:key="id"
-          class="dish-item {{item.selected ? 'selected' : ''}}"
-          bindtap="toggleDishSelection"
-          data-id="{{item.id}}"
-        >
-          <image class="dish-thumb" src="{{item.displayImage}}" mode="aspectFill" catchtap="previewDishImage" data-url="{{item.displayImage}}" />
-          <view class="dish-text">
-            <text class="dish-name">{{item.name}}</text>
-            <text class="dish-desc">{{item.displayDescription}}</text>
-          </view>
-          <checkbox class="dish-item-check" checked="{{item.selected}}" />
-        </view>
-      </view>
+      </scroll-view>
     </view>
   </view>
 
   <!-- 保存按钮 -->
   <view class="form-actions">
     <button class="btn btn-primary" bindtap="saveMenu">
-      {{isEditMode ? '保存修改' : '创建菜单'}}
+      <block wx:if="{{isEditMode}}">保存修改</block>
+      <view wx:else class="menu-edit-submit-inner">
+        <icon
+          class="menu-edit-submit-icon"
+          type="success_no_circle"
+          size="22"
+          color="#FFFFFF"
+        />
+        <text>完成制作</text>
+      </view>
     </button>
     <button wx:if="{{isEditMode}}" class="btn btn-primary btn-save-and-initiate" bindtap="saveAndInitiate">
       保存并发起点餐

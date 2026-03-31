@@ -160,12 +160,28 @@ describe('点餐页面测试', () => {
     expect(wxml).not.toContain('collapsed-offset');
     expect(wxml).toContain('用餐时间');
     expect(wxml).toContain('formattedScheduledMeal');
+    expect(wxml).toContain('mealLoading');
+    expect(wxml).toContain('list-loading-spinner');
+    expect(wxml).toContain('order-food-initiator-hint');
+    expect(wxml).toContain('这是你发起的点餐');
+    expect(wxml).toContain('【分享】');
+    expect(wxml).toContain('order-food-selected-hint');
+    expect(wxml).toContain('已勾选 {{userSelectedDishes.length}} 个菜品');
+    expect(wxml).toContain('shareBlocked');
+    expect(wxml).toContain('onShareBlockedTap');
   });
 
   test('用餐时间行 WXSS 为黑色', () => {
     const fs = require('fs');
     const wxss = fs.readFileSync('pages/order-food/order-food.wxss', 'utf-8');
     expect(wxss).toMatch(/\.order-food-meal-scheduled\s*\{[^}]*#000000/);
+  });
+
+  test('已勾选提示行 WXSS 为 sticky 吸顶', () => {
+    const fs = require('fs');
+    const wxss = fs.readFileSync('pages/order-food/order-food.wxss', 'utf-8');
+    expect(wxss).toContain('.order-food-selected-hint');
+    expect(wxss).toContain('position: sticky');
   });
 
   test('验证JS包含分享方法', () => {
@@ -178,5 +194,8 @@ describe('点餐页面测试', () => {
     expect(js).toContain('formatMealCreatedAtBeijing(currentMeal.createdAt, true)');
     // 需要提供分享卡片配置
     expect(js).toContain('onShareAppMessage');
+    expect(js).toContain('mealLoading');
+    expect(js).toContain('shareBlocked');
+    expect(js).toContain('recordParticipant');
   });
 });

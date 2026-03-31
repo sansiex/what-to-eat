@@ -1,8 +1,9 @@
 <!-- pages/dish-list/dish-list.wxml -->
+<page-meta page-style="{{showDishDialog ? 'overflow: hidden;' : ''}}" />
 <view class="container">
 
   <!-- 菜品总数 -->
-  <view wx:if="{{dishes.length > 0}}" class="dish-count-bar">
+  <view wx:if="{{dishes.length > 0 && !listLoading}}" class="dish-count-bar">
     <text class="dish-count-text">共 {{dishes.length}} 道菜</text>
   </view>
 
@@ -19,7 +20,11 @@
 
   <!-- 菜品列表 -->
   <view class="dish-list">
-    <view wx:if="{{dishes.length === 0}}" class="empty-state">
+    <view wx:if="{{listLoading}}" class="list-loading">
+      <view class="list-loading-spinner" />
+      <text class="list-loading-text">加载中...</text>
+    </view>
+    <view wx:elif="{{dishes.length === 0}}" class="empty-state">
       <text>暂无菜品，点击上方按钮添加</text>
     </view>
 
@@ -46,13 +51,8 @@
       />
       <text class="dialog-title">{{dialogMode === 'edit' ? '编辑菜品' : '添加菜品'}}</text>
 
-      <scroll-view
-        class="dialog-scroll"
-        scroll-y
-        enhanced
-        show-scrollbar="{{true}}"
-      >
-        <view class="upload-section">
+      <view class="dialog-scroll">
+        <view class="upload-section {{dialogMode === 'edit' ? 'upload-section--edit' : ''}}">
           <image
             class="upload-preview"
             src="{{dishImageUrl || defaultDishImage}}"
@@ -124,22 +124,20 @@
             </view>
           </view>
           <view wx:if="{{addDialogMenuPickerOpen}}" class="menu-select-dropdown">
-            <scroll-view class="menu-select-dropdown-scroll" scroll-y enhanced show-scrollbar="{{false}}">
-              <view
-                wx:for="{{addDialogMenus}}"
-                wx:key="id"
-                class="menu-dropdown-row"
-                catchtap="toggleAddDialogMenu"
-                data-id="{{item.id}}"
-              >
-                <view class="menu-checkbox-icon {{item.checked ? 'menu-checkbox-icon--checked' : ''}}" />
-                <text class="menu-checkbox-text">{{item.name}}</text>
-              </view>
-            </scroll-view>
+            <view
+              wx:for="{{addDialogMenus}}"
+              wx:key="id"
+              class="menu-dropdown-row"
+              catchtap="toggleAddDialogMenu"
+              data-id="{{item.id}}"
+            >
+              <view class="menu-checkbox-icon {{item.checked ? 'menu-checkbox-icon--checked' : ''}}" />
+              <text class="menu-checkbox-text">{{item.name}}</text>
+            </view>
           </view>
         </view>
       </view>
-      </scroll-view>
+      </view>
 
       <view class="dialog-actions">
         <view class="dialog-btn dialog-btn-cancel" bindtap="hideDishDialog">取消</view>

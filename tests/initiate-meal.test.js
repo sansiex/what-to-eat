@@ -98,6 +98,8 @@ describe('发起点菜页面测试', () => {
     const wxml = fs.readFileSync('pages/initiate-meal/initiate-meal.wxml', 'utf-8');
 
     expect(wxml).toContain('selectedDishes.length');
+    expect(wxml).toContain('dishes.length');
+    expect(wxml).toContain('菜单共有');
     expect(wxml).toContain('selected-dish-count');
   });
 
@@ -121,7 +123,11 @@ describe('发起点菜页面测试', () => {
     expect(wxml).toContain('>餐名<');
     expect(wxml).toContain('>用餐时间<');
     expect(wxml).toContain('>菜品选择<');
+    expect(wxml).toContain('initiate-form-section-sub');
+    expect(wxml).toContain('发起点餐后，其他人可以点选所有选中的菜品');
     expect(wxml).toContain('确认发起点餐');
+    expect(wxml).toContain('icon-start-meal.png');
+    expect(wxml).toContain('btn--footer-initiate');
     expect(wxml).toContain('用餐时间');
     expect(wxml).toContain('class="meal-schedule-row__value">{{mealTimeDisplay}}');
     expect(wxml).toContain('onMealDateChange');

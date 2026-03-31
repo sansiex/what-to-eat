@@ -123,9 +123,17 @@
       <text>{{meal.status === 1 ? '收单' : '恢复点餐'}}</text>
     </button>
     <button
-      wx:if="{{canManage && meal.status === 1}}"
+      wx:if="{{canManage && meal.status === 1 && !shareBlocked}}"
       class="action-btn btn-share"
       open-type="share"
+    >
+      <image class="btn-icon" src="/images/icon-share.png" mode="aspectFit" />
+      <text>分享</text>
+    </button>
+    <button
+      wx:if="{{canManage && meal.status === 1 && shareBlocked}}"
+      class="action-btn btn-share"
+      bindtap="onShareBlockedTap"
     >
       <image class="btn-icon" src="/images/icon-share.png" mode="aspectFit" />
       <text>分享</text>

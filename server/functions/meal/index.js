@@ -7,6 +7,11 @@ const { query, transaction, getUserId } = require('./utils/db');
 const { buildDishTagDisplaysByDishId, expandOrderRowsToTagRows } = require('./utils/tag-registry');
 const { success, error, paramError, notFound } = require('./utils/response');
 const { formatScheduledForApi } = require('./utils/schedule-format');
+const {
+  MAX_MEAL_PARTICIPANTS,
+  getParticipantCount,
+  tryRecordParticipant
+} = require('./utils/meal-participants');
 
 function pad2(n) {
   return String(n).padStart(2, '0');
@@ -103,6 +108,8 @@ exports.main = async (event, context) => {
         return await generateShareLink(data, context);
       case 'getByShareToken':
         return await getByShareToken(data, context);
+      case 'recordParticipant':
+        return await recordParticipant(data, context);
       default:
         return paramError('未知的操作类型');
     }
@@ -606,6 +613,8 @@ async function getMeal(data, context) {
 
   const schG = formatScheduledForApi(meal[0].scheduled_at, meal[0].scheduled_time_specified);
 
+  const participantCount = await getParticipantCount(query, id);
+
   return success({
     id: meal[0].id,
     name: meal[0].name,
@@ -614,6 +623,8 @@ async function getMeal(data, context) {
     creatorName: meal[0].creator_name,
     isKitchenMember: !!kitchenRole,
     kitchenRole: kitchenRole,
+    participantCount,
+    participantLimit: MAX_MEAL_PARTICIPANTS,
     createdAt: meal[0].created_at,
     closedAt: meal[0].closed_at,
     scheduledAt: schG.scheduledAt,
@@ -706,6 +717,39 @@ function parseDishes(ids, names) {
 }
 
 /**
+ * 记录当前用户参与点餐（非厨房人员计入 15 人上限）
+ */
+async function recordParticipant(data, context) {
+  const { mealId } = data || {};
+  if (!mealId) return paramError('点餐ID不能为空');
+  const userId = await getUserId(data, context);
+  const r = await tryRecordParticipant(query, mealId, userId);
+  if (r.ok === false && r.error === 'not_found') return notFound('点餐活动不存在');
+  if (r.ok === false && r.error === 'closed') return error('该点餐活动已收单');
+  if (r.ok === false && r.limit) {
+    return success(
+      {
+        mealId,
+        participantLimitReached: true,
+        participantCount: r.participantCount,
+        participantLimit: MAX_MEAL_PARTICIPANTS
+      },
+      '参与人数已达上限'
+    );
+  }
+  return success(
+    {
+      mealId,
+      participantLimitReached: false,
+      staff: !!r.staff,
+      participantCount: r.participantCount,
+      participantLimit: MAX_MEAL_PARTICIPANTS
+    },
+    'ok'
+  );
+}
+
+/**
  * 生成分享链接
  * @param {Object} data - 分享数据
  * @param {Object} context - 上下文
@@ -733,6 +777,11 @@ async function generateShareLink(data, context) {
   const role = await checkKitchenMembership(meal[0].kitchen_id, userId);
   if (!role) {
     return error('无权限分享该点餐活动');
+  }
+
+  const pc = await getParticipantCount(query, mealId);
+  if (pc >= MAX_MEAL_PARTICIPANTS) {
+    return error('参与点餐人数达到上限，无法继续分享');
   }
 
   // 复用已有的分享令牌（避免重复创建）
@@ -840,12 +889,21 @@ async function getByShareToken(data, context) {
     orderCount: (dishOrderersMap[dish.id] || []).length
   }));
 
+  const userId = await getUserId(data, context);
+  const pr = await tryRecordParticipant(query, mealId, userId);
+  const participantLimitReached = pr.ok === false && pr.limit === true;
+  const participantCount =
+    pr.participantCount != null ? pr.participantCount : await getParticipantCount(query, mealId);
+
   return success({
     id: meal[0].id,
     name: meal[0].name,
     status: meal[0].status,
     createdAt: meal[0].created_at,
     creatorName: meal[0].creator_name,
-    dishes: dishesWithOrderers
+    dishes: dishesWithOrderers,
+    participantLimitReached,
+    participantCount,
+    participantLimit: MAX_MEAL_PARTICIPANTS
   });
 }

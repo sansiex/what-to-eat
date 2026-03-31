@@ -15,7 +15,12 @@
     </picker>
   </view>
 
-  <view wx:if="{{!hasAnyMeal}}" class="empty-state">
+  <view wx:if="{{listLoading}}" class="list-loading">
+    <view class="list-loading-spinner" />
+    <text class="list-loading-text">加载中...</text>
+  </view>
+
+  <view wx:elif="{{!hasAnyMeal}}" class="empty-state">
     <text class="empty-text">暂无点餐记录</text>
     <text class="empty-subtext">点击底部"开始点餐"发起新的点餐</text>
   </view>
@@ -60,7 +65,10 @@
             <text wx:if="{{meal.status === 'closed'}}" class="meal-dishes">已点菜品数：{{meal.orderedDishCount || 0}} 道</text>
           </view>
         </view>
-        <view wx:if="{{sec.isHistory && historyLoading}}" class="history-loading">加载中…</view>
+        <view wx:if="{{sec.isHistory && historyLoading}}" class="list-loading list-loading--inline">
+          <view class="list-loading-spinner list-loading-spinner--sm" />
+          <text class="list-loading-text">加载中...</text>
+        </view>
         <view wx:if="{{sec.isHistory && sec.expanded && historyNoMore && sec.list.length > 0}}" class="history-end">已经到底啦~</view>
       </view>
     </view>

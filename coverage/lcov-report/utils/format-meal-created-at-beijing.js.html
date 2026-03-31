@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for utils/dish-preview.js</title>
+    <title>Code coverage report for utils/format-meal-created-at-beijing.js</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../prettify.css" />
     <link rel="stylesheet" href="../base.css" />
@@ -19,34 +19,34 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../index.html">All files</a> / <a href="index.html">utils</a> dish-preview.js</h1>
+        <h1><a href="../index.html">All files</a> / <a href="index.html">utils</a> format-meal-created-at-beijing.js</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/15</span>
+                <span class='fraction'>0/18</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/12</span>
+                <span class='fraction'>0/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>0/16</span>
             </div>
         
             
@@ -92,16 +92,10 @@
 <a name='L27'></a><a href='#L27'>27</a>
 <a name='L28'></a><a href='#L28'>28</a>
 <a name='L29'></a><a href='#L29'>29</a>
-<a name='L30'></a><a href='#L30'>30</a>
-<a name='L31'></a><a href='#L31'>31</a>
-<a name='L32'></a><a href='#L32'>32</a>
-<a name='L33'></a><a href='#L33'>33</a>
-<a name='L34'></a><a href='#L34'>34</a>
-<a name='L35'></a><a href='#L35'>35</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L30'></a><a href='#L30'>30</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -112,59 +106,50 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/**
- * 菜品图预览：占位图不应调用 wx.previewImage（易卡在加载页）
- */
-&nbsp;
-const DISH_PLACEHOLDER_PATH = <span class="cstat-no" title="statement not covered" >'/images/dish-placeholder.png'</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/** 与 getUTCDay() 一致：0=周日 … 6=周六（配合 +8h 后的 UTC 分量表示北京时间） */
+const WEEKDAY_ZH_SHORT = <span class="cstat-no" title="statement not covered" >['周日', '周一', '周二', '周三', '周四', '周五', '周六']</span>
 &nbsp;
 /**
- * @param {string|null|undefined} url
- * @returns {boolean}
+ * 点餐发起时间展示（北京时间）：yyyy年MM月dd日 HH:mm
+ * @param {string} isoString
+ * @param {boolean} [withWeekday] 为 true 时在日期前加「周X 」（与列表页发起时间一致）
+ * @returns {string}
  */
-function <span class="fstat-no" title="function not covered" >isDishPlaceholderUrl(</span>url) {
-<span class="cstat-no" title="statement not covered" >  if (url == null) <span class="cstat-no" title="statement not covered" >return true</span></span>
-  const s = <span class="cstat-no" title="statement not covered" >String(url).trim()</span>
-<span class="cstat-no" title="statement not covered" >  if (!s) <span class="cstat-no" title="statement not covered" >return true</span></span>
-<span class="cstat-no" title="statement not covered" >  if (s === DISH_PLACEHOLDER_PATH) <span class="cstat-no" title="statement not covered" >return true</span></span>
-  // 兼容带 query、或仅文件名结尾
-<span class="cstat-no" title="statement not covered" >  if (s.endsWith('/dish-placeholder.png') || s.endsWith('dish-placeholder.png')) <span class="cstat-no" title="statement not covered" >return true</span></span>
-<span class="cstat-no" title="statement not covered" >  return false</span>
+function <span class="fstat-no" title="function not covered" >formatMealCreatedAtBeijing(</span>isoString, withWeekday) {
+<span class="cstat-no" title="statement not covered" >  if (!isoString) <span class="cstat-no" title="statement not covered" >return ''</span></span>
+<span class="cstat-no" title="statement not covered" >  try {</span>
+    const date = <span class="cstat-no" title="statement not covered" >new Date(isoString)</span>
+    const beijingTime = <span class="cstat-no" title="statement not covered" >new Date(date.getTime() + 8 * 60 * 60 * 1000)</span>
+    const year = <span class="cstat-no" title="statement not covered" >beijingTime.getUTCFullYear()</span>
+    const month = <span class="cstat-no" title="statement not covered" >String(beijingTime.getUTCMonth() + 1).padStart(2, '0')</span>
+    const day = <span class="cstat-no" title="statement not covered" >String(beijingTime.getUTCDate()).padStart(2, '0')</span>
+    const hours = <span class="cstat-no" title="statement not covered" >String(beijingTime.getUTCHours()).padStart(2, '0')</span>
+    const minutes = <span class="cstat-no" title="statement not covered" >String(beijingTime.getUTCMinutes()).padStart(2, '0')</span>
+    const base = <span class="cstat-no" title="statement not covered" >`${year}年${month}月${day}日 ${hours}:${minutes}`</span>
+<span class="cstat-no" title="statement not covered" >    if (!withWeekday) <span class="cstat-no" title="statement not covered" >return base</span></span>
+    const wk = <span class="cstat-no" title="statement not covered" >WEEKDAY_ZH_SHORT[beijingTime.getUTCDay()]</span>
+<span class="cstat-no" title="statement not covered" >    return `${wk} ${base}`</span>
+  } catch (e) {
+<span class="cstat-no" title="statement not covered" >    return ''</span>
+  }
 }
 &nbsp;
-/**
- * 预览单张菜品图（占位图直接忽略）
- * @param {string} url
- */
-function <span class="fstat-no" title="function not covered" >previewSingleDishImage(</span>url) {
-<span class="cstat-no" title="statement not covered" >  if (isDishPlaceholderUrl(url)) <span class="cstat-no" title="statement not covered" >return</span></span>
-<span class="cstat-no" title="statement not covered" >  wx.previewImage({ current: url, urls: [url] })</span>
-}
-&nbsp;
-<span class="cstat-no" title="statement not covered" >module.exports = {</span>
-  DISH_PLACEHOLDER_PATH,
-  isDishPlaceholderUrl,
-  previewSingleDishImage
-}
+<span class="cstat-no" title="statement not covered" >module.exports = { formatMealCreatedAtBeijing }</span>
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->

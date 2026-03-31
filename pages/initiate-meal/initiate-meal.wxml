@@ -57,7 +57,10 @@
       <view class="section section--scroll">
         <!-- 菜品选择 -->
         <view>
-          <text class="initiate-form-section-label">菜品选择</text>
+          <view class="initiate-dish-section-head">
+            <text class="initiate-form-section-label">菜品选择</text>
+            <text class="initiate-form-section-sub">发起点餐后，其他人可以点选所有选中的菜品</text>
+          </view>
 
           <view wx:if="{{dishes.length === 0}}" style="padding: 40rpx 0; text-align: center; color: #999;">
             暂无菜品，请先在首页添加
@@ -65,7 +68,7 @@
 
           <view wx:else>
             <view class="initiate-select-toolbar">
-              <text class="selected-dish-count">已选 {{selectedDishes.length}} 道菜</text>
+              <text class="selected-dish-count">已选 {{selectedDishes.length}} 道菜（菜单共有 {{dishes.length}} 道菜）</text>
               <view class="section-action" bindtap="toggleSelectAll">{{selectAll ? '全不选' : '全选'}}</view>
             </view>
             <view
@@ -123,11 +126,18 @@
     </view>
     <button
       wx:else
-      class="btn btn--footer"
+      class="btn btn--footer btn--footer-initiate"
       bindtap="initiateMeal"
       disabled="{{!selectedMealName || selectedDishes.length === 0}}"
     >
-      确认发起点餐
+      <view class="initiate-footer-btn-inner">
+        <image
+          class="initiate-footer-btn-icon-img"
+          src="/images/icon-start-meal.png"
+          mode="aspectFit"
+        />
+        <text>确认发起点餐</text>
+      </view>
     </button>
   </view>
 </view>

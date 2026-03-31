@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for utils/dish-preview.js</title>
+    <title>Code coverage report for utils/subscribe-meal-order-notify.js</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../prettify.css" />
     <link rel="stylesheet" href="../base.css" />
@@ -19,34 +19,34 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../index.html">All files</a> / <a href="index.html">utils</a> dish-preview.js</h1>
+        <h1><a href="../index.html">All files</a> / <a href="index.html">utils</a> subscribe-meal-order-notify.js</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/15</span>
+                <span class='fraction'>0/8</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/12</span>
+                <span class='fraction'>0/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>0/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>0/8</span>
             </div>
         
             
@@ -84,31 +84,12 @@
 <a name='L19'></a><a href='#L19'>19</a>
 <a name='L20'></a><a href='#L20'>20</a>
 <a name='L21'></a><a href='#L21'>21</a>
-<a name='L22'></a><a href='#L22'>22</a>
-<a name='L23'></a><a href='#L23'>23</a>
-<a name='L24'></a><a href='#L24'>24</a>
-<a name='L25'></a><a href='#L25'>25</a>
-<a name='L26'></a><a href='#L26'>26</a>
-<a name='L27'></a><a href='#L27'>27</a>
-<a name='L28'></a><a href='#L28'>28</a>
-<a name='L29'></a><a href='#L29'>29</a>
-<a name='L30'></a><a href='#L30'>30</a>
-<a name='L31'></a><a href='#L31'>31</a>
-<a name='L32'></a><a href='#L32'>32</a>
-<a name='L33'></a><a href='#L33'>33</a>
-<a name='L34'></a><a href='#L34'>34</a>
-<a name='L35'></a><a href='#L35'>35</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L22'></a><a href='#L22'>22</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -116,54 +97,34 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/**
- * 菜品图预览：占位图不应调用 wx.previewImage（易卡在加载页）
+ * 发起者订阅「有人在我发起的点餐下单」通知（一次性订阅，每次授权可发一条）
  */
+const { MEAL_ORDER_NOTIFY_TMPL_ID } = <span class="cstat-no" title="statement not covered" >require('./subscribe-config.js')</span>
 &nbsp;
-const DISH_PLACEHOLDER_PATH = <span class="cstat-no" title="statement not covered" >'/images/dish-placeholder.png'</span>
-&nbsp;
-/**
- * @param {string|null|undefined} url
- * @returns {boolean}
- */
-function <span class="fstat-no" title="function not covered" >isDishPlaceholderUrl(</span>url) {
-<span class="cstat-no" title="statement not covered" >  if (url == null) <span class="cstat-no" title="statement not covered" >return true</span></span>
-  const s = <span class="cstat-no" title="statement not covered" >String(url).trim()</span>
-<span class="cstat-no" title="statement not covered" >  if (!s) <span class="cstat-no" title="statement not covered" >return true</span></span>
-<span class="cstat-no" title="statement not covered" >  if (s === DISH_PLACEHOLDER_PATH) <span class="cstat-no" title="statement not covered" >return true</span></span>
-  // 兼容带 query、或仅文件名结尾
-<span class="cstat-no" title="statement not covered" >  if (s.endsWith('/dish-placeholder.png') || s.endsWith('dish-placeholder.png')) <span class="cstat-no" title="statement not covered" >return true</span></span>
-<span class="cstat-no" title="statement not covered" >  return false</span>
-}
-&nbsp;
-/**
- * 预览单张菜品图（占位图直接忽略）
- * @param {string} url
- */
-function <span class="fstat-no" title="function not covered" >previewSingleDishImage(</span>url) {
-<span class="cstat-no" title="statement not covered" >  if (isDishPlaceholderUrl(url)) <span class="cstat-no" title="statement not covered" >return</span></span>
-<span class="cstat-no" title="statement not covered" >  wx.previewImage({ current: url, urls: [url] })</span>
+function <span class="fstat-no" title="function not covered" >requestMealOrderNotifySubscribe(</span>) {
+  const id = <span class="cstat-no" title="statement not covered" >(MEAL_ORDER_NOTIFY_TMPL_ID || '').trim()</span>
+<span class="cstat-no" title="statement not covered" >  if (!id) {</span>
+<span class="cstat-no" title="statement not covered" >    return Promise.resolve()</span>
+  }
+<span class="cstat-no" title="statement not covered" >  return new Promise(<span class="fstat-no" title="function not covered" >(r</span>esolve) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    wx.requestSubscribeMessage({</span>
+      tmplIds: [id],
+      complete: <span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >resolve()</span>
+    })
+  })
 }
 &nbsp;
 <span class="cstat-no" title="statement not covered" >module.exports = {</span>
-  DISH_PLACEHOLDER_PATH,
-  isDishPlaceholderUrl,
-  previewSingleDishImage
+  requestMealOrderNotifySubscribe
 }
 &nbsp;</pre></td></tr></table></pre>
 

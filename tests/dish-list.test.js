@@ -22,9 +22,15 @@ describe('菜品列表页面测试', () => {
     expect(wxml).toContain('同时加入菜单（可多选）')
     expect(wxml).toContain('toggleAddDialogMenuPicker')
     expect(wxml).toContain('uncheckAddDialogMenu')
+    expect(wxml).toContain('page-meta')
+    expect(wxml).toContain('overflow: hidden')
     expect(wxml).toContain('class="dialog-scroll"')
     expect(wxml).toContain('form-input--textarea')
     expect(wxml).not.toMatch(/\bauto-height\b/)
+    expect(wxml).toContain('menu-select-dropdown')
+    expect(wxml).toContain('listLoading')
+    expect(wxml).toContain('list-loading-spinner')
+    expect(wxml).toContain('upload-section--edit')
   })
 
   test('JS包含新增字段和上传方法', () => {
@@ -40,5 +46,6 @@ describe('菜品列表页面测试', () => {
     expect(js).toContain('toggleAddDialogMenu')
     expect(js).toContain('toggleAddDialogMenuPicker')
     expect(js).toContain('uncheckAddDialogMenu')
+    expect(js).toContain('listLoading')
   })
 })

@@ -146,7 +146,7 @@
   background: #fff;
   border-radius: 20rpx;
   width: 92vw;
-  max-height: 88vh;
+  max-height: 80vh;
   padding: 24rpx;
   box-sizing: border-box;
   display: flex;
@@ -155,12 +155,12 @@
   overflow: hidden;
 }
 
-/* 弹窗中部可滚动，避免长描述把标题、按钮顶出屏幕（须设明确高度 scroll-y 才稳定） */
+/* 中部随内容增高（不 flex-grow 避免短内容时留白）；总高度达 max-height 后仅此区域滚动 */
 .dialog-scroll {
-  flex: 1;
+  flex: 0 1 auto;
   min-height: 0;
-  height: 58vh;
-  max-height: 58vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
 }
 
@@ -195,8 +195,8 @@
 }
 
 .upload-preview {
-  width: 200rpx;
-  height: 200rpx;
+  width: 168rpx;
+  height: 168rpx;
   border-radius: 12rpx;
   background: #C8E6C9;
   flex-shrink: 0;
@@ -205,17 +205,17 @@
 .upload-actions {
   display: flex;
   flex-direction: column;
-  gap: 12rpx;
+  gap: 10rpx;
   flex: 1;
   min-width: 0;
 }
 
 .upload-actions button {
   margin: 0;
-  padding: 0 16rpx;
-  height: 64rpx;
-  line-height: 64rpx;
-  font-size: 24rpx;
+  padding: 0 12rpx;
+  height: 52rpx;
+  line-height: 52rpx;
+  font-size: 26rpx;
   font-weight: 500;
   border-radius: 10rpx;
   text-align: center;
@@ -233,6 +233,23 @@
 .upload-actions button.btn-danger {
   background: linear-gradient(135deg, #E53935 0%, #FF8A65 100%);
   color: #fff;
+}
+
+/* 编辑菜品：更换/移除图片按钮更窄、更高；与预览图间距更大 */
+.upload-section--edit {
+  gap: 40rpx;
+}
+
+.upload-section--edit .upload-actions {
+  align-items: flex-start;
+}
+
+.upload-section--edit .upload-actions button {
+  width: 62%;
+  max-width: 240rpx;
+  height: 72rpx;
+  line-height: 72rpx;
+  padding: 0 16rpx;
 }
 
 /* 表单输入 */
@@ -418,23 +435,16 @@
   transform: rotate(180deg);
 }
 
+/* 文档流展开，撑高弹窗；整体超出 80vh 时由 .dialog-scroll 滚动 */
 .menu-select-dropdown {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: calc(100% + 8rpx);
-  max-height: 320rpx;
+  margin-top: 8rpx;
+  width: 100%;
   background: #fff;
   border: 1rpx solid #c8e6c9;
   border-radius: 12rpx;
   box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.08);
   z-index: 30;
-  overflow: hidden;
   box-sizing: border-box;
-}
-
-.menu-select-dropdown-scroll {
-  max-height: 320rpx;
 }
 
 .menu-dropdown-row {
@@ -486,4 +496,27 @@
   color: #333;
   flex: 1;
   min-width: 0;
+}
+
+/* 弹窗内下拉里菜单名更大、更易点 */
+.menu-select-dropdown .menu-dropdown-row {
+  padding: 24rpx 20rpx;
+}
+
+.menu-select-dropdown .menu-checkbox-icon {
+  width: 44rpx;
+  height: 44rpx;
+  margin-right: 20rpx;
+}
+
+.menu-select-dropdown .menu-checkbox-icon--checked::after {
+  left: 10rpx;
+  top: 5rpx;
+  width: 12rpx;
+  height: 20rpx;
+}
+
+.menu-select-dropdown .menu-checkbox-text {
+  font-size: 36rpx;
+  line-height: 1.35;
 }

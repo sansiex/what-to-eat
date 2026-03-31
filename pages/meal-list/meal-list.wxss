@@ -152,16 +152,11 @@
   text-align: center;
 }
 
-.history-loading,
 .history-end {
   text-align: center;
   font-size: 26rpx;
-  color: #999;
-  padding: 24rpx 0 32rpx;
-}
-
-.history-end {
   color: #81c784;
+  padding: 24rpx 0 32rpx;
 }
 
 .status-badge {

@@ -23,6 +23,9 @@ const error = (message, code) => response?.error(message, code) || { code: code 
 const paramError = (message) => response?.paramError(message) || { code: 400, message, data: null, success: false };
 const notFound = (message) => response?.notFound(message) || { code: 404, message, data: null, success: false };
 
+/** 厨房管理员（不含主人）人数上限 */
+const MAX_KITCHEN_ADMINS = 3;
+
 exports.main = async (event, context) => {
   if (loadError) {
     return {
@@ -493,6 +496,15 @@ async function generateInvite(data, context) {
   );
   if (ownership.length === 0) return error('只有厨房主人可以邀请管理员');
 
+  const adminCountRow = await query(
+    'SELECT COUNT(*) as count FROM wte_kitchen_members WHERE kitchen_id = ? AND role = ? AND status = 1',
+    [kitchenId, 'admin']
+  );
+  const adminCount = Number(adminCountRow[0].count) || 0;
+  if (adminCount >= MAX_KITCHEN_ADMINS) {
+    return error('管理员数量已达到上限，无法继续邀请管理员。');
+  }
+
   // Reuse existing valid token if available
   const existing = await query(
     'SELECT token FROM wte_kitchen_invites WHERE kitchen_id = ? AND user_id = ? AND status = 1 AND expires_at > NOW()',
@@ -566,11 +578,13 @@ async function getInviteInfo(data, context) {
     [invite[0].kitchen_id, 'admin']
   );
 
+  const ac = Number(adminCount[0].count) || 0;
   return success({
     kitchenId: invite[0].kitchen_id,
     kitchenName: invite[0].kitchen_name,
     ownerName: invite[0].owner_name,
-    adminCount: adminCount[0].count,
+    adminCount: ac,
+    adminLimitReached: ac >= MAX_KITCHEN_ADMINS,
     isAlreadyMember: membership.length > 0,
     memberRole: membership.length > 0 ? membership[0].role : null
   });
@@ -609,12 +623,26 @@ async function acceptInvite(data, context) {
     if (existing[0].status === 1) {
       return success({ kitchenId, kitchenName: invite[0].kitchen_name }, '你已经是该厨房的成员');
     }
+    const adminCountRow = await query(
+      'SELECT COUNT(*) as count FROM wte_kitchen_members WHERE kitchen_id = ? AND role = ? AND status = 1',
+      [kitchenId, 'admin']
+    );
+    if (Number(adminCountRow[0].count) >= MAX_KITCHEN_ADMINS) {
+      return error('您要加入的厨房管理员数量已达到上限，无法继续增加管理员。您可以进入自己的厨房。', 403);
+    }
     // Re-activate previously removed member
     await query(
       "UPDATE wte_kitchen_members SET status = 1, role = 'admin', invited_by = ? WHERE id = ?",
       [invite[0].inviter_id, existing[0].id]
     );
   } else {
+    const adminCountRow = await query(
+      'SELECT COUNT(*) as count FROM wte_kitchen_members WHERE kitchen_id = ? AND role = ? AND status = 1',
+      [kitchenId, 'admin']
+    );
+    if (Number(adminCountRow[0].count) >= MAX_KITCHEN_ADMINS) {
+      return error('您要加入的厨房管理员数量已达到上限，无法继续增加管理员。您可以进入自己的厨房。', 403);
+    }
     await query(
       `INSERT INTO wte_kitchen_members (kitchen_id, user_id, role, invited_by, status)
        VALUES (?, ?, 'admin', ?, 1)`,

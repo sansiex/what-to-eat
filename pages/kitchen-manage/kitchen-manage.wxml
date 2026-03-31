@@ -47,7 +47,11 @@
       >+ 邀请管理员</button>
     </view>
 
-    <view wx:if="{{members.length === 0}}" class="empty-state empty-state--admin-intro">
+    <view wx:if="{{membersLoading}}" class="list-loading list-loading--compact">
+      <view class="list-loading-spinner list-loading-spinner--sm" />
+      <text class="list-loading-text">加载中...</text>
+    </view>
+    <view wx:elif="{{members.length === 0}}" class="empty-state empty-state--admin-intro">
       <text wx:if="{{isOwner}}">管理员可以协助厨房主人一起管理厨房，参与制定菜单，发起点餐等工作。邀请一位试试吧~</text>
       <text wx:else>管理员可以协助厨房主人一起管理厨房，参与制定菜单，发起点餐等工作。当前暂无管理员。</text>
     </view>

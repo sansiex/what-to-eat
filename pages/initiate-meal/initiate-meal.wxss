@@ -48,6 +48,20 @@ page {
   margin-bottom: 12rpx;
 }
 
+/* 菜品选择：主标题下的说明（小一号、常规字重） */
+.initiate-dish-section-head .initiate-form-section-label {
+  margin-bottom: 8rpx;
+}
+
+.initiate-form-section-sub {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 400;
+  color: #888;
+  line-height: 1.45;
+  margin-bottom: 12rpx;
+}
+
 /* 用餐时间：与餐名、菜品选择同级，不再单独套一层色块框 */
 .meal-schedule-section {
   margin-bottom: 24rpx;
@@ -175,6 +189,33 @@ page {
   box-shadow: none;
 }
 
+/* 确认发起点餐：与「完成」同为绿底 + 图标 */
+.initiate-meal-footer .btn--footer-initiate {
+  margin-top: 0;
+  background: linear-gradient(135deg, #66bb6a 0%, #81c784 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 4rpx 14rpx rgba(76, 175, 80, 0.28);
+}
+
+.initiate-meal-footer .btn--footer-initiate::after {
+  border: none;
+}
+
+.initiate-meal-footer .btn--footer-initiate[disabled] {
+  background: #c8e6c9 !important;
+  color: #999 !important;
+  box-shadow: none;
+}
+
+.initiate-meal-footer .btn--footer-initiate[disabled] .initiate-footer-btn-icon-img {
+  opacity: 0.45;
+}
+
+.initiate-footer-btn-icon-img {
+  width: 40rpx;
+  height: 40rpx;
+  flex-shrink: 0;
+}
 
 .btn {
   background: linear-gradient(135deg, #66BB6A 0%, #81C784 100%);

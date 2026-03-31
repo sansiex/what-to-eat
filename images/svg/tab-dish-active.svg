@@ -1,7 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
-  <!-- 菜品图标激活状态 -->
-  <circle cx="24" cy="20" r="10" fill="#4CAF50" stroke="#4CAF50" stroke-width="3"/>
-  <path d="M18 30 L16 40" stroke="#4CAF50" stroke-width="3" stroke-linecap="round"/>
-  <path d="M30 30 L32 40" stroke="#4CAF50" stroke-width="3" stroke-linecap="round"/>
-  <path d="M20 40 L28 40" stroke="#4CAF50" stroke-width="3" stroke-linecap="round"/>
+  <!-- 俯视餐盘 + 菜肴；放大以接近「制作新菜单」图标的视觉占比 -->
+  <g transform="translate(24 24) scale(1.34) translate(-24 -24)">
+    <ellipse cx="24" cy="31" rx="17" ry="6.5" fill="#E8F5E9" stroke="#43A047" stroke-width="1.8"/>
+    <ellipse cx="24" cy="29.5" rx="14" ry="5" fill="#C8E6C9"/>
+    <ellipse cx="24" cy="25" rx="9" ry="6" fill="#66BB6A"/>
+    <ellipse cx="22" cy="23.5" rx="4" ry="3" fill="#81C784"/>
+    <ellipse cx="27" cy="24" rx="3.5" ry="2.5" fill="#4CAF50"/>
+    <circle cx="19" cy="22" r="2.2" fill="#FF8A65"/>
+    <circle cx="29" cy="21.5" r="1.8" fill="#FFD54F"/>
+    <ellipse cx="24" cy="30.5" rx="12" ry="3" fill="none" stroke="#A5D6A7" stroke-width="0.8" opacity="0.55"/>
+  </g>
 </svg>

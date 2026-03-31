@@ -25,14 +25,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/117</span>
+                <span class='fraction'>0/123</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/82</span>
+                <span class='fraction'>0/89</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/109</span>
+                <span class='fraction'>0/115</span>
             </div>
         
             
@@ -301,7 +301,19 @@
 <a name='L236'></a><a href='#L236'>236</a>
 <a name='L237'></a><a href='#L237'>237</a>
 <a name='L238'></a><a href='#L238'>238</a>
-<a name='L239'></a><a href='#L239'>239</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L239'></a><a href='#L239'>239</a>
+<a name='L240'></a><a href='#L240'>240</a>
+<a name='L241'></a><a href='#L241'>241</a>
+<a name='L242'></a><a href='#L242'>242</a>
+<a name='L243'></a><a href='#L243'>243</a>
+<a name='L244'></a><a href='#L244'>244</a>
+<a name='L245'></a><a href='#L245'>245</a>
+<a name='L246'></a><a href='#L246'>246</a>
+<a name='L247'></a><a href='#L247'>247</a>
+<a name='L248'></a><a href='#L248'>248</a>
+<a name='L249'></a><a href='#L249'>249</a>
+<a name='L250'></a><a href='#L250'>250</a>
+<a name='L251'></a><a href='#L251'>251</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -320,6 +332,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -449,13 +462,17 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -466,7 +483,14 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -554,6 +578,7 @@ const { API } = <span class="cstat-no" title="statement not covered" >require('.
     /** 管理员时展示：「主人昵称 的厨房」，与 panel__owner 一致 */
     kitchenMetaSubtitle: '',
     members: [],
+    membersLoading: false,
     inviteToken: ''
   },
 &nbsp;
@@ -683,6 +708,7 @@ const { API } = <span class="cstat-no" title="statement not covered" >require('.
   },
 &nbsp;
 <span class="fstat-no" title="function not covered" >  as</span>ync loadMembers() {
+<span class="cstat-no" title="statement not covered" >    this.setData({ membersLoading: true })</span>
 <span class="cstat-no" title="statement not covered" >    try {</span>
       const result = <span class="cstat-no" title="statement not covered" >await API.kitchen.listMembers(this.data.kitchenId)</span>
 <span class="cstat-no" title="statement not covered" >      if (result.success) {</span>
@@ -690,10 +716,13 @@ const { API } = <span class="cstat-no" title="statement not covered" >require('.
           ...m,
           joinedAt: this.formatBeijingTime(m.joinedAt)
         }))
-<span class="cstat-no" title="statement not covered" >        this.setData({ members: list })</span>
+<span class="cstat-no" title="statement not covered" >        this.setData({ members: list, membersLoading: false })</span>
+      } else {
+<span class="cstat-no" title="statement not covered" >        this.setData({ membersLoading: false })</span>
       }
     } catch (err) {
 <span class="cstat-no" title="statement not covered" >      console.error('加载成员列表失败:', err)</span>
+<span class="cstat-no" title="statement not covered" >      this.setData({ membersLoading: false })</span>
     }
   },
 &nbsp;
@@ -705,6 +734,13 @@ const { API } = <span class="cstat-no" title="statement not covered" >require('.
       }
     } catch (err) {
 <span class="cstat-no" title="statement not covered" >      console.warn('预生成邀请令牌失败:', err)</span>
+      const msg = <span class="cstat-no" title="statement not covered" >(err &amp;&amp; err.message) || ''</span>
+<span class="cstat-no" title="statement not covered" >      if (msg.indexOf('管理员数量') &gt;= 0 || msg.indexOf('上限') &gt;= 0) {</span>
+<span class="cstat-no" title="statement not covered" >        wx.showModal({</span>
+          content: '管理员数量已达到上限，无法继续邀请管理员。',
+          showCancel: false
+        })
+      }
     }
   },
 &nbsp;
@@ -784,7 +820,7 @@ const { API } = <span class="cstat-no" title="statement not covered" >require('.
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-23T18:14:25.065Z
+                at 2026-03-31T06:30:42.276Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

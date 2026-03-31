@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS `wte_meals` (
     `scheduled_at` DATETIME NULL DEFAULT NULL COMMENT '计划用餐日期时间（北京时间）',
     `scheduled_time_specified` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否指定具体时刻：1-是，0-仅日期（scheduled_at 为当日 00:00:00）',
     `status` TINYINT UNSIGNED NOT NULL DEFAULT '1' COMMENT '点餐状态：1-点餐中，2-已收单',
+    `participant_user_ids` JSON NULL COMMENT '参与点餐用户ID JSON 数组（不含厨房主人/管理员，去重后计 15 人上限）',
     
     -- 时间戳字段
     `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',

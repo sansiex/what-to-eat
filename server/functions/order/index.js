@@ -7,6 +7,10 @@ const cloud = require('wx-server-sdk');
 const { query, transaction, getUserId } = require('./utils/db');
 const { success, error, paramError, notFound } = require('./utils/response');
 const { notifyMealCreatorOnNewOrder } = require('./utils/subscribe-notify');
+const {
+  assertParticipantSlotForOrder,
+  insertParticipantIfNeeded
+} = require('./utils/meal-participants');
 
 try {
   cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
@@ -124,7 +128,9 @@ async function createOrder(data, context) {
     if (validDishes.length !== dishIds.length) {
       throw new Error('部分菜品不在该点餐活动中');
     }
-    
+
+    await assertParticipantSlotForOrder(connection, mealId, userId);
+
     const [prevRows] = await connection.query(
       'SELECT dish_id, tags FROM wte_orders WHERE meal_id = ? AND user_id = ? AND status = 1',
       [mealId, userId]
@@ -163,7 +169,9 @@ async function createOrder(data, context) {
       );
       orderIds.push(result.insertId);
     }
-    
+
+    await insertParticipantIfNeeded(connection, mealId, userId);
+
     // 返回订单信息
     const [orders] = await connection.query(
       `SELECT o.id, o.dish_id, d.name as dish_name, o.created_at
@@ -172,7 +180,7 @@ async function createOrder(data, context) {
        WHERE o.id IN (${orderIds.map(() => '?').join(',')})`,
       orderIds
     );
-    
+
     return success({
       mealId,
       orders: orders.map(order => ({
@@ -475,6 +483,8 @@ async function createAnonymousOrder(data, context) {
       userId = existingUser[0].id;
     }
 
+    await assertParticipantSlotForOrder(connection, mealId, userId);
+
     const [prevRowsAnon] = await connection.query(
       'SELECT dish_id, tags FROM wte_orders WHERE meal_id = ? AND user_id = ? AND status = 1',
       [mealId, userId]
@@ -501,6 +511,8 @@ async function createAnonymousOrder(data, context) {
       );
       orderIds.push(result.insertId);
     }
+
+    await insertParticipantIfNeeded(connection, mealId, userId);
 
     return success({
       orderId: orderIds[0],

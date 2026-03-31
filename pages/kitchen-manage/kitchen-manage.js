@@ -13,6 +13,7 @@ Page({
     /** 管理员时展示：「主人昵称 的厨房」，与 panel__owner 一致 */
     kitchenMetaSubtitle: '',
     members: [],
+    membersLoading: false,
     inviteToken: ''
   },
 
@@ -142,6 +143,7 @@ Page({
   },
 
   async loadMembers() {
+    this.setData({ membersLoading: true })
     try {
       const result = await API.kitchen.listMembers(this.data.kitchenId)
       if (result.success) {
@@ -149,10 +151,13 @@ Page({
           ...m,
           joinedAt: this.formatBeijingTime(m.joinedAt)
         }))
-        this.setData({ members: list })
+        this.setData({ members: list, membersLoading: false })
+      } else {
+        this.setData({ membersLoading: false })
       }
     } catch (err) {
       console.error('加载成员列表失败:', err)
+      this.setData({ membersLoading: false })
     }
   },
 
@@ -164,6 +169,13 @@ Page({
       }
     } catch (err) {
       console.warn('预生成邀请令牌失败:', err)
+      const msg = (err && err.message) || ''
+      if (msg.indexOf('管理员数量') >= 0 || msg.indexOf('上限') >= 0) {
+        wx.showModal({
+          content: '管理员数量已达到上限，无法继续邀请管理员。',
+          showCancel: false
+        })
+      }
     }
   },
 

@@ -202,16 +202,19 @@ describe('菜单编辑页面测试', () => {
       expect(wxml).toContain('checkbox');
       expect(wxml).toContain('dish-item-check');
       expect(wxml).toContain('搜索菜品');
-      expect(wxml).toContain('dish-tabs');
-      expect(wxml).toContain('switchDishTab');
-      expect(wxml).toContain('在菜单中');
-      expect(wxml).toContain('不在菜单中');
-      expect(wxml).toContain('dishTab === \'in\'');
-      expect(wxml).toContain('dishTab === \'out\'');
-      expect(wxml).toContain('toggleSelectAllInMenu');
-      expect(wxml).toContain('toggleSelectAllNotInMenu');
-      expect(wxml).toContain('inMenuAllSelected');
-      expect(wxml).toContain('notInMenuAllSelected');
+      expect(wxml).toContain('menu-edit-hint-row');
+      expect(wxml).toContain('menu-edit-dish-hint');
+      expect(wxml).toContain('勾选需要加入菜单的菜品（已勾选 {{selectedDishIds.length}}）');
+      expect(wxml).toContain('toggleSelectAllFiltered');
+      expect(wxml).toContain('listAllSelected');
+      expect(wxml).toContain('filteredDishes');
+      expect(wxml).toContain('allDishes.length === 0');
+      expect(wxml).toContain('没有找到匹配的菜品');
+      expect(wxml).toContain('制作菜单');
+      expect(wxml).toContain('完成制作');
+      expect(wxml).toContain('menu-edit-submit-inner');
+      expect(wxml).toContain('success_no_circle');
+      expect(wxml).toContain('#FFFFFF');
     });
 
     test('验证JS包含必要方法', () => {
@@ -222,13 +225,11 @@ describe('菜单编辑页面测试', () => {
       expect(js).toContain('kitchenIdForDishes');
       expect(js).toContain('normalizeDishId');
       expect(js).toContain('toggleDishSelection');
-      expect(js).toContain('toggleSelectAllInMenu');
-      expect(js).toContain('toggleSelectAllNotInMenu');
       expect(js).toContain('showAddDishDialog');
       expect(js).toContain('confirmAddDish');
       expect(js).toContain('saveMenu');
-      expect(js).toContain('switchDishTab');
-      expect(js).toContain("dishTab: 'in'");
+      expect(js).toContain('toggleSelectAllFiltered');
+      expect(js).toContain('listAllSelected');
     });
 
     test('验证WXSS勾选框在右侧样式', () => {

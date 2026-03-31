@@ -198,12 +198,18 @@ describe('菜单列表页面测试', () => {
       const fs = require('fs');
       const wxml = fs.readFileSync('pages/menu-list/menu-list.wxml', 'utf-8');
 
-      expect(wxml).toContain('创建新菜单');
+      expect(wxml).toContain('制作新菜单');
+      expect(wxml).toContain('menu-top-card__icon');
+      expect(wxml).toContain('tab-menu-active.png');
+      expect(wxml).toContain('tab-dish-active.png');
+      expect(wxml).toContain('menu-list-empty-hint');
       expect(wxml).toContain('菜品');
       expect(wxml).toContain('goDishList');
       expect(wxml).toContain('menu-top-row');
       expect(wxml).toContain('editMenu');
       expect(wxml).toContain('goInitiateMeal');
+      expect(wxml).toContain('listLoading');
+      expect(wxml).toContain('list-loading-spinner');
     });
 
     test('验证JS包含必要方法', () => {
@@ -215,6 +221,7 @@ describe('菜单列表页面测试', () => {
       expect(js).toContain('goDishList');
       expect(js).toContain('editMenu');
       expect(js).toContain('goInitiateMeal');
+      expect(js).toContain('listLoading');
     });
   });
 });
